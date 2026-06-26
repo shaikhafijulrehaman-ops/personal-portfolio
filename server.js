@@ -1496,7 +1496,9 @@ app.get('*', (req, res) => {
 
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/portfolio';
 
-mongoose.connect(MONGO_URI)
+mongoose.connect(MONGO_URI, {
+    serverSelectionTimeoutMS: 5000
+})
     .then(async () => {
         console.log("Connected to MongoDB successfully!");
         
