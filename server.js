@@ -31,7 +31,7 @@ app.use(cors());
 app.use(express.json());
 
 // Serve static project files
-app.use(express.static(path.join(__dirname)));
+app.use(express.static(path.join(__dirname, 'public')));
 // Serve uploads folder statically
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
@@ -913,7 +913,7 @@ app.post('/api/resume/upload', authenticateToken, upload.single('file'), async (
 
 // UXI Startup Page Route
 app.get('/uxi', (req, res) => {
-    res.sendFile(path.join(__dirname, 'uxi.html'));
+    res.sendFile(path.join(__dirname, 'public', 'uxi.html'));
 });
 
 // ==========================================
@@ -1487,7 +1487,7 @@ app.delete('/api/uxi/projects/:id', authenticateToken, async (req, res) => {
 
 // Catch-all route to serve portfolio index.html
 app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // ==========================================
