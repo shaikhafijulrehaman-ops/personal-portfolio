@@ -1,0 +1,3295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard | Shaik Hafijulrehaman Portfolio</title>
+    
+    <!-- Dynamic Favicon -->
+    <link id="dynamic-favicon" rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%230f172a'/%3E%3Ctext y='.78em' x='50%25' font-size='60' text-anchor='middle'%3E⚙️%3C/text%3E%3C/svg%3E">
+    <script>
+        fetch('/api/settings')
+            .then(res => res.json())
+            .then(data => {
+                if (data.admin_favicon_url) {
+                    document.getElementById('dynamic-favicon').href = data.admin_favicon_url;
+                }
+            })
+            .catch(err => console.error('Error loading admin favicon:', err));
+    </script>
+
+    <!-- CSS Stylesheets -->
+    <link rel="stylesheet" href="admin.css">
+    
+    <!-- CDN Libraries -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h2><span>admin</span>panel</h2>
+        </div>
+        <ul class="sidebar-menu">
+            <li class="active" data-module="dashboard"><a href="#dashboard"><i class="fa-solid fa-gauge"></i> Dashboard</a></li>
+            <li data-module="hero"><a href="#hero"><i class="fa-solid fa-house"></i> Hero Section</a></li>
+            <li data-module="about"><a href="#about"><i class="fa-solid fa-user"></i> About Me</a></li>
+            <li data-module="skills"><a href="#skills"><i class="fa-solid fa-list-check"></i> Skills</a></li>
+            <li data-module="projects"><a href="#projects"><i class="fa-solid fa-briefcase"></i> Projects</a></li>
+            <li data-module="timeline"><a href="#timeline"><i class="fa-solid fa-timeline"></i> Timeline</a></li>
+            <li data-module="certifications"><a href="#certifications"><i class="fa-solid fa-award"></i> Certifications</a></li>
+            <li data-module="contact"><a href="#contact"><i class="fa-solid fa-address-book"></i> Contact Settings</a></li>
+            <li data-module="seo"><a href="#seo"><i class="fa-solid fa-globe"></i> SEO Settings</a></li>
+            <li data-module="media"><a href="#media"><i class="fa-solid fa-images"></i> Media Manager</a></li>
+            <li data-module="resume"><a href="#resume"><i class="fa-solid fa-file-pdf"></i> Resume Settings</a></li>
+            <li data-module="uxi"><a href="#uxi"><i class="fa-solid fa-rocket"></i> UXI Startup</a></li>
+            <li data-module="settings"><a href="#settings"><i class="fa-solid fa-sliders"></i> Website Settings</a></li>
+        </ul>
+        <div class="sidebar-footer">
+            <button class="btn-logout" id="btn-logout"><i class="fa-solid fa-right-from-bracket"></i> Sign Out</button>
+        </div>
+    </aside>
+
+    <!-- Main Panel -->
+    <main class="main-panel">
+        
+        <!-- Header -->
+        <header class="panel-header">
+            <div>
+                <h1 id="module-title">Dashboard</h1>
+                <p id="module-subtitle">Overview of your portfolio metrics and database entries.</p>
+            </div>
+            <a href="index.html" class="btn-secondary" target="_blank"><i class="fa-solid fa-eye"></i> View Live Site</a>
+        </header>
+
+        <!-- Container for Toast Alerts -->
+        <div class="toast-container" id="toast-container"></div>
+
+        <!-- ========================================================
+             MODULE: Dashboard (Overview)
+             ======================================================== -->
+        <section id="module-dashboard" class="dashboard-module active">
+            <!-- Stats Grid -->
+            <div class="stats-grid">
+                <div class="admin-card stat-card">
+                    <div class="stat-icon"><i class="fa-solid fa-briefcase"></i></div>
+                    <div class="stat-info">
+                        <h3 id="stat-projects">-</h3>
+                        <p>Total Projects</p>
+                    </div>
+                </div>
+                <div class="admin-card stat-card">
+                    <div class="stat-icon"><i class="fa-solid fa-list-check"></i></div>
+                    <div class="stat-info">
+                        <h3 id="stat-skills">-</h3>
+                        <p>Active Skills</p>
+                    </div>
+                </div>
+                <div class="admin-card stat-card">
+                    <div class="stat-icon"><i class="fa-solid fa-award"></i></div>
+                    <div class="stat-info">
+                        <h3 id="stat-certificates">-</h3>
+                        <p>Certifications</p>
+                    </div>
+                </div>
+                <div class="admin-card stat-card">
+                    <div class="stat-icon"><i class="fa-solid fa-timeline"></i></div>
+                    <div class="stat-info">
+                        <h3 id="stat-timeline">-</h3>
+                        <p>Timeline Entries</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="admin-card">
+                <h2 style="font-family: 'Orbitron', sans-serif; margin-bottom: 20px;">System Status</h2>
+                <div style="display: flex; flex-direction: column; gap: 15px;">
+                    <p style="margin: 0; color: var(--text-muted);">Database Connection: <strong id="db-conn-status" style="color: var(--success);"><i class="fa-solid fa-circle-check"></i> Active (MongoDB)</strong></p>
+                    <p style="margin: 0; color: var(--text-muted);">Admin Session: <strong style="color: var(--accent);"><i class="fa-solid fa-user-lock"></i> Logged In</strong></p>
+                    <p style="margin: 0; color: var(--text-muted);">GitHub Sync Status: <strong style="color: var(--success);"><i class="fa-brands fa-github"></i> Synced</strong></p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================================
+             MODULE: Hero Settings
+             ======================================================== -->
+        <section id="module-hero" class="dashboard-module">
+            <div class="admin-card">
+                <form id="hero-form">
+                    <div class="form-grid">
+                        <div class="form-group full-width">
+                            <label for="hero-name">Full Name</label>
+                            <input type="text" id="hero-name" required oninput="updateHeroLivePreview()">
+                        </div>
+                        <div class="form-group full-width">
+                            <label for="hero-tagline">Taglines (Vertical Bullet List / Rotating Tags, separated by |)</label>
+                            <input type="text" id="hero-tagline" required>
+                        </div>
+                        <div class="form-group full-width">
+                            <label for="hero-description">Hero Bio / Description</label>
+                            <textarea id="hero-description" rows="4" required oninput="updateHeroLivePreview()"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Profile Image (Hero Avatar)</label>
+                            <div class="image-selector-widget" data-target="hero-avatar">
+                                <div class="selector-preview-container" id="hero-avatar-preview">
+                                    <i class="fa-solid fa-image"></i>
+                                </div>
+                                <div class="selector-actions">
+                                    <button type="button" class="btn-select" onclick="openMediaPicker('hero-avatar')"><i class="fa-solid fa-photo-film"></i> Select Image</button>
+                                    <button type="button" class="btn-remove" onclick="removeSelectedImage('hero-avatar')"><i class="fa-solid fa-trash-can"></i> Remove</button>
+                                    <div class="selector-info" id="hero-avatar-info">No image selected</div>
+                                </div>
+                                <input type="hidden" id="hero-avatar">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="hero-bg-type">Background Type</label>
+                            <select id="hero-bg-type" onchange="toggleHeroBgTypeFields()">
+                                <option value="image">Image Backdrop</option>
+                                <option value="video">Video Backdrop</option>
+                            </select>
+                        </div>
+                        <div class="form-group" id="hero-bg-image-group">
+                            <label>Hero Background Image</label>
+                            <div class="image-selector-widget" data-target="hero-bg">
+                                <div class="selector-preview-container" id="hero-bg-preview">
+                                    <i class="fa-solid fa-image"></i>
+                                </div>
+                                <div class="selector-actions">
+                                    <button type="button" class="btn-select" onclick="openMediaPicker('hero-bg')"><i class="fa-solid fa-photo-film"></i> Select Image</button>
+                                    <button type="button" class="btn-remove" onclick="removeSelectedImage('hero-bg')"><i class="fa-solid fa-trash-can"></i> Remove</button>
+                                    <div class="selector-info" id="hero-bg-info">No image selected</div>
+                                </div>
+                                <input type="hidden" id="hero-bg">
+                            </div>
+                        </div>
+                        <div class="form-group" id="hero-bg-video-group" style="display:none;">
+                            <label>Hero Background Video</label>
+                            <div class="image-selector-widget" data-target="hero-video">
+                                <div class="selector-preview-container" id="hero-video-preview">
+                                    <i class="fa-solid fa-file-video"></i>
+                                </div>
+                                <div class="selector-actions">
+                                    <button type="button" class="btn-select" onclick="openMediaPicker('hero-video')"><i class="fa-solid fa-photo-film"></i> Select Video</button>
+                                    <button type="button" class="btn-remove" onclick="removeSelectedImage('hero-video')"><i class="fa-solid fa-trash-can"></i> Remove</button>
+                                    <div class="selector-info" id="hero-video-info">No video selected</div>
+                                </div>
+                                <input type="hidden" id="hero-video">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="hero-overlay-color">Overlay Color</label>
+                            <div style="display:flex; gap:10px; align-items:center;">
+                                <input type="color" id="hero-overlay-color" value="#000000" style="width:50px; height:38px; padding:0; border:1px solid var(--border); border-radius:4px; cursor:pointer;" oninput="syncColorPickerVal()">
+                                <input type="text" id="hero-overlay-color-hex" value="#000000" style="flex:1;" placeholder="#000000" oninput="syncColorPickerHex()">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="hero-overlay-opacity">Overlay Opacity</label>
+                            <select id="hero-overlay-opacity" onchange="handleOverlayOpacityChange()">
+                                <option value="0.0">None (0.0)</option>
+                                <option value="0.25">Light (0.25)</option>
+                                <option value="0.5" selected>Medium (0.50)</option>
+                                <option value="0.75">Dark (0.75)</option>
+                                <option value="custom">Custom Slider</option>
+                            </select>
+                            <div id="hero-overlay-opacity-slider-group" style="margin-top:10px; display:none;">
+                                <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+                                    <span style="font-size:12px; color:var(--text-muted);">Opacity Level:</span>
+                                    <span id="hero-overlay-opacity-val" style="font-size:12px; font-weight:bold;">50%</span>
+                                </div>
+                                <input type="range" id="hero-overlay-opacity-range" min="0" max="1" step="0.05" value="0.5" oninput="updateHeroLivePreview()">
+                            </div>
+                        </div>
+                        <div class="form-group full-width">
+                            <label style="margin-bottom:15px; display:block;">Filters & Backdrop Adjustments</label>
+                            <div class="form-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:15px; width:100%;">
+                                <div>
+                                    <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+                                        <span style="font-size:13px;">Brightness</span>
+                                        <span id="hero-brightness-val" style="font-size:12px; font-weight:bold;">100%</span>
+                                    </div>
+                                    <input type="range" id="hero-brightness" min="0" max="200" step="5" value="100" style="width:100%;" oninput="updateHeroLivePreview()">
+                                </div>
+                                <div>
+                                    <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+                                        <span style="font-size:13px;">Contrast</span>
+                                        <span id="hero-contrast-val" style="font-size:12px; font-weight:bold;">100%</span>
+                                    </div>
+                                    <input type="range" id="hero-contrast" min="0" max="200" step="5" value="100" style="width:100%;" oninput="updateHeroLivePreview()">
+                                </div>
+                                <div>
+                                    <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+                                        <span style="font-size:13px;">Blur Strength</span>
+                                        <span id="hero-blur-val" style="font-size:12px; font-weight:bold;">0px</span>
+                                    </div>
+                                    <input type="range" id="hero-blur" min="0" max="20" step="1" value="0" style="width:100%;" oninput="updateHeroLivePreview()">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group full-width">
+                            <label style="margin-bottom:10px; display:block;">Live Backdrop Preview</label>
+                            <div id="hero-live-preview-container" style="position:relative; width:100%; height:200px; border-radius:8px; overflow:hidden; background:#eee; display:flex; align-items:center; justify-content:center; border: 1px solid var(--border);">
+                                <div id="hero-preview-backdrop" style="position:absolute; top:0; left:0; width:100%; height:100%; z-index:1;"></div>
+                                <div id="hero-preview-overlay" style="position:absolute; top:0; left:0; width:100%; height:100%; z-index:2;"></div>
+                                <div style="position:relative; z-index:3; text-align:center; color:#fff; text-shadow:0 2px 4px rgba(0,0,0,0.8); padding:20px;">
+                                    <h3 id="hero-preview-title" style="margin:0 0 5px 0; font-size:1.4rem;">John Doe</h3>
+                                    <p id="hero-preview-desc" style="margin:0; font-size:0.9rem; opacity:0.9; max-width:400px; overflow:hidden; text-overflow:ellipsis; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;">Web Developer</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn-primary"><i class="fa-solid fa-floppy-disk"></i> Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </section>
+
+        <!-- ========================================================
+             MODULE: About Me
+             ======================================================== -->
+        <section id="module-about" class="dashboard-module">
+            <div class="admin-card">
+                <form id="about-form">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="about-title">Section Title</label>
+                            <input type="text" id="about-title" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="about-college">DVR & Dr. HS MIC College of Technology</label>
+                            <input type="text" id="about-college" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="about-degree">Degree (e.g. B.Tech)</label>
+                            <input type="text" id="about-degree" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="about-year">Current Academic Year</label>
+                            <input type="text" id="about-year" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="about-cgpa">Current CGPA</label>
+                            <input type="number" id="about-cgpa" step="0.01" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="about-location">Location</label>
+                            <input type="text" id="about-location" required>
+                        </div>
+                        <div class="form-group">
+                            <label>About Profile Image</label>
+                            <div class="image-selector-widget" data-target="about-image">
+                                <div class="selector-preview-container" id="about-image-preview">
+                                    <i class="fa-solid fa-image"></i>
+                                </div>
+                                <div class="selector-actions">
+                                    <button type="button" class="btn-select" onclick="openMediaPicker('about-image')"><i class="fa-solid fa-photo-film"></i> Select Image</button>
+                                    <button type="button" class="btn-remove" onclick="removeSelectedImage('about-image')"><i class="fa-solid fa-trash-can"></i> Remove</button>
+                                    <div class="selector-info" id="about-image-info">No image selected</div>
+                                </div>
+                                <input type="hidden" id="about-image">
+                            </div>
+                        </div>
+                        <div class="form-group full-width">
+                            <label for="about-description">About Description Paragraphs</label>
+                            <textarea id="about-description" rows="5" required></textarea>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn-primary"><i class="fa-solid fa-floppy-disk"></i> Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </section>
+
+        <!-- ========================================================
+             MODULE: Skills Management (CRUD)
+             ======================================================== -->
+        <section id="module-skills" class="dashboard-module">
+            <div class="admin-card" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+                <h3 style="font-family: 'Orbitron', sans-serif;">Manage Skills</h3>
+                <button class="btn-primary" onclick="openSkillModal()"><i class="fa-solid fa-plus"></i> Add New Skill</button>
+            </div>
+            
+            <div class="admin-card">
+                <div class="table-responsive">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th width="60"></th>
+                                <th>Name</th>
+                                <th>Category</th>
+                                <th>Icon Class</th>
+                                <th>Icon Color</th>
+                                <th>Visibility</th>
+                                <th width="100">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="skills-table-body">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================================
+             MODULE: Projects Management (CRUD)
+             ======================================================== -->
+        <section id="module-projects" class="dashboard-module">
+            <div class="admin-card" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+                <h3 style="font-family: 'Orbitron', sans-serif;">Manage Projects</h3>
+                <button class="btn-primary" onclick="openProjectModal()"><i class="fa-solid fa-plus"></i> Add New Project</button>
+            </div>
+
+            <div class="admin-card" style="margin-bottom: 25px;">
+                <h4 style="font-family: 'Orbitron', sans-serif; margin-bottom: 15px; color: var(--accent);">1. Completed Projects</h4>
+                <div class="table-responsive">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th width="40">Sort</th>
+                                <th>Name</th>
+                                <th>Short Description</th>
+                                <th>Tech Stack</th>
+                                <th>Featured</th>
+                                <th width="100">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="completed-projects-table-body">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="admin-card">
+                <h4 style="font-family: 'Orbitron', sans-serif; margin-bottom: 15px; color: var(--text-muted);">2. Upcoming Projects</h4>
+                <div class="table-responsive">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th width="40">Sort</th>
+                                <th>Name</th>
+                                <th>Short Description</th>
+                                <th>Tech Stack</th>
+                                <th>Stage</th>
+                                <th>Progress</th>
+                                <th>Coming Soon</th>
+                                <th width="100">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="upcoming-projects-table-body">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================================
+             MODULE: Timeline Entries (CRUD)
+             ======================================================== -->
+        <section id="module-timeline" class="dashboard-module">
+            <div class="admin-card" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+                <h3 style="font-family: 'Orbitron', sans-serif;">Manage Timeline Entries</h3>
+                <button class="btn-primary" onclick="openTimelineModal()"><i class="fa-solid fa-plus"></i> Add New Entry</button>
+            </div>
+
+            <div class="admin-card">
+                <div class="table-responsive">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Dates</th>
+                                <th>Title</th>
+                                <th>Company / Institution</th>
+                                <th>Badge (Type)</th>
+                                <th width="100">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="timeline-table-body">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================================
+             MODULE: Certifications (CRUD)
+             ======================================================== -->
+        <section id="module-certifications" class="dashboard-module">
+            <div class="admin-card" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+                <h3 style="font-family: 'Orbitron', sans-serif;">Manage Certifications</h3>
+                <button class="btn-primary" onclick="openCertModal()"><i class="fa-solid fa-plus"></i> Add Certification</button>
+            </div>
+
+            <div class="admin-card">
+                <div class="table-responsive">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Image</th>
+                                <th>Title</th>
+                                <th>Organization</th>
+                                <th>Issue Date</th>
+                                <th width="100">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="certs-table-body">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================================
+             MODULE: Contact Settings
+             ======================================================== -->
+        <section id="module-contact" class="dashboard-module">
+            <div class="admin-card">
+                <form id="contact-form">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="contact-phone">Phone Number</label>
+                            <input type="text" id="contact-phone" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="contact-email">Email Address</label>
+                            <input type="email" id="contact-email" required>
+                        </div>
+                        <div class="form-group full-width">
+                            <label for="contact-location">Location Address</label>
+                            <input type="text" id="contact-location" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="social-github">GitHub Link</label>
+                            <input type="text" id="social-github">
+                        </div>
+                        <div class="form-group">
+                            <label for="social-linkedin">LinkedIn Link</label>
+                            <input type="text" id="social-linkedin">
+                        </div>
+                        <div class="form-group">
+                            <label for="social-whatsapp">WhatsApp Link</label>
+                            <input type="text" id="social-whatsapp">
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn-primary"><i class="fa-solid fa-floppy-disk"></i> Save Contact Settings</button>
+                    </div>
+                </form>
+            </div>
+        </section>
+
+        <!-- ========================================================
+             MODULE: SEO Settings
+             ======================================================== -->
+        <section id="module-seo" class="dashboard-module">
+            <div class="admin-card">
+                <form id="seo-form">
+                    <div class="form-grid">
+                        <div class="form-group full-width">
+                            <label for="seo-title">Website SEO Title</label>
+                            <input type="text" id="seo-title" required>
+                        </div>
+                        <div class="form-group full-width">
+                            <label for="seo-description">Meta Description</label>
+                            <textarea id="seo-description" rows="3" required></textarea>
+                        </div>
+                        <div class="form-group full-width">
+                            <label for="seo-keywords">Keywords (Comma separated)</label>
+                            <input type="text" id="seo-keywords">
+                        </div>
+                        <div class="form-group">
+                            <label>Open Graph / SEO Image</label>
+                            <div class="image-selector-widget" data-target="seo-image">
+                                <div class="selector-preview-container" id="seo-image-preview">
+                                    <i class="fa-solid fa-image"></i>
+                                </div>
+                                <div class="selector-actions">
+                                    <button type="button" class="btn-select" onclick="openMediaPicker('seo-image')"><i class="fa-solid fa-photo-film"></i> Select Image</button>
+                                    <button type="button" class="btn-remove" onclick="removeSelectedImage('seo-image')"><i class="fa-solid fa-trash-can"></i> Remove</button>
+                                    <div class="selector-info" id="seo-image-info">No image selected</div>
+                                </div>
+                                <input type="hidden" id="seo-image">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Favicon Image</label>
+                            <div class="image-selector-widget" data-target="seo-favicon">
+                                <div class="selector-preview-container" id="seo-favicon-preview">
+                                    <i class="fa-solid fa-image"></i>
+                                </div>
+                                <div class="selector-actions">
+                                    <button type="button" class="btn-select" onclick="openMediaPicker('seo-favicon')"><i class="fa-solid fa-photo-film"></i> Select Image</button>
+                                    <button type="button" class="btn-remove" onclick="removeSelectedImage('seo-favicon')"><i class="fa-solid fa-trash-can"></i> Remove</button>
+                                    <div class="selector-info" id="seo-favicon-info">No image selected</div>
+                                </div>
+                                <input type="hidden" id="seo-favicon">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn-primary"><i class="fa-solid fa-floppy-disk"></i> Save SEO Settings</button>
+                    </div>
+                </form>
+            </div>
+        </section>
+
+        <!-- ========================================================
+             MODULE: Media Library (Uploader)
+             ======================================================== -->
+        <section id="module-media" class="dashboard-module">
+            <div class="admin-card">
+                <div class="media-upload-area" id="dropzone">
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                    <h3>Drag & Drop files here, or click to upload</h3>
+                    <p style="color: var(--text-muted); font-size: 12px; margin-top: 5px;">Supports: JPG, PNG, WEBP, SVG</p>
+                    <input type="file" id="file-uploader" style="display: none;" accept="image/*">
+                </div>
+
+                <div class="media-grid" id="media-grid">
+                    <!-- Populated dynamically -->
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================================
+             MODULE: Resume Upload Settings
+             ======================================================== -->
+        <section id="module-resume" class="dashboard-module">
+            <div class="admin-card">
+                <h3 style="font-family: 'Orbitron', sans-serif; margin-bottom: 20px;">Upload PDF Resume</h3>
+                <div style="display: flex; flex-direction: column; gap: 20px;">
+                    <div class="form-group">
+                        <label for="resume-uploader">Select Resume PDF</label>
+                        <input type="file" id="resume-uploader" accept="application/pdf">
+                    </div>
+                    <p style="font-size: 13px; color: var(--text-muted); margin: 0;">Upload your latest PDF resume to update the "Download Resume" button on your main page instantly.</p>
+                    <div class="form-actions">
+                        <button class="btn-primary" id="btn-upload-resume"><i class="fa-solid fa-file-arrow-up"></i> Upload and Save Resume</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================================
+             MODULE: UXI Startup Management
+             ======================================================== -->
+        <section id="module-uxi" class="dashboard-module">
+            <div class="admin-card" style="margin-bottom: 25px;">
+                <h3 style="font-family: 'Orbitron', sans-serif; margin-bottom: 20px; color: var(--accent);">UXI Startup General Information</h3>
+                <form id="uxi-general-form">
+                    <div class="form-grid">
+                        <div class="form-group full-width">
+                            <label>UXI Transparent Background Logo (Recommended: light-colored SVG/PNG)</label>
+                            <div class="image-selector-widget" data-target="uxi-logo">
+                                <div class="selector-preview-container" id="uxi-logo-preview">
+                                    <i class="fa-solid fa-image"></i>
+                                </div>
+                                <div class="selector-actions">
+                                    <button type="button" class="btn-select" onclick="openMediaPicker('uxi-logo')"><i class="fa-solid fa-photo-film"></i> Select Image</button>
+                                    <button type="button" class="btn-remove" onclick="removeSelectedImage('uxi-logo')"><i class="fa-solid fa-trash-can"></i> Remove</button>
+                                    <div class="selector-info" id="uxi-logo-info">No image selected</div>
+                                </div>
+                                <input type="hidden" id="uxi-logo">
+                            </div>
+                        </div>
+                        <div class="form-group full-width">
+                            <label for="uxi-about-copy">About UXI Description</label>
+                            <textarea id="uxi-about-copy" rows="3" required></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="uxi-mission">Mission Statement</label>
+                            <input type="text" id="uxi-mission" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="uxi-vision">Vision Statement</label>
+                            <input type="text" id="uxi-vision" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="uxi-founded-year">Founded Year</label>
+                            <input type="text" id="uxi-founded-year" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="uxi-website-link">Official Website URL</label>
+                            <input type="text" id="uxi-website-link" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="uxi-email">Contact Email</label>
+                            <input type="email" id="uxi-email" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="uxi-phone">Contact Phone</label>
+                            <input type="text" id="uxi-phone" required>
+                        </div>
+                        <div class="form-group full-width">
+                            <label for="uxi-location">Office Location</label>
+                            <input type="text" id="uxi-location" required>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn-primary"><i class="fa-solid fa-floppy-disk"></i> Save UXI General Settings</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- UXI Footer settings -->
+            <div class="admin-card" style="margin-bottom: 25px;">
+                <h3 style="font-family: 'Orbitron', sans-serif; margin-bottom: 20px; color: var(--accent);">UXI Footer Settings</h3>
+                <form id="uxi-footer-form">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="uxi-footer-company">Company Name</label>
+                            <input type="text" id="uxi-footer-company" placeholder="e.g. UXI Technologies" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="uxi-footer-tagline">Footer Tagline</label>
+                            <input type="text" id="uxi-footer-tagline" placeholder="e.g. Empowering the next generation..." required>
+                        </div>
+                        <div class="form-group">
+                            <label for="uxi-footer-website">Website URL (Navigation Destination)</label>
+                            <input type="url" id="uxi-footer-website" placeholder="e.g. https://uxitech.in" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="uxi-footer-copyright">Copyright Text</label>
+                            <input type="text" id="uxi-footer-copyright" placeholder="e.g. © 2026 UXI Startup. All rights reserved." required>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn-primary"><i class="fa-solid fa-floppy-disk"></i> Save UXI Footer Settings</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="admin-card" style="margin-bottom: 25px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h3 style="font-family: 'Orbitron', sans-serif;">UXI Team Members</h3>
+                    <button class="btn-primary" onclick="openUXITeamModal()"><i class="fa-solid fa-plus"></i> Add Team Member</button>
+                </div>
+                <div class="table-responsive">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th width="40">Sort</th>
+                                <th>Photo</th>
+                                <th>Name</th>
+                                <th>Role</th>
+                                <th>LinkedIn</th>
+                                <th width="100">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="uxi-team-table-body">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="admin-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h3 style="font-family: 'Orbitron', sans-serif;">UXI Startup Projects</h3>
+                    <button class="btn-primary" onclick="openUXIProjectModal()"><i class="fa-solid fa-plus"></i> Add UXI Project</button>
+                </div>
+                <div class="table-responsive">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th width="40">Sort</th>
+                                <th>Name</th>
+                                <th>Description</th>
+                                <th>Status</th>
+                                <th width="100">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="uxi-project-table-body">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================================
+             MODULE: Website Settings
+             ======================================================== -->
+        <section id="module-settings" class="dashboard-module">
+            <div class="admin-card">
+                <h3 style="font-family: 'Orbitron', sans-serif; margin-bottom: 20px;">Website Settings & Favicons</h3>
+                <form id="settings-form">
+                    <div style="display: flex; flex-direction: column; gap: 30px;">
+                        
+                        <!-- Portfolio Favicon -->
+                        <div class="form-group">
+                            <label style="font-weight: 600; margin-bottom: 8px; display: block;">Portfolio Page Favicon</label>
+                            <div class="image-selector-widget" data-target="settings-portfolio-favicon">
+                                <div class="selector-preview-container" id="settings-portfolio-favicon-preview">
+                                    <!-- Fallback SVG gets loaded here -->
+                                </div>
+                                <div style="display: flex; flex-direction: column; gap: 8px;">
+                                    <div style="display: flex; gap: 8px;">
+                                        <button type="button" class="btn-select" onclick="openMediaPicker('settings-portfolio-favicon')"><i class="fa-solid fa-photo-film"></i> Select Image</button>
+                                        <button type="button" class="btn-remove" onclick="removeSelectedImage('settings-portfolio-favicon')"><i class="fa-solid fa-trash-can"></i> Remove</button>
+                                    </div>
+                                    <div class="direct-upload-box" style="display: flex; align-items: center; gap: 8px; margin-top: 5px;">
+                                        <input type="file" id="upload-portfolio-favicon" accept="image/*" style="display: none;" onchange="handleDirectFaviconUpload(this, 'settings-portfolio-favicon')">
+                                        <button type="button" class="btn-select" onclick="document.getElementById('upload-portfolio-favicon').click()" style="background: rgba(16, 185, 129, 0.2); border-color: rgba(16, 185, 129, 0.4);"><i class="fa-solid fa-upload"></i> Upload Logo</button>
+                                        <div class="selector-info" id="settings-portfolio-favicon-info">No image selected</div>
+                                    </div>
+                                </div>
+                                <input type="hidden" id="settings-portfolio-favicon">
+                            </div>
+                        </div>
+
+                        <!-- UXI Favicon -->
+                        <div class="form-group">
+                            <label style="font-weight: 600; margin-bottom: 8px; display: block;">UXI Page Favicon</label>
+                            <div class="image-selector-widget" data-target="settings-uxi-favicon">
+                                <div class="selector-preview-container" id="settings-uxi-favicon-preview">
+                                    <!-- Fallback SVG gets loaded here -->
+                                </div>
+                                <div style="display: flex; flex-direction: column; gap: 8px;">
+                                    <div style="display: flex; gap: 8px;">
+                                        <button type="button" class="btn-select" onclick="openMediaPicker('settings-uxi-favicon')"><i class="fa-solid fa-photo-film"></i> Select Image</button>
+                                        <button type="button" class="btn-remove" onclick="removeSelectedImage('settings-uxi-favicon')"><i class="fa-solid fa-trash-can"></i> Remove</button>
+                                    </div>
+                                    <div class="direct-upload-box" style="display: flex; align-items: center; gap: 8px; margin-top: 5px;">
+                                        <input type="file" id="upload-uxi-favicon" accept="image/*" style="display: none;" onchange="handleDirectFaviconUpload(this, 'settings-uxi-favicon')">
+                                        <button type="button" class="btn-select" onclick="document.getElementById('upload-uxi-favicon').click()" style="background: rgba(16, 185, 129, 0.2); border-color: rgba(16, 185, 129, 0.4);"><i class="fa-solid fa-upload"></i> Upload Logo</button>
+                                        <div class="selector-info" id="settings-uxi-favicon-info">No image selected</div>
+                                    </div>
+                                </div>
+                                <input type="hidden" id="settings-uxi-favicon">
+                            </div>
+                        </div>
+
+                        <!-- Admin Favicon -->
+                        <div class="form-group">
+                            <label style="font-weight: 600; margin-bottom: 8px; display: block;">Admin Dashboard Favicon</label>
+                            <div class="image-selector-widget" data-target="settings-admin-favicon">
+                                <div class="selector-preview-container" id="settings-admin-favicon-preview">
+                                    <!-- Fallback SVG gets loaded here -->
+                                </div>
+                                <div style="display: flex; flex-direction: column; gap: 8px;">
+                                    <div style="display: flex; gap: 8px;">
+                                        <button type="button" class="btn-select" onclick="openMediaPicker('settings-admin-favicon')"><i class="fa-solid fa-photo-film"></i> Select Image</button>
+                                        <button type="button" class="btn-remove" onclick="removeSelectedImage('settings-admin-favicon')"><i class="fa-solid fa-trash-can"></i> Remove</button>
+                                    </div>
+                                    <div class="direct-upload-box" style="display: flex; align-items: center; gap: 8px; margin-top: 5px;">
+                                        <input type="file" id="upload-admin-favicon" accept="image/*" style="display: none;" onchange="handleDirectFaviconUpload(this, 'settings-admin-favicon')">
+                                        <button type="button" class="btn-select" onclick="document.getElementById('upload-admin-favicon').click()" style="background: rgba(16, 185, 129, 0.2); border-color: rgba(16, 185, 129, 0.4);"><i class="fa-solid fa-upload"></i> Upload Logo</button>
+                                        <div class="selector-info" id="settings-admin-favicon-info">No image selected</div>
+                                    </div>
+                                </div>
+                                <input type="hidden" id="settings-admin-favicon">
+                            </div>
+                        </div>
+
+                    </div>
+                    <div class="form-actions" style="margin-top: 30px;">
+                        <button type="submit" class="btn-primary" style="padding: 12px 24px;"><i class="fa-solid fa-floppy-disk"></i> Save Website Settings</button>
+                    </div>
+                </form>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ========================================================
+         MODAL: Skill Edit/Add
+         ======================================================== -->
+    <div class="modal-overlay" id="skill-modal">
+        <div class="admin-card modal-content">
+            <div class="modal-header">
+                <h3 id="skill-modal-title">Add Skill</h3>
+                <button class="btn-icon" onclick="closeSkillModal()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form id="skill-form">
+                <input type="hidden" id="skill-id">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="skill-name">Skill Name</label>
+                        <input type="text" id="skill-name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="skill-category">Category</label>
+                        <select id="skill-category" required>
+                            <option value="Frontend">Frontend</option>
+                            <option value="Backend">Backend</option>
+                            <option value="Databases">Databases</option>
+                            <option value="Programming">Programming</option>
+                            <option value="AI / ML">AI / ML</option>
+                            <option value="DevOps / Tools">DevOps / Tools</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="skill-icon">FontAwesome Icon Class</label>
+                        <input type="text" id="skill-icon" placeholder="fa-brands fa-react" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="skill-color">Icon Color Code</label>
+                        <input type="color" id="skill-color" value="#ffffff">
+                    </div>
+                    <div class="form-group">
+                        <label>Visibility</label>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="skill-visible" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+                <div class="form-actions" style="justify-content: flex-end;">
+                    <button type="button" class="btn-secondary" onclick="closeSkillModal()">Cancel</button>
+                    <button type="submit" class="btn-primary">Save Skill</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ========================================================
+         MODAL: Project Edit/Add
+         ======================================================== -->
+    <div class="modal-overlay" id="project-modal">
+        <div class="admin-card modal-content" style="max-width: 750px;">
+            <div class="modal-header">
+                <h3 id="project-modal-title">Add Project</h3>
+                <button class="btn-icon" onclick="closeProjectModal()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form id="project-form">
+                <input type="hidden" id="project-id">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="project-name">Project Name</label>
+                        <input type="text" id="project-name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="project-category">Category</label>
+                        <select id="project-category" required>
+                            <option value="Frontend">Frontend</option>
+                            <option value="Backend">Backend</option>
+                            <option value="Programming">Programming</option>
+                            <option value="Web Application">Web Application</option>
+                        </select>
+                    </div>
+                    <div class="form-group full-width">
+                        <label for="project-short">Short Description</label>
+                        <input type="text" id="project-short" required>
+                    </div>
+                    <div class="form-group full-width">
+                        <label for="project-long">Long Description (Markdown/Text)</label>
+                        <textarea id="project-long" rows="4"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="project-tech">Tech Stack (comma separated)</label>
+                        <input type="text" id="project-tech" placeholder="React, Node.js, Supabase" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Project Card Image</label>
+                        <div class="image-selector-widget" data-target="project-image">
+                            <div class="selector-preview-container" id="project-image-preview">
+                                <i class="fa-solid fa-image"></i>
+                            </div>
+                            <div class="selector-actions">
+                                <button type="button" class="btn-select" onclick="openMediaPicker('project-image')"><i class="fa-solid fa-photo-film"></i> Select Image</button>
+                                <button type="button" class="btn-remove" onclick="removeSelectedImage('project-image')"><i class="fa-solid fa-trash-can"></i> Remove</button>
+                                <div class="selector-info" id="project-image-info">No image selected</div>
+                            </div>
+                            <input type="hidden" id="project-image">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="project-status">Status</label>
+                        <select id="project-status" onchange="toggleProjectFields()" required>
+                            <option value="Completed">Completed</option>
+                            <option value="Upcoming">Upcoming</option>
+                            <option value="Draft">Draft (Hidden)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Featured Project</label>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="project-featured" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <!-- Completed Projects specific fields -->
+                    <div class="form-group completed-only-field">
+                        <label for="project-github">GitHub Link</label>
+                        <input type="text" id="project-github">
+                    </div>
+                    <div class="form-group completed-only-field">
+                        <label for="project-live">Live Demo Link</label>
+                        <input type="text" id="project-live">
+                    </div>
+                    <div class="form-group completed-only-field">
+                        <label for="project-completion-date">Completion Date (e.g. June 2026)</label>
+                        <input type="text" id="project-completion-date" placeholder="June 2026">
+                    </div>
+                    <!-- Upcoming Projects specific fields -->
+                    <div class="form-group upcoming-only-field">
+                        <label for="project-dev-stage">Development Stage</label>
+                        <select id="project-dev-stage">
+                            <option value="Planning">Planning</option>
+                            <option value="UI Design">UI Design</option>
+                            <option value="Development">Development</option>
+                            <option value="Testing">Testing</option>
+                        </select>
+                    </div>
+                    <div class="form-group upcoming-only-field">
+                        <label for="project-expected-release">Expected Release (e.g. Dec 2026)</label>
+                        <input type="text" id="project-expected-release" placeholder="Dec 2026">
+                    </div>
+                    <div class="form-group upcoming-only-field">
+                        <label for="project-progress-percent">Progress Percent (0-100)</label>
+                        <input type="number" id="project-progress-percent" min="0" max="100" value="0">
+                    </div>
+                    <div class="form-group upcoming-only-field">
+                        <label>Coming Soon Badge</label>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="project-coming-soon">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="form-group full-width upcoming-only-field">
+                        <label for="project-expected-features">Expected Features (comma separated)</label>
+                        <input type="text" id="project-expected-features" placeholder="Feature 1, Feature 2, Feature 3">
+                    </div>
+                </div>
+                <div class="form-actions" style="justify-content: flex-end;">
+                    <button type="button" class="btn-secondary" onclick="closeProjectModal()">Cancel</button>
+                    <button type="submit" class="btn-primary">Save Project</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ========================================================
+         MODAL: Timeline Entry Edit/Add
+         ======================================================== -->
+    <div class="modal-overlay" id="timeline-modal">
+        <div class="admin-card modal-content">
+            <div class="modal-header">
+                <h3 id="timeline-modal-title">Add Timeline Entry</h3>
+                <button class="btn-icon" onclick="closeTimelineModal()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form id="timeline-form">
+                <input type="hidden" id="timeline-id">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="timeline-title">Event Title</label>
+                        <input type="text" id="timeline-title" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="timeline-company">Company / Institution Name</label>
+                        <input type="text" id="timeline-company" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="timeline-start">Start Date (e.g. 2024)</label>
+                        <input type="text" id="timeline-start" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="timeline-end">End Date (e.g. Present)</label>
+                        <input type="text" id="timeline-end">
+                    </div>
+                    <div class="form-group">
+                        <label for="timeline-badge">Badge (Type Tag)</label>
+                        <select id="timeline-badge" required>
+                            <option value="Education">Education</option>
+                            <option value="Experience">Experience</option>
+                            <option value="Projects">Projects</option>
+                            <option value="Freelance">Freelance</option>
+                        </select>
+                    </div>
+                    <div class="form-group full-width">
+                        <label for="timeline-desc">Description</label>
+                        <textarea id="timeline-desc" rows="3" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Company / Institution Logo</label>
+                        <div class="image-selector-widget" data-target="timeline-logo">
+                            <div class="selector-preview-container" id="timeline-logo-preview">
+                                <i class="fa-solid fa-image"></i>
+                            </div>
+                            <div class="selector-actions">
+                                <button type="button" class="btn-select" onclick="openMediaPicker('timeline-logo')"><i class="fa-solid fa-photo-film"></i> Select Image</button>
+                                <button type="button" class="btn-remove" onclick="removeSelectedImage('timeline-logo')"><i class="fa-solid fa-trash-can"></i> Remove</button>
+                                <div class="selector-info" id="timeline-logo-info">No image selected</div>
+                            </div>
+                            <input type="hidden" id="timeline-logo">
+                        </div>
+                    </div>
+                </div>
+                <div class="form-actions" style="justify-content: flex-end;">
+                    <button type="button" class="btn-secondary" onclick="closeTimelineModal()">Cancel</button>
+                    <button type="submit" class="btn-primary">Save Entry</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ========================================================
+         MODAL: Certification Edit/Add
+         ======================================================== -->
+    <div class="modal-overlay" id="cert-modal">
+        <div class="admin-card modal-content">
+            <div class="modal-header">
+                <h3 id="cert-modal-title">Add Certification</h3>
+                <button class="btn-icon" onclick="closeCertModal()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form id="cert-form">
+                <input type="hidden" id="cert-id">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="cert-title">Certificate Title</label>
+                        <input type="text" id="cert-title" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="cert-org">Organization Name</label>
+                        <input type="text" id="cert-org" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="cert-date">Issue Date (e.g. Jan 2025)</label>
+                        <input type="text" id="cert-date" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="cert-link">Credential Link</label>
+                        <input type="text" id="cert-link">
+                    </div>
+                    <div class="form-group full-width">
+                        <label>Certificate Image</label>
+                        <div class="image-selector-widget" data-target="cert-image">
+                            <div class="selector-preview-container" id="cert-image-preview">
+                                <i class="fa-solid fa-image"></i>
+                            </div>
+                            <div class="selector-actions">
+                                <button type="button" class="btn-select" onclick="openMediaPicker('cert-image')"><i class="fa-solid fa-photo-film"></i> Select Image</button>
+                                <button type="button" class="btn-remove" onclick="removeSelectedImage('cert-image')"><i class="fa-solid fa-trash-can"></i> Remove</button>
+                                <div class="selector-info" id="cert-image-info">No image selected</div>
+                            </div>
+                            <input type="hidden" id="cert-image">
+                        </div>
+                    </div>
+                </div>
+                <div class="form-actions" style="justify-content: flex-end;">
+                    <button type="button" class="btn-secondary" onclick="closeCertModal()">Cancel</button>
+                    <button type="submit" class="btn-primary">Save Certificate</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ========================================================
+         MODAL: CMS Centralized Media Picker (Image Selector)
+         ======================================================== -->
+    <div class="modal-overlay" id="media-picker-modal" style="display: none; z-index: 2000;">
+        <div class="admin-card media-picker-content">
+            <div class="modal-header" style="padding: 20px 25px; border-bottom: 1px solid var(--border);">
+                <h3>Select Asset</h3>
+                <button class="btn-icon" onclick="closeMediaPicker()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="media-picker-body">
+                <!-- Left Side: Search, Drag & Drop, Grid list -->
+                <div class="media-picker-left">
+                    <div class="picker-top-bar">
+                        <div class="picker-search-wrapper">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <input type="text" id="picker-search" placeholder="Search assets by filename..." oninput="filterPickerMedia()">
+                        </div>
+                    </div>
+                    
+                    <div class="picker-dropzone" id="picker-dropzone">
+                        <i class="fa-solid fa-cloud-arrow-up"></i>
+                        <p>Drag & Drop files here, or click to upload new assets</p>
+                        <input type="file" id="picker-file-uploader" style="display: none;" accept="image/*" multiple>
+                    </div>
+
+                    <div class="media-picker-grid-container">
+                        <div class="media-picker-grid" id="picker-grid">
+                            <!-- Populated dynamically with uploads -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Side: Details & Actions -->
+                <div class="media-picker-right">
+                    <h3 style="font-family: 'Orbitron', sans-serif; font-size: 14px; color: var(--accent); margin-bottom: 5px;">Asset Details</h3>
+                    <div class="picker-details-preview" id="picker-preview-box">
+                        <i class="fa-solid fa-image"></i>
+                    </div>
+                    
+                    <div class="picker-details-info" id="picker-info-box" style="display: none;">
+                        <h4 id="picker-detail-name">filename.png</h4>
+                        <p>Url: <span id="picker-detail-url">-</span></p>
+                    </div>
+                    
+                    <div class="picker-details-actions" id="picker-actions-box" style="display: none;">
+                        <!-- Rename Section -->
+                        <div style="display: flex; flex-direction: column; gap: 6px;">
+                            <label style="font-size: 11px; color: var(--accent);">Rename Asset</label>
+                            <div class="picker-rename-group">
+                                <input type="text" id="picker-rename-input">
+                                <button type="button" onclick="renamePickerAsset()">Rename</button>
+                            </div>
+                        </div>
+
+                        <!-- Replace Section -->
+                        <div style="display: flex; flex-direction: column; gap: 6px; margin-top: 5px;">
+                            <label style="font-size: 11px; color: var(--accent);">Replace File Content</label>
+                            <button type="button" class="btn-action btn-picker-replace" onclick="triggerPickerReplace()"><i class="fa-solid fa-rotate"></i> Upload & Replace</button>
+                            <input type="file" id="picker-replace-uploader" style="display: none;" accept="image/*">
+                        </div>
+
+                        <!-- Delete Button -->
+                        <button type="button" class="btn-action btn-picker-delete" onclick="deletePickerAsset()"><i class="fa-solid fa-trash"></i> Delete from Library</button>
+                        
+                        <hr style="border: 0; border-top: 1px solid var(--border); margin: 10px 0;">
+                        
+                        <!-- Insert Button -->
+                        <button type="button" class="btn-action btn-picker-insert" onclick="insertPickerAsset()"><i class="fa-solid fa-circle-check"></i> Choose Asset</button>
+                    </div>
+                </div>
+    <!-- ========================================================
+         MODAL: UXI Team Member Edit/Add
+         ======================================================== -->
+    <div class="modal-overlay" id="uxi-team-modal">
+        <div class="admin-card modal-content" style="max-width: 650px;">
+            <div class="modal-header">
+                <h3 id="uxi-team-modal-title">Add UXI Team Member</h3>
+                <button class="btn-icon" onclick="closeUXITeamModal()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form id="uxi-team-form">
+                <input type="hidden" id="uxi-team-id">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="uxi-team-name">Full Name</label>
+                        <input type="text" id="uxi-team-name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="uxi-team-role">Role / Designation</label>
+                        <input type="text" id="uxi-team-role" required>
+                    </div>
+                    <div class="form-group full-width">
+                        <label for="uxi-team-bio">Short Bio</label>
+                        <textarea id="uxi-team-bio" rows="2"></textarea>
+                    </div>
+                    <div class="form-group full-width">
+                        <label for="uxi-team-responsibilities">Key Responsibilities</label>
+                        <input type="text" id="uxi-team-responsibilities" placeholder="E.g., Leading AI strategy and full-stack development">
+                    </div>
+                    <div class="form-group">
+                        <label for="uxi-team-skills">Skills (comma separated)</label>
+                        <input type="text" id="uxi-team-skills" placeholder="React, Python, Machine Learning">
+                    </div>
+                    <div class="form-group">
+                        <label for="uxi-team-linkedin">LinkedIn Profile URL</label>
+                        <input type="text" id="uxi-team-linkedin" placeholder="https://www.linkedin.com/in/username">
+                    </div>
+                    <div class="form-group">
+                        <label>Profile Photo</label>
+                        <div class="image-selector-widget" data-target="uxi-team-photo">
+                            <div class="selector-preview-container" id="uxi-team-photo-preview">
+                                <i class="fa-solid fa-image"></i>
+                            </div>
+                            <div class="selector-actions">
+                                <button type="button" class="btn-select" onclick="openMediaPicker('uxi-team-photo')"><i class="fa-solid fa-photo-film"></i> Select Image</button>
+                                <button type="button" class="btn-remove" onclick="removeSelectedImage('uxi-team-photo')"><i class="fa-solid fa-trash-can"></i> Remove</button>
+                                <div class="selector-info" id="uxi-team-photo-info">No image selected</div>
+                            </div>
+                            <input type="hidden" id="uxi-team-photo">
+                        </div>
+                    </div>
+                </div>
+                <div class="form-actions" style="justify-content: flex-end;">
+                    <button type="button" class="btn-secondary" onclick="closeUXITeamModal()">Cancel</button>
+                    <button type="submit" class="btn-primary">Save Member</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ========================================================
+         MODAL: UXI Project Edit/Add
+         ======================================================== -->
+    <div class="modal-overlay" id="uxi-project-modal">
+        <div class="admin-card modal-content" style="max-width: 750px;">
+            <div class="modal-header">
+                <h3 id="uxi-project-modal-title">Add UXI Project</h3>
+                <button class="btn-icon" onclick="closeUXIProjectModal()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form id="uxi-project-form">
+                <input type="hidden" id="uxi-project-id">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="uxi-project-name">Project Name</label>
+                        <input type="text" id="uxi-project-name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="uxi-project-status">Status</label>
+                        <select id="uxi-project-status" onchange="toggleUXIProjectFields()" required>
+                            <option value="Completed">Completed</option>
+                            <option value="Upcoming">Upcoming</option>
+                        </select>
+                    </div>
+                    <div class="form-group full-width">
+                        <label for="uxi-project-desc">Description</label>
+                        <textarea id="uxi-project-desc" rows="3" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="uxi-project-tech">Tech Stack (comma separated)</label>
+                        <input type="text" id="uxi-project-tech" placeholder="React, Node.js, TensorFlow" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Project Card Image</label>
+                        <div class="image-selector-widget" data-target="uxi-project-image">
+                            <div class="selector-preview-container" id="uxi-project-image-preview">
+                                <i class="fa-solid fa-image"></i>
+                            </div>
+                            <div class="selector-actions">
+                                <button type="button" class="btn-select" onclick="openMediaPicker('uxi-project-image')"><i class="fa-solid fa-photo-film"></i> Select Image</button>
+                                <button type="button" class="btn-remove" onclick="removeSelectedImage('uxi-project-image')"><i class="fa-solid fa-trash-can"></i> Remove</button>
+                                <div class="selector-info" id="uxi-project-image-info">No image selected</div>
+                            </div>
+                            <input type="hidden" id="uxi-project-image">
+                        </div>
+                    </div>
+                    <!-- Completed UXI Projects specific fields -->
+                    <div class="form-group uxi-completed-only-field">
+                        <label for="uxi-project-github">GitHub Link</label>
+                        <input type="text" id="uxi-project-github">
+                    </div>
+                    <div class="form-group uxi-completed-only-field">
+                        <label for="uxi-project-live">Live Demo Link</label>
+                        <input type="text" id="uxi-project-live">
+                    </div>
+                    <div class="form-group uxi-completed-only-field">
+                        <label for="uxi-project-completion-date">Completion Date (e.g. June 2026)</label>
+                        <input type="text" id="uxi-project-completion-date" placeholder="June 2026">
+                    </div>
+                    <!-- Upcoming UXI Projects specific fields -->
+                    <div class="form-group uxi-upcoming-only-field">
+                        <label for="uxi-project-dev-stage">Development Stage</label>
+                        <select id="uxi-project-dev-stage">
+                            <option value="Planning">Planning</option>
+                            <option value="UI Design">UI Design</option>
+                            <option value="Development">Development</option>
+                            <option value="Testing">Testing</option>
+                        </select>
+                    </div>
+                    <div class="form-group uxi-upcoming-only-field">
+                        <label for="uxi-project-expected-release">Expected Release (e.g. Dec 2026)</label>
+                        <input type="text" id="uxi-project-expected-release" placeholder="Dec 2026">
+                    </div>
+                    <div class="form-group uxi-upcoming-only-field">
+                        <label for="uxi-project-progress-percent">Progress Percent (0-100)</label>
+                        <input type="number" id="uxi-project-progress-percent" min="0" max="100" value="0">
+                    </div>
+                    <div class="form-group uxi-upcoming-only-field">
+                        <label>Coming Soon Badge</label>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="uxi-project-coming-soon">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="form-group full-width">
+                        <label for="uxi-project-expected-features">Expected Features (comma separated)</label>
+                        <input type="text" id="uxi-project-expected-features" placeholder="Feature 1, Feature 2, Feature 3">
+                    </div>
+                </div>
+                <div class="form-actions" style="justify-content: flex-end;">
+                    <button type="button" class="btn-secondary" onclick="closeUXIProjectModal()">Cancel</button>
+                    <button type="submit" class="btn-primary">Save Project</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Sortable CDN for Drag and Drop -->
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+
+    <!-- Admin dashboard core client-side controller script -->
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const token = localStorage.getItem("admin_token");
+            
+            // Check auth state
+            if (!token) {
+                window.location.href = "login.html";
+                return;
+            }
+
+            // Verify JWT Token with server
+            fetch('/api/auth/me', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            }).then(res => {
+                if (!res.ok) {
+                    localStorage.removeItem("admin_token");
+                    window.location.href = "login.html";
+                } else {
+                    // Load data
+                    loadDashboardMetrics();
+                    loadHeroSettings();
+                    loadAboutSettings();
+                    loadSkills();
+                    loadProjects();
+                    loadTimeline();
+                    loadCertifications();
+                    loadContactSettings();
+                    loadSEOSettings();
+                    loadMediaGrid();
+                    loadUXISettings();
+                    loadWebsiteSettings();
+                }
+            });
+
+            // Sidebar navigation switcher
+            const menuItems = document.querySelectorAll(".sidebar-menu li");
+            const modules = document.querySelectorAll(".dashboard-module");
+            const moduleTitle = document.getElementById("module-title");
+            const moduleSubtitle = document.getElementById("module-subtitle");
+
+            const moduleMeta = {
+                dashboard: { title: "Dashboard", subtitle: "Overview of your portfolio metrics and database entries." },
+                hero: { title: "Hero Section Settings", subtitle: "Manage the hero banner details, text spacing, and taglines." },
+                about: { title: "About Me Settings", subtitle: "Update B.Tech details, current year, CGPA, and your profile bio." },
+                skills: { title: "Skills Management", subtitle: "Insert, edit, delete, or drag-and-drop to reorder frontend/backend skills." },
+                projects: { title: "Projects Management", subtitle: "Configure featured project cards, technology tags, and details." },
+                timeline: { title: "Timeline Settings", subtitle: "Add education and professional experience nodes to your vertical timeline." },
+                certifications: { title: "Certifications", subtitle: "Manage horizontal scrolling certifications slider listings." },
+                contact: { title: "Contact Settings", subtitle: "Update email, location, phone, and direct messaging socials." },
+                seo: { title: "SEO Settings", subtitle: "Configure Open Graph metadata, titles, keywords, and search tags." },
+                media: { title: "Media Manager", subtitle: "Manage your portfolio graphics assets. Upload files directly." },
+                resume: { title: "Resume Settings", subtitle: "Upload or replace your resume PDF file for download actions." },
+                uxi: { title: "UXI Startup Settings", subtitle: "Configure General Startup Info, Team Members, and UXI Projects." },
+                settings: { title: "Website Settings", subtitle: "Configure dynamic favicons for Portfolio, UXI, and Admin Dashboard." }
+            };
+
+            menuItems.forEach(item => {
+                item.addEventListener("click", () => {
+                    const activeMod = item.getAttribute("data-module");
+                    
+                    menuItems.forEach(i => i.classList.remove("active"));
+                    modules.forEach(m => m.classList.remove("active"));
+                    
+                    item.classList.add("active");
+                    document.getElementById(`module-${activeMod}`).classList.add("active");
+                    
+                    moduleTitle.textContent = moduleMeta[activeMod].title;
+                    moduleSubtitle.textContent = moduleMeta[activeMod].subtitle;
+                });
+            });
+
+            // Sign out action
+            document.getElementById("btn-logout").addEventListener("click", () => {
+                localStorage.removeItem("admin_token");
+                window.location.href = "login.html";
+            });
+
+            // Toast Alerts helper
+            function showToast(message, type = "success") {
+                const container = document.getElementById("toast-container");
+                const toast = document.createElement("div");
+                toast.className = `toast ${type}`;
+                toast.innerHTML = `
+                    <i class="fa-solid ${type === 'success' ? 'fa-circle-check' : 'fa-circle-exclamation'}"></i>
+                    <span>${message}</span>
+                `;
+                container.appendChild(toast);
+                
+                setTimeout(() => {
+                    toast.style.animation = "slideInToast 0.3s reverse forwards";
+                    setTimeout(() => toast.remove(), 300);
+                }, 3000);
+            }
+            window.showToast = showToast;
+
+            // ========================================================
+            // READ MODULES
+            // ========================================================
+
+            async function loadDashboardMetrics() {
+                try {
+                    const res = await fetch('/api/dashboard/stats');
+                    const data = await res.json();
+                    document.getElementById('stat-projects').textContent = data.projects;
+                    document.getElementById('stat-skills').textContent = data.skills;
+                    document.getElementById('stat-certificates').textContent = data.certificates;
+                    document.getElementById('stat-timeline').textContent = data.timeline;
+                } catch (e) {
+                    console.error("Failed to load metrics", e);
+                }
+            }
+
+            window.toggleHeroBgTypeFields = () => {
+                const bgType = document.getElementById('hero-bg-type').value;
+                const imgGroup = document.getElementById('hero-bg-image-group');
+                const vidGroup = document.getElementById('hero-bg-video-group');
+                if (bgType === 'video') {
+                    if (imgGroup) imgGroup.style.display = 'none';
+                    if (vidGroup) vidGroup.style.display = 'block';
+                } else {
+                    if (imgGroup) imgGroup.style.display = 'block';
+                    if (vidGroup) vidGroup.style.display = 'none';
+                }
+                updateHeroLivePreview();
+            };
+
+            window.syncColorPickerVal = () => {
+                const cp = document.getElementById('hero-overlay-color');
+                const hex = document.getElementById('hero-overlay-color-hex');
+                if (cp && hex) hex.value = cp.value;
+                updateHeroLivePreview();
+            };
+
+            window.syncColorPickerHex = () => {
+                const cp = document.getElementById('hero-overlay-color');
+                const hex = document.getElementById('hero-overlay-color-hex');
+                if (cp && hex && hex.value.match(/^#[0-9A-Fa-f]{6}$/)) {
+                    cp.value = hex.value;
+                    updateHeroLivePreview();
+                }
+            };
+
+            window.handleOverlayOpacityChange = () => {
+                const sel = document.getElementById('hero-overlay-opacity').value;
+                const sliderGroup = document.getElementById('hero-overlay-opacity-slider-group');
+                const range = document.getElementById('hero-overlay-opacity-range');
+                if (sel === 'custom') {
+                    if (sliderGroup) sliderGroup.style.display = 'block';
+                } else {
+                    if (sliderGroup) sliderGroup.style.display = 'none';
+                    if (range) range.value = sel;
+                }
+                updateHeroLivePreview();
+            };
+
+            window.updateHeroLivePreview = () => {
+                const nameInput = document.getElementById('hero-name');
+                const descInput = document.getElementById('hero-description');
+                const name = nameInput ? nameInput.value : 'Shaik Hafijulrehaman';
+                const desc = descInput ? descInput.value : '';
+                
+                const previewTitle = document.getElementById('hero-preview-title');
+                const previewDesc = document.getElementById('hero-preview-desc');
+                if (previewTitle) previewTitle.textContent = name;
+                if (previewDesc) previewDesc.textContent = desc;
+
+                const bgType = document.getElementById('hero-bg-type') ? document.getElementById('hero-bg-type').value : 'image';
+                const bgUrl = document.getElementById('hero-bg') ? document.getElementById('hero-bg').value : '';
+                const videoUrl = document.getElementById('hero-video') ? document.getElementById('hero-video').value : '';
+
+                const bd = document.getElementById('hero-preview-backdrop');
+                if (bd) {
+                    if (bgType === 'video' && videoUrl) {
+                        bd.innerHTML = `<video src="${videoUrl}" autoplay loop muted style="width:100%;height:100%;object-fit:cover;"></video>`;
+                    } else if (bgType === 'image' && bgUrl) {
+                        bd.innerHTML = `<img src="${bgUrl}" style="width:100%;height:100%;object-fit:cover;">`;
+                    } else {
+                        bd.innerHTML = `<div style="width:100%;height:100%;background:#333;display:flex;align-items:center;justify-content:center;color:#666;"><i class="fa-solid fa-photo-film" style="font-size:3rem;"></i></div>`;
+                    }
+                }
+
+                // Apply overlay opacity and color
+                const overlay = document.getElementById('hero-preview-overlay');
+                if (overlay) {
+                    const colorCp = document.getElementById('hero-overlay-color');
+                    const color = colorCp ? colorCp.value : '#000000';
+                    const opacitySel = document.getElementById('hero-overlay-opacity') ? document.getElementById('hero-overlay-opacity').value : '0.5';
+                    let opacity = 0.5;
+                    if (opacitySel === 'custom') {
+                        const rangeInput = document.getElementById('hero-overlay-opacity-range');
+                        opacity = rangeInput ? parseFloat(rangeInput.value) : 0.5;
+                        const label = document.getElementById('hero-overlay-opacity-val');
+                        if (label) label.textContent = Math.round(opacity * 100) + '%';
+                    } else {
+                        opacity = parseFloat(opacitySel);
+                    }
+                    overlay.style.backgroundColor = color;
+                    overlay.style.opacity = opacity;
+                }
+
+                // Apply filters
+                const brightnessInput = document.getElementById('hero-brightness');
+                const contrastInput = document.getElementById('hero-contrast');
+                const blurInput = document.getElementById('hero-blur');
+                const brightness = brightnessInput ? brightnessInput.value : 100;
+                const contrast = contrastInput ? contrastInput.value : 100;
+                const blur = blurInput ? blurInput.value : 0;
+
+                const brightnessVal = document.getElementById('hero-brightness-val');
+                const contrastVal = document.getElementById('hero-contrast-val');
+                const blurVal = document.getElementById('hero-blur-val');
+                if (brightnessVal) brightnessVal.textContent = brightness + '%';
+                if (contrastVal) contrastVal.textContent = contrast + '%';
+                if (blurVal) blurVal.textContent = blur + 'px';
+
+                if (bd) {
+                    bd.style.filter = `brightness(${brightness}%) contrast(${contrast}%) blur(${blur}px)`;
+                }
+            };
+
+            async function loadHeroSettings() {
+                const data = await fetch('/api/hero').then(res => res.json());
+                if (data) {
+                    document.getElementById('hero-name').value = data.name || '';
+                    document.getElementById('hero-tagline').value = data.tagline || '';
+                    document.getElementById('hero-description').value = data.description || '';
+                    updateSelectorPreview('hero-avatar', data.avatar_url);
+                    updateSelectorPreview('hero-bg', data.background_url || '');
+                    updateSelectorPreview('hero-video', data.video_path || '');
+
+                    document.getElementById('hero-bg-type').value = data.background_type || 'image';
+                    document.getElementById('hero-overlay-color').value = data.overlay_color || '#000000';
+                    document.getElementById('hero-overlay-color-hex').value = data.overlay_color || '#000000';
+
+                    const opacity = data.overlay_opacity !== undefined ? data.overlay_opacity : 0.5;
+                    const opSel = document.getElementById('hero-overlay-opacity');
+                    if (['0.0', '0.25', '0.5', '0.75'].includes(String(opacity))) {
+                        opSel.value = String(opacity);
+                    } else {
+                        opSel.value = 'custom';
+                    }
+                    document.getElementById('hero-overlay-opacity-range').value = opacity;
+
+                    document.getElementById('hero-brightness').value = data.brightness !== undefined ? data.brightness : 100;
+                    document.getElementById('hero-contrast').value = data.contrast !== undefined ? data.contrast : 100;
+                    document.getElementById('hero-blur').value = data.blur !== undefined ? data.blur : 0;
+
+                    toggleHeroBgTypeFields();
+                    handleOverlayOpacityChange();
+                    updateHeroLivePreview();
+                }
+            }
+
+            async function loadAboutSettings() {
+                const data = await fetch('/api/about').then(res => res.json());
+                if (data) {
+                    document.getElementById('about-title').value = data.title;
+                    document.getElementById('about-college').value = data.college;
+                    document.getElementById('about-degree').value = data.degree;
+                    document.getElementById('about-year').value = data.current_year;
+                    document.getElementById('about-cgpa').value = data.cgpa;
+                    document.getElementById('about-location').value = data.location;
+                    updateSelectorPreview('about-image', data.image_url);
+                    document.getElementById('about-description').value = data.description;
+                }
+            }
+
+            async function loadSkills() {
+                const data = await fetch('/api/skills').then(res => res.json());
+                const tbody = document.getElementById('skills-table-body');
+                tbody.innerHTML = '';
+                
+                if (data) {
+                    data.forEach(skill => {
+                        const tr = document.createElement('tr');
+                        tr.setAttribute('data-id', skill._id);
+                        tr.innerHTML = `
+                            <td><i class="fa-solid fa-grip-vertical drag-handle"></i></td>
+                            <td><strong>${skill.name}</strong></td>
+                            <td>${skill.category}</td>
+                            <td><code>${skill.icon_class}</code></td>
+                            <td><span style="display:inline-block;width:16px;height:16px;border-radius:40%;background:${skill.color};vertical-align:middle;margin-right:8px;"></span>${skill.color}</td>
+                            <td>${skill.is_visible ? '<span class="badge-status badge-published">Visible</span>' : '<span class="badge-status badge-draft">Hidden</span>'}</td>
+                            <td class="actions-cell">
+                                <button class="btn-icon" onclick="editSkill('${skill._id}', '${skill.name}', '${skill.category}', '${skill.icon_class}', '${skill.color}', ${skill.is_visible})"><i class="fa-solid fa-pen"></i></button>
+                                <button class="btn-icon delete" onclick="deleteSkill('${skill._id}')"><i class="fa-solid fa-trash"></i></button>
+                            </td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                }
+            }
+            window.loadSkills = loadSkills;
+
+            async function loadProjects() {
+                const data = await fetch('/api/projects').then(res => res.json());
+                const completedTbody = document.getElementById('completed-projects-table-body');
+                const upcomingTbody = document.getElementById('upcoming-projects-table-body');
+                completedTbody.innerHTML = '';
+                upcomingTbody.innerHTML = '';
+
+                if (data) {
+                    data.forEach(proj => {
+                        const tr = document.createElement('tr');
+                        tr.setAttribute('data-id', proj._id);
+                        if (proj.status === 'Completed') {
+                            tr.innerHTML = `
+                                <td><i class="fa-solid fa-grip-vertical drag-handle"></i></td>
+                                <td><strong>${proj.name}</strong></td>
+                                <td>${proj.short_desc}</td>
+                                <td>${proj.technologies.join(', ')}</td>
+                                <td>${proj.is_featured ? 'Yes' : 'No'}</td>
+                                <td class="actions-cell">
+                                    <button class="btn-icon" onclick="editProject('${proj._id}')"><i class="fa-solid fa-pen"></i></button>
+                                    <button class="btn-icon delete" onclick="deleteProject('${proj._id}')"><i class="fa-solid fa-trash"></i></button>
+                                </td>
+                            `;
+                            completedTbody.appendChild(tr);
+                        } else {
+                            // Upcoming or Draft
+                            tr.innerHTML = `
+                                <td><i class="fa-solid fa-grip-vertical drag-handle"></i></td>
+                                <td><strong>${proj.name}</strong></td>
+                                <td>${proj.short_desc}</td>
+                                <td>${proj.technologies.join(', ')}</td>
+                                <td><span class="badge-status badge-published">${proj.dev_stage || 'Planning'}</span></td>
+                                <td>${proj.progress_percent || 0}%</td>
+                                <td>${proj.coming_soon ? 'Yes' : 'No'}</td>
+                                <td class="actions-cell">
+                                    <button class="btn-icon" onclick="editProject('${proj._id}')"><i class="fa-solid fa-pen"></i></button>
+                                    <button class="btn-icon delete" onclick="deleteProject('${proj._id}')"><i class="fa-solid fa-trash"></i></button>
+                                </td>
+                            `;
+                            upcomingTbody.appendChild(tr);
+                        }
+                    });
+                }
+            }
+            window.loadProjects = loadProjects;
+
+            async function loadTimeline() {
+                const data = await fetch('/api/timeline').then(res => res.json());
+                const tbody = document.getElementById('timeline-table-body');
+                tbody.innerHTML = '';
+
+                if (data) {
+                    data.forEach(item => {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td>${item.start_date} - ${item.end_date || 'Present'}</td>
+                            <td><strong>${item.title}</strong></td>
+                            <td>${item.company || ''}</td>
+                            <td><span class="badge-status badge-published">${item.badge}</span></td>
+                            <td class="actions-cell">
+                                <button class="btn-icon" onclick="editTimeline('${item._id}')"><i class="fa-solid fa-pen"></i></button>
+                                <button class="btn-icon delete" onclick="deleteTimeline('${item._id}')"><i class="fa-solid fa-trash"></i></button>
+                            </td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                }
+            }
+            window.loadTimeline = loadTimeline;
+
+            async function loadCertifications() {
+                const data = await fetch('/api/certificates').then(res => res.json());
+                const tbody = document.getElementById('certs-table-body');
+                tbody.innerHTML = '';
+
+                if (data) {
+                    data.forEach(c => {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td><img src="${c.image_url}" style="width:50px;height:35px;border-radius:4px;object-fit:cover;"></td>
+                            <td><strong>${c.title}</strong></td>
+                            <td>${c.organization}</td>
+                            <td>${c.issue_date}</td>
+                            <td class="actions-cell">
+                                <button class="btn-icon" onclick="editCert('${c._id}')"><i class="fa-solid fa-pen"></i></button>
+                                <button class="btn-icon delete" onclick="deleteCert('${c._id}')"><i class="fa-solid fa-trash"></i></button>
+                            </td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                }
+            }
+            window.loadCertifications = loadCertifications;
+
+            async function loadContactSettings() {
+                const contactData = await fetch('/api/contact').then(res => res.json());
+                const socialsData = await fetch('/api/socials').then(res => res.json());
+
+                if (contactData) {
+                    document.getElementById('contact-phone').value = contactData.phone;
+                    document.getElementById('contact-email').value = contactData.email;
+                    document.getElementById('contact-location').value = contactData.location;
+                }
+                if (socialsData) {
+                    document.getElementById('social-github').value = socialsData.github;
+                    document.getElementById('social-linkedin').value = socialsData.linkedin;
+                    document.getElementById('social-whatsapp').value = socialsData.whatsapp;
+                }
+            }
+
+            async function loadSEOSettings() {
+                const data = await fetch('/api/seo').then(res => res.json());
+                if (data) {
+                    document.getElementById('seo-title').value = data.title;
+                    document.getElementById('seo-description').value = data.description;
+                    document.getElementById('seo-keywords').value = data.keywords;
+                    updateSelectorPreview('seo-image', data.image_url || '');
+                    updateSelectorPreview('seo-favicon', data.favicon_url || '');
+                }
+            }
+
+            // ========================================================
+            // SAVE FORM OPERATIONS
+            // ========================================================
+
+            document.getElementById('hero-form').addEventListener("submit", async (e) => {
+                e.preventDefault();
+
+                const name = document.getElementById('hero-name').value;
+                const tagline = document.getElementById('hero-tagline').value;
+                const description = document.getElementById('hero-description').value;
+                const avatar = document.getElementById('hero-avatar').value;
+                const background_url = document.getElementById('hero-bg').value;
+                const video_path = document.getElementById('hero-video').value;
+                const background_type = document.getElementById('hero-bg-type').value;
+                const overlay_color = document.getElementById('hero-overlay-color').value;
+
+                const opacitySel = document.getElementById('hero-overlay-opacity').value;
+                let overlay_opacity = 0.5;
+                if (opacitySel === 'custom') {
+                    overlay_opacity = parseFloat(document.getElementById('hero-overlay-opacity-range').value);
+                } else {
+                    overlay_opacity = parseFloat(opacitySel);
+                }
+
+                const brightness = parseFloat(document.getElementById('hero-brightness').value);
+                const contrast = parseFloat(document.getElementById('hero-contrast').value);
+                const blur = parseFloat(document.getElementById('hero-blur').value);
+
+                const res = await fetch('/api/hero', {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ 
+                        name, tagline, description, avatar_url: avatar, background_url,
+                        video_path, background_type, overlay_color, overlay_opacity,
+                        brightness, contrast, blur
+                    })
+                });
+
+                if (!res.ok) showToast("Failed to save Hero section.", "error");
+                else showToast("Hero Section updated successfully!");
+            });
+
+            document.getElementById('about-form').addEventListener("submit", async (e) => {
+                e.preventDefault();
+
+                const title = document.getElementById('about-title').value;
+                const college = document.getElementById('about-college').value;
+                const degree = document.getElementById('about-degree').value;
+                const year = document.getElementById('about-year').value;
+                const cgpa = document.getElementById('about-cgpa').value;
+                const location = document.getElementById('about-location').value;
+                const image = document.getElementById('about-image').value;
+                const description = document.getElementById('about-description').value;
+
+                const res = await fetch('/api/about', {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ title, college, degree, current_year: year, cgpa, location, image_url: image, description })
+                });
+
+                if (!res.ok) showToast("Failed to save About settings.", "error");
+                else showToast("About Me Section updated successfully!");
+            });
+
+            document.getElementById('contact-form').addEventListener("submit", async (e) => {
+                e.preventDefault();
+
+                const phone = document.getElementById('contact-phone').value;
+                const email = document.getElementById('contact-email').value;
+                const location = document.getElementById('contact-location').value;
+                const github = document.getElementById('social-github').value;
+                const linkedin = document.getElementById('social-linkedin').value;
+                const whatsapp = document.getElementById('social-whatsapp').value;
+
+                const res1 = await fetch('/api/contact', {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ phone, email, location })
+                });
+
+                const res2 = await fetch('/api/socials', {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ github, linkedin, whatsapp })
+                });
+
+                if (!res1.ok || !res2.ok) showToast("Failed to save contact configurations.", "error");
+                else showToast("Contact settings updated successfully!");
+            });
+
+            document.getElementById('seo-form').addEventListener("submit", async (e) => {
+                e.preventDefault();
+
+                const title = document.getElementById('seo-title').value;
+                const description = document.getElementById('seo-description').value;
+                const keywords = document.getElementById('seo-keywords').value;
+                const image = document.getElementById('seo-image').value;
+                const favicon = document.getElementById('seo-favicon').value;
+
+                const res = await fetch('/api/seo', {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ title, description, keywords, image_url: image, favicon_url: favicon })
+                });
+
+                if (!res.ok) showToast("Failed to save SEO config.", "error");
+                else showToast("SEO settings updated successfully!");
+            });
+
+            // ========================================================
+            // CRUD: Skills Modal Operations
+            // ========================================================
+
+            const skillModal = document.getElementById('skill-modal');
+            const skillForm = document.getElementById('skill-form');
+
+            window.openSkillModal = () => {
+                document.getElementById('skill-id').value = '';
+                document.getElementById('skill-name').value = '';
+                document.getElementById('skill-category').value = 'Frontend';
+                document.getElementById('skill-icon').value = 'fa-solid fa-code';
+                document.getElementById('skill-color').value = '#ffffff';
+                document.getElementById('skill-visible').checked = true;
+                document.getElementById('skill-modal-title').textContent = "Add Skill";
+                skillModal.classList.add('active');
+            };
+
+            window.closeSkillModal = () => {
+                skillModal.classList.remove('active');
+            };
+
+            window.editSkill = (id, name, category, icon, color, visible) => {
+                document.getElementById('skill-id').value = id;
+                document.getElementById('skill-name').value = name;
+                document.getElementById('skill-category').value = category;
+                document.getElementById('skill-icon').value = icon;
+                document.getElementById('skill-color').value = color;
+                document.getElementById('skill-visible').checked = visible;
+                document.getElementById('skill-modal-title').textContent = "Edit Skill";
+                skillModal.classList.add('active');
+            };
+
+            skillForm.addEventListener("submit", async (e) => {
+                e.preventDefault();
+
+                const id = document.getElementById('skill-id').value;
+                const name = document.getElementById('skill-name').value;
+                const category = document.getElementById('skill-category').value;
+                const icon = document.getElementById('skill-icon').value;
+                const color = document.getElementById('skill-color').value;
+                const visible = document.getElementById('skill-visible').checked;
+
+                const url = id ? `/api/skills/${id}` : '/api/skills';
+                const method = id ? 'PUT' : 'POST';
+
+                const res = await fetch(url, {
+                    method: method,
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ name, category, icon_class: icon, color, is_visible: visible })
+                });
+
+                if (!res.ok) showToast("Failed to save skill.", "error");
+                else {
+                    showToast("Skill saved successfully!");
+                    closeSkillModal();
+                    loadSkills();
+                }
+            });
+
+            window.deleteSkill = async (id) => {
+                if (!confirm("Are you sure you want to delete this skill?")) return;
+
+                const res = await fetch(`/api/skills/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!res.ok) showToast("Failed to delete skill.", "error");
+                else {
+                    showToast("Skill deleted successfully.");
+                    loadSkills();
+                }
+            };
+
+            // Initialize Sortable on Skills table
+            const skillsTable = document.getElementById('skills-table-body');
+            Sortable.create(skillsTable, {
+                handle: '.drag-handle',
+                animation: 150,
+                onEnd: async () => {
+                    const rows = skillsTable.querySelectorAll('tr');
+                    const orders = Array.from(rows).map(row => row.getAttribute('data-id'));
+                    
+                    const res = await fetch('/api/skills/reorder', {
+                        method: 'PUT',
+                        headers: { 
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({ orders })
+                    });
+
+                    if (res.ok) showToast("Skills reordered successfully!");
+                }
+            });
+
+            // Initialize Sortable on Completed Projects table
+            const completedProjectsTable = document.getElementById('completed-projects-table-body');
+            Sortable.create(completedProjectsTable, {
+                handle: '.drag-handle',
+                animation: 150,
+                onEnd: async () => {
+                    const rows = completedProjectsTable.querySelectorAll('tr');
+                    const orders = Array.from(rows).map(row => row.getAttribute('data-id'));
+                    
+                    const res = await fetch('/api/projects/reorder', {
+                        method: 'PUT',
+                        headers: { 
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({ orders })
+                    });
+
+                    if (res.ok) showToast("Completed projects reordered successfully!");
+                }
+            });
+
+            // Initialize Sortable on Upcoming Projects table
+            const upcomingProjectsTable = document.getElementById('upcoming-projects-table-body');
+            Sortable.create(upcomingProjectsTable, {
+                handle: '.drag-handle',
+                animation: 150,
+                onEnd: async () => {
+                    const rows = upcomingProjectsTable.querySelectorAll('tr');
+                    const orders = Array.from(rows).map(row => row.getAttribute('data-id'));
+                    
+                    const res = await fetch('/api/projects/reorder', {
+                        method: 'PUT',
+                        headers: { 
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({ orders })
+                    });
+
+                    if (res.ok) showToast("Upcoming projects reordered successfully!");
+                }
+            });
+
+            // ========================================================
+            // CRUD: Projects Modal Operations
+            // ========================================================
+
+            const projModal = document.getElementById('project-modal');
+            const projForm = document.getElementById('project-form');
+
+            window.toggleProjectFields = () => {
+                const status = document.getElementById('project-status').value;
+                const completedFields = document.querySelectorAll('.completed-only-field');
+                const upcomingFields = document.querySelectorAll('.upcoming-only-field');
+                
+                if (status === 'Completed') {
+                    completedFields.forEach(el => el.style.display = 'block');
+                    upcomingFields.forEach(el => el.style.display = 'none');
+                } else if (status === 'Upcoming') {
+                    completedFields.forEach(el => el.style.display = 'none');
+                    upcomingFields.forEach(el => el.style.display = 'block');
+                } else { // Draft
+                    completedFields.forEach(el => el.style.display = 'block');
+                    upcomingFields.forEach(el => el.style.display = 'none');
+                }
+            };
+
+            window.openProjectModal = () => {
+                document.getElementById('project-id').value = '';
+                document.getElementById('project-name').value = '';
+                document.getElementById('project-category').value = 'Frontend';
+                document.getElementById('project-short').value = '';
+                document.getElementById('project-long').value = '';
+                document.getElementById('project-tech').value = '';
+                updateSelectorPreview('project-image', '');
+                document.getElementById('project-github').value = '';
+                document.getElementById('project-live').value = '';
+                document.getElementById('project-completion-date').value = '';
+                document.getElementById('project-dev-stage').value = 'Planning';
+                document.getElementById('project-expected-release').value = '';
+                document.getElementById('project-progress-percent').value = '0';
+                document.getElementById('project-coming-soon').checked = false;
+                document.getElementById('project-expected-features').value = '';
+                document.getElementById('project-featured').checked = false;
+                document.getElementById('project-status').value = 'Completed';
+                document.getElementById('project-modal-title').textContent = "Add Project";
+                toggleProjectFields();
+                projModal.classList.add('active');
+            };
+
+            window.closeProjectModal = () => {
+                projModal.classList.remove('active');
+            };
+
+            window.editProject = async (id) => {
+                const data = await fetch(`/api/projects`).then(res => res.json()).then(arr => arr.find(p => p._id === id));
+                
+                if (data) {
+                    document.getElementById('project-id').value = data._id;
+                    document.getElementById('project-name').value = data.name;
+                    document.getElementById('project-category').value = data.category || 'Frontend';
+                    document.getElementById('project-short').value = data.short_desc;
+                    document.getElementById('project-long').value = data.long_desc || '';
+                    document.getElementById('project-tech').value = data.technologies.join(', ');
+                    updateSelectorPreview('project-image', data.image_url || '');
+                    document.getElementById('project-github').value = data.github_link || '';
+                    document.getElementById('project-live').value = data.live_link || '';
+                    document.getElementById('project-completion-date').value = data.completion_date || '';
+                    document.getElementById('project-dev-stage').value = data.dev_stage || 'Planning';
+                    document.getElementById('project-expected-release').value = data.expected_release || '';
+                    document.getElementById('project-progress-percent').value = data.progress_percent || '0';
+                    document.getElementById('project-coming-soon').checked = !!data.coming_soon;
+                    document.getElementById('project-expected-features').value = data.expected_features ? data.expected_features.join(', ') : '';
+                    document.getElementById('project-featured').checked = !!data.is_featured;
+                    document.getElementById('project-status').value = data.status || 'Completed';
+                    document.getElementById('project-modal-title').textContent = "Edit Project";
+                    toggleProjectFields();
+                    projModal.classList.add('active');
+                }
+            };
+
+            projForm.addEventListener("submit", async (e) => {
+                e.preventDefault();
+
+                const id = document.getElementById('project-id').value;
+                const name = document.getElementById('project-name').value;
+                const category = document.getElementById('project-category').value;
+                const short = document.getElementById('project-short').value;
+                const long = document.getElementById('project-long').value;
+                const techStr = document.getElementById('project-tech').value;
+                const image = document.getElementById('project-image').value;
+                const github = document.getElementById('project-github').value;
+                const live = document.getElementById('project-live').value;
+                const completion_date = document.getElementById('project-completion-date').value;
+                const dev_stage = document.getElementById('project-dev-stage').value;
+                const expected_release = document.getElementById('project-expected-release').value;
+                const progress_percent = parseInt(document.getElementById('project-progress-percent').value) || 0;
+                const coming_soon = document.getElementById('project-coming-soon').checked;
+                const expected_features_str = document.getElementById('project-expected-features').value;
+                const featured = document.getElementById('project-featured').checked;
+                const status = document.getElementById('project-status').value;
+
+                const techArr = techStr.split(',').map(s => s.trim()).filter(s => s.length > 0);
+                const featuresArr = expected_features_str.split(',').map(s => s.trim()).filter(s => s.length > 0);
+
+                const url = id ? `/api/projects/${id}` : '/api/projects';
+                const method = id ? 'PUT' : 'POST';
+
+                const res = await fetch(url, {
+                    method: method,
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ 
+                        name, category, short_desc: short, long_desc: long, technologies: techArr, image_url: image, 
+                        github_link: github, live_link: live, is_featured: featured, status,
+                        completion_date, dev_stage, expected_release, progress_percent, coming_soon,
+                        expected_features: featuresArr
+                    })
+                });
+
+                if (!res.ok) showToast("Failed to save project.", "error");
+                else {
+                    showToast("Project saved successfully!");
+                    closeProjectModal();
+                    loadProjects();
+                }
+            });
+
+            window.deleteProject = async (id) => {
+                if (!confirm("Are you sure you want to delete this project?")) return;
+
+                const res = await fetch(`/api/projects/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!res.ok) showToast("Failed to delete project.", "error");
+                else {
+                    showToast("Project deleted successfully.");
+                    loadProjects();
+                }
+            };
+
+            // ========================================================
+            // CRUD: Timeline Modal Operations
+            // ========================================================
+
+            const tlineModal = document.getElementById('timeline-modal');
+            const tlineForm = document.getElementById('timeline-form');
+
+            window.openTimelineModal = () => {
+                document.getElementById('timeline-id').value = '';
+                document.getElementById('timeline-title').value = '';
+                document.getElementById('timeline-company').value = '';
+                document.getElementById('timeline-start').value = '';
+                document.getElementById('timeline-end').value = 'Present';
+                document.getElementById('timeline-badge').value = 'Experience';
+                document.getElementById('timeline-desc').value = '';
+                updateSelectorPreview('timeline-logo', '');
+                document.getElementById('timeline-modal-title').textContent = "Add Timeline Entry";
+                tlineModal.classList.add('active');
+            };
+
+            window.closeTimelineModal = () => {
+                tlineModal.classList.remove('active');
+            };
+
+            window.editTimeline = async (id) => {
+                const data = await fetch(`/api/timeline`).then(res => res.json()).then(arr => arr.find(item => item._id === id));
+
+                if (data) {
+                    document.getElementById('timeline-id').value = data._id;
+                    document.getElementById('timeline-title').value = data.title;
+                    document.getElementById('timeline-company').value = data.company || '';
+                    document.getElementById('timeline-start').value = data.start_date;
+                    document.getElementById('timeline-end').value = data.end_date || '';
+                    document.getElementById('timeline-badge').value = data.badge || 'Experience';
+                    document.getElementById('timeline-desc').value = data.description || '';
+                    updateSelectorPreview('timeline-logo', data.logo_url || '');
+                    document.getElementById('timeline-modal-title').textContent = "Edit Timeline Entry";
+                    tlineModal.classList.add('active');
+                }
+            };
+
+            tlineForm.addEventListener("submit", async (e) => {
+                e.preventDefault();
+
+                const id = document.getElementById('timeline-id').value;
+                const title = document.getElementById('timeline-title').value;
+                const company = document.getElementById('timeline-company').value;
+                const start = document.getElementById('timeline-start').value;
+                const end = document.getElementById('timeline-end').value;
+                const badge = document.getElementById('timeline-badge').value;
+                const desc = document.getElementById('timeline-desc').value;
+                const logo = document.getElementById('timeline-logo').value;
+
+                const url = id ? `/api/timeline/${id}` : '/api/timeline';
+                const method = id ? 'PUT' : 'POST';
+
+                const res = await fetch(url, {
+                    method: method,
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ title, company, start_date: start, end_date: end, badge, description: desc, logo_url: logo })
+                });
+
+                if (!res.ok) showToast("Failed to save timeline entry.", "error");
+                else {
+                    showToast("Timeline entry saved successfully!");
+                    closeTimelineModal();
+                    loadTimeline();
+                }
+            });
+
+            window.deleteTimeline = async (id) => {
+                if (!confirm("Are you sure you want to delete this entry?")) return;
+
+                const res = await fetch(`/api/timeline/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!res.ok) showToast("Failed to delete entry.", "error");
+                else {
+                    showToast("Timeline entry deleted.");
+                    loadTimeline();
+                }
+            };
+
+            // ========================================================
+            // CRUD: Certifications Modal Operations
+            // ========================================================
+
+            const certModal = document.getElementById('cert-modal');
+            const certForm = document.getElementById('cert-form');
+
+            window.openCertModal = () => {
+                document.getElementById('cert-id').value = '';
+                document.getElementById('cert-title').value = '';
+                document.getElementById('cert-org').value = '';
+                document.getElementById('cert-date').value = '';
+                document.getElementById('cert-link').value = '';
+                updateSelectorPreview('cert-image', '');
+                document.getElementById('cert-modal-title').textContent = "Add Certification";
+                certModal.classList.add('active');
+            };
+
+            window.closeCertModal = () => {
+                certModal.classList.remove('active');
+            };
+
+            window.editCert = async (id) => {
+                const data = await fetch(`/api/certificates`).then(res => res.json()).then(arr => arr.find(c => c._id === id));
+
+                if (data) {
+                    document.getElementById('cert-id').value = data._id;
+                    document.getElementById('cert-title').value = data.title;
+                    document.getElementById('cert-org').value = data.organization;
+                    document.getElementById('cert-date').value = data.issue_date;
+                    document.getElementById('cert-link').value = data.credential_link || '';
+                    updateSelectorPreview('cert-image', data.image_url || '');
+                    document.getElementById('cert-modal-title').textContent = "Edit Certification";
+                    certModal.classList.add('active');
+                }
+            };
+
+            certForm.addEventListener("submit", async (e) => {
+                e.preventDefault();
+
+                const id = document.getElementById('cert-id').value;
+                const title = document.getElementById('cert-title').value;
+                const org = document.getElementById('cert-org').value;
+                const date = document.getElementById('cert-date').value;
+                const link = document.getElementById('cert-link').value;
+                const image = document.getElementById('cert-image').value;
+
+                const url = id ? `/api/certificates/${id}` : '/api/certificates';
+                const method = id ? 'PUT' : 'POST';
+
+                const res = await fetch(url, {
+                    method: method,
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ title, organization: org, issue_date: date, credential_link: link, image_url: image })
+                });
+
+                if (!res.ok) showToast("Failed to save certification.", "error");
+                else {
+                    showToast("Certification saved successfully!");
+                    closeCertModal();
+                    loadCertifications();
+                }
+            });
+
+            window.deleteCert = async (id) => {
+                if (!confirm("Are you sure you want to delete this certificate?")) return;
+
+                const res = await fetch(`/api/certificates/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!res.ok) showToast("Failed to delete certificate.", "error");
+                else {
+                    showToast("Certification deleted.");
+                    loadCertifications();
+                }
+            };
+
+            // ========================================================
+            // MEDIA & STORAGE UPLOADER OPERATIONS
+            // ========================================================
+
+            const dropzone = document.getElementById('dropzone');
+            const fileUploader = document.getElementById('file-uploader');
+
+            dropzone.addEventListener("click", () => fileUploader.click());
+
+            dropzone.addEventListener("dragover", (e) => {
+                e.preventDefault();
+                dropzone.classList.add('dragover');
+            });
+
+            dropzone.addEventListener("dragleave", () => {
+                dropzone.classList.remove('dragover');
+            });
+
+            dropzone.addEventListener("drop", (e) => {
+                e.preventDefault();
+                dropzone.classList.remove('dragover');
+                if (e.dataTransfer.files.length > 0) {
+                    uploadFile(e.dataTransfer.files[0]);
+                }
+            });
+
+            fileUploader.addEventListener("change", () => {
+                if (fileUploader.files.length > 0) {
+                    uploadFile(fileUploader.files[0]);
+                }
+            });
+
+            async function uploadFile(file) {
+                showToast("Uploading file...", "accent");
+                const formData = new FormData();
+                formData.append('file', file);
+
+                try {
+                    const res = await fetch('/api/media/upload', {
+                        method: 'POST',
+                        headers: { 'Authorization': `Bearer ${token}` },
+                        body: formData
+                    });
+                    const data = await res.json();
+                    
+                    if (!res.ok) throw new Error(data.error);
+
+                    showToast("File uploaded successfully!");
+                    loadMediaGrid();
+                } catch (e) {
+                    console.error("Upload error:", e);
+                    showToast("Upload failed: " + e.message, "error");
+                }
+            }
+
+            async function loadMediaGrid() {
+                const grid = document.getElementById('media-grid');
+                grid.innerHTML = '<div style="color:var(--text-muted);">Loading media items...</div>';
+
+                try {
+                    const res = await fetch('/api/media', {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    const data = await res.json();
+
+                    grid.innerHTML = '';
+                    if (!data || data.length === 0) {
+                        grid.innerHTML = '<div style="color:var(--text-muted);">No uploaded media files. Drag files above to upload!</div>';
+                        return;
+                    }
+
+                    data.forEach(item => {
+                        const div = document.createElement('div');
+                        div.className = 'media-item';
+                        const isVideo = item.name.match(/\.(mp4|webm|mov)$/i);
+                        const mediaPreview = isVideo 
+                            ? `<video src="${item.url}" muted style="width:100%;height:100%;object-fit:cover;"></video><div class="video-play-indicator" style="position:absolute;top:10px;left:10px;color:#fff;background:rgba(0,0,0,0.5);width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;"><i class="fa-solid fa-play" style="font-size:10px;"></i></div>` 
+                            : `<img src="${item.url}" alt="${item.name}">`;
+                        div.innerHTML = `
+                            ${mediaPreview}
+                            <div class="media-item-overlay">
+                                <span class="media-item-name">${item.name}</span>
+                                <div style="display:flex;gap:10px;">
+                                    <button class="btn-icon" onclick="copyToClipboard('${item.url}')" title="Copy public URL"><i class="fa-solid fa-copy"></i></button>
+                                    <button class="btn-icon delete" onclick="deleteMediaFile('${item.name}')" title="Delete file"><i class="fa-solid fa-trash"></i></button>
+                                </div>
+                            </div>
+                        `;
+                        grid.appendChild(div);
+                    });
+                } catch (e) {
+                    console.error(e);
+                    grid.innerHTML = '<div style="color:var(--danger);">Error loading media list from local folder.</div>';
+                }
+            }
+            window.loadMediaGrid = loadMediaGrid;
+
+            window.copyToClipboard = (text) => {
+                // Generate absolute path
+                const absoluteUrl = window.location.origin + text;
+                navigator.clipboard.writeText(absoluteUrl).then(() => {
+                    showToast("Absolute URL copied to clipboard!");
+                });
+            };
+
+            window.deleteMediaFile = async (name) => {
+                if (!confirm("Are you sure you want to delete this file?")) return;
+
+                try {
+                    const res = await fetch(`/api/media/${name}`, {
+                        method: 'DELETE',
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    const data = await res.json();
+                    if (!res.ok) throw new Error(data.error);
+                    
+                    showToast("File deleted successfully.");
+                    loadMediaGrid();
+                } catch (e) {
+                    showToast("Delete failed: " + e.message, "error");
+                }
+            };
+
+            // ========================================================
+            // RESUME PDF UPLOADER OPERATIONS
+            // ========================================================
+
+            document.getElementById('btn-upload-resume').addEventListener("click", async () => {
+                const uploader = document.getElementById('resume-uploader');
+                if (uploader.files.length === 0) {
+                    showToast("Please select a PDF file first.", "error");
+                    return;
+                }
+                
+                const file = uploader.files[0];
+                showToast("Uploading resume...", "accent");
+                const formData = new FormData();
+                formData.append('file', file);
+
+                try {
+                    const res = await fetch('/api/resume/upload', {
+                        method: 'POST',
+                        headers: { 'Authorization': `Bearer ${token}` },
+                        body: formData
+                    });
+                    const data = await res.json();
+                    if (!res.ok) throw new Error(data.error);
+
+                    showToast("Resume uploaded and linked successfully!");
+                    uploader.value = '';
+                } catch (e) {
+                    console.error(e);
+                    showToast("Resume upload failed: " + e.message, "error");
+                }
+            });
+
+            // ========================================================
+            // CMS MEDIA PICKER (IMAGE SELECTOR) CONTROLLER
+            // ========================================================
+            let currentPickerTarget = null;
+            let selectedPickerAsset = null;
+            let cachedPickerMedia = [];
+
+            // Helper to update visual selector widget previews
+            window.updateSelectorPreview = (targetId, url) => {
+                const input = document.getElementById(targetId);
+                const preview = document.getElementById(`${targetId}-preview`);
+                const info = document.getElementById(`${targetId}-info`);
+                
+                if (input) input.value = url || '';
+                
+                if (preview) {
+                    if (url) {
+                        const isVideo = url.match(/\.(mp4|webm|mov)$/i);
+                        if (isVideo) {
+                            preview.innerHTML = `<video src="${url}" muted autoplay loop style="width:100%;height:100%;object-fit:cover;"></video>`;
+                        } else {
+                            preview.innerHTML = `<img src="${url}" alt="Preview">`;
+                        }
+                    } else {
+                        if (targetId === 'settings-portfolio-favicon') {
+                            preview.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" style="width: 100%; height: 100%;"><rect width="100" height="100" rx="20" fill="%232563eb"/><text y=".78em" x="50%" font-family="Arial, sans-serif" font-size="70" font-weight="bold" fill="white" text-anchor="middle">S</text></svg>`;
+                        } else if (targetId === 'settings-uxi-favicon') {
+                            preview.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" style="width: 100%; height: 100%;"><rect width="100" height="100" rx="20" fill="%232563eb"/><text y=".68em" x="50%" font-family="Arial, sans-serif" font-size="45" font-weight="bold" fill="white" text-anchor="middle">UXI</text></svg>`;
+                        } else if (targetId === 'settings-admin-favicon') {
+                            preview.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" style="width: 100%; height: 100%;"><rect width="100" height="100" rx="20" fill="%230f172a"/><text y=".78em" x="50%" font-size="60" text-anchor="middle">⚙️</text></svg>`;
+                        } else {
+                            preview.innerHTML = `<i class="fa-solid fa-image"></i>`;
+                        }
+                    }
+                }
+                
+                if (info) {
+                    info.textContent = url ? url.substring(url.lastIndexOf('/') + 1) : 'No file selected';
+                }
+                
+                if (targetId === 'hero-bg' || targetId === 'hero-video' || targetId === 'hero-avatar') {
+                    if (window.updateHeroLivePreview) window.updateHeroLivePreview();
+                }
+            };
+
+            window.removeSelectedImage = (targetId) => {
+                updateSelectorPreview(targetId, '');
+            };
+
+            // Open picker modal contextually
+            window.openMediaPicker = (targetId) => {
+                currentPickerTarget = targetId;
+                selectedPickerAsset = null;
+                
+                // Reset metadata panels
+                document.getElementById('picker-preview-box').innerHTML = `<i class="fa-solid fa-image"></i>`;
+                document.getElementById('picker-info-box').style.display = 'none';
+                document.getElementById('picker-actions-box').style.display = 'none';
+                document.getElementById('picker-search').value = '';
+                
+                // Show modal
+                document.getElementById('media-picker-modal').style.display = 'flex';
+                
+                // Fetch grid
+                loadPickerGrid();
+            };
+
+            window.closeMediaPicker = () => {
+                document.getElementById('media-picker-modal').style.display = 'none';
+                currentPickerTarget = null;
+            };
+
+            // Load grid of files
+            async function loadPickerGrid() {
+                const grid = document.getElementById('picker-grid');
+                grid.innerHTML = '<div style="color:var(--text-muted);grid-column:1/-1;text-align:center;padding:20px;">Loading assets...</div>';
+
+                try {
+                    const res = await fetch('/api/media', {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    const data = await res.json();
+                    
+                    cachedPickerMedia = data || [];
+                    renderPickerGrid(cachedPickerMedia);
+                } catch (e) {
+                    grid.innerHTML = '<div style="color:var(--danger);grid-column:1/-1;text-align:center;padding:20px;">Error loading assets.</div>';
+                }
+            }
+
+            function renderPickerGrid(assets) {
+                const grid = document.getElementById('picker-grid');
+                grid.innerHTML = '';
+                
+                if (!assets || assets.length === 0) {
+                    grid.innerHTML = '<div style="color:var(--text-muted);grid-column:1/-1;text-align:center;padding:20px;">No assets found. Drag & drop above to upload!</div>';
+                    return;
+                }
+
+                assets.forEach(asset => {
+                    const div = document.createElement('div');
+                    div.className = 'media-picker-item';
+                    if (selectedPickerAsset && selectedPickerAsset.name === asset.name) {
+                        div.className += ' selected';
+                    }
+                    
+                    const isVideo = asset.name.match(/\.(mp4|webm|mov)$/i);
+                    const mediaPreview = isVideo 
+                        ? `<video src="${asset.url}" muted style="width:100%;height:100%;object-fit:cover;"></video><div class="video-play-indicator" style="position:absolute;top:5px;left:5px;color:#fff;background:rgba(0,0,0,0.5);width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;"><i class="fa-solid fa-play" style="font-size:9px;"></i></div>` 
+                        : `<img src="${asset.url}" alt="${asset.name}">`;
+                        
+                    div.innerHTML = `
+                        ${mediaPreview}
+                        <div class="item-check"><i class="fa-solid fa-check"></i></div>
+                    `;
+                    
+                    div.addEventListener('click', () => {
+                        document.querySelectorAll('.media-picker-item').forEach(el => el.classList.remove('selected'));
+                        div.classList.add('selected');
+                        
+                        selectedPickerAsset = asset;
+                        showPickerAssetDetails(asset);
+                    });
+                    
+                    grid.appendChild(div);
+                });
+            }
+
+            window.filterPickerMedia = () => {
+                const searchVal = document.getElementById('picker-search').value.toLowerCase().trim();
+                const filtered = cachedPickerMedia.filter(a => a.name.toLowerCase().includes(searchVal));
+                renderPickerGrid(filtered);
+            };
+
+            function showPickerAssetDetails(asset) {
+                const isVideo = asset.name.match(/\.(mp4|webm|mov)$/i);
+                const previewHtml = isVideo 
+                    ? `<video src="${asset.url}" controls muted autoplay loop style="max-width:100%;max-height:100%;object-fit:contain;"></video>` 
+                    : `<img src="${asset.url}" alt="${asset.name}">`;
+                    
+                document.getElementById('picker-preview-box').innerHTML = previewHtml;
+                
+                document.getElementById('picker-detail-name').textContent = asset.name;
+                document.getElementById('picker-detail-url').textContent = asset.url;
+                
+                document.getElementById('picker-rename-input').value = asset.name;
+                
+                document.getElementById('picker-info-box').style.display = 'block';
+                document.getElementById('picker-actions-box').style.display = 'block';
+            }
+
+            // Insert chosen image into input
+            window.insertPickerAsset = () => {
+                if (!selectedPickerAsset) {
+                    showToast("Please select an asset first.", "error");
+                    return;
+                }
+                
+                updateSelectorPreview(currentPickerTarget, selectedPickerAsset.url);
+                closeMediaPicker();
+                showToast("Asset selected!");
+            };
+
+            // Rename asset on disk
+            window.renamePickerAsset = async () => {
+                if (!selectedPickerAsset) return;
+                
+                const oldName = selectedPickerAsset.name;
+                const newName = document.getElementById('picker-rename-input').value.trim();
+                
+                if (!newName || oldName === newName) return;
+                
+                try {
+                    const res = await fetch('/api/media/rename', {
+                        method: 'PUT',
+                        headers: { 
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({ oldName, newName })
+                    });
+                    const data = await res.json();
+                    
+                    if (!res.ok) throw new Error(data.error);
+                    
+                    showToast("Asset renamed successfully!");
+                    selectedPickerAsset = null;
+                    
+                    // Reset details panel
+                    document.getElementById('picker-preview-box').innerHTML = `<i class="fa-solid fa-image"></i>`;
+                    document.getElementById('picker-info-box').style.display = 'none';
+                    document.getElementById('picker-actions-box').style.display = 'none';
+                    
+                    loadPickerGrid();
+                    loadMediaGrid(); // also refresh main media manager grid
+                } catch (e) {
+                    showToast("Rename failed: " + e.message, "error");
+                }
+            };
+
+            // Replace file content
+            const pickerReplaceUploader = document.getElementById('picker-replace-uploader');
+            window.triggerPickerReplace = () => {
+                pickerReplaceUploader.click();
+            };
+
+            pickerReplaceUploader.addEventListener('change', async () => {
+                if (pickerReplaceUploader.files.length === 0 || !selectedPickerAsset) return;
+                
+                const file = pickerReplaceUploader.files[0];
+                const name = selectedPickerAsset.name;
+                
+                showToast("Replacing asset content...", "accent");
+                const formData = new FormData();
+                formData.append('file', file);
+                
+                try {
+                    const res = await fetch(`/api/media/replace/${name}`, {
+                        method: 'POST',
+                        headers: { 'Authorization': `Bearer ${token}` },
+                        body: formData
+                    });
+                    const data = await res.json();
+                    if (!res.ok) throw new Error(data.error);
+                    
+                    showToast("Asset replaced successfully!");
+                    pickerReplaceUploader.value = '';
+                    
+                    // Reload details preview
+                    const cacheBusterUrl = `${selectedPickerAsset.url}?cb=${Date.now()}`;
+                    document.getElementById('picker-preview-box').innerHTML = `<img src="${cacheBusterUrl}" alt="${name}">`;
+                    
+                    loadPickerGrid();
+                    loadMediaGrid();
+                } catch (e) {
+                    showToast("Replace failed: " + e.message, "error");
+                }
+            });
+
+            // Delete asset from library
+            window.deletePickerAsset = async () => {
+                if (!selectedPickerAsset) return;
+                if (!confirm("Are you sure you want to delete this asset? This cannot be undone and will break links if currently used!")) return;
+                
+                const name = selectedPickerAsset.name;
+                
+                try {
+                    const res = await fetch(`/api/media/${name}`, {
+                        method: 'DELETE',
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    const data = await res.json();
+                    
+                    if (!res.ok) throw new Error(data.error);
+                    
+                    showToast("Asset deleted from library.");
+                    selectedPickerAsset = null;
+                    
+                    document.getElementById('picker-preview-box').innerHTML = `<i class="fa-solid fa-image"></i>`;
+                    document.getElementById('picker-info-box').style.display = 'none';
+                    document.getElementById('picker-actions-box').style.display = 'none';
+                    
+                    loadPickerGrid();
+                    loadMediaGrid();
+                } catch (e) {
+                    showToast("Delete failed: " + e.message, "error");
+                }
+            };
+
+            // Picker upload drag-and-drop
+            const pickerDropzone = document.getElementById('picker-dropzone');
+            const pickerFileUploader = document.getElementById('picker-file-uploader');
+
+            pickerDropzone.addEventListener('click', () => pickerFileUploader.click());
+
+            pickerDropzone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                pickerDropzone.classList.add('dragover');
+            });
+
+            pickerDropzone.addEventListener('dragleave', () => {
+                pickerDropzone.classList.remove('dragover');
+            });
+
+            pickerDropzone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                pickerDropzone.classList.remove('dragover');
+                if (e.dataTransfer.files.length > 0) {
+                    uploadMultipleFiles(e.dataTransfer.files);
+                }
+            });
+
+            pickerFileUploader.addEventListener('change', () => {
+                if (pickerFileUploader.files.length > 0) {
+                    uploadMultipleFiles(pickerFileUploader.files);
+                }
+            });
+
+            async function uploadMultipleFiles(files) {
+                showToast(`Uploading ${files.length} asset(s)...`, "accent");
+                let uploadedCount = 0;
+                
+                for (let i = 0; i < files.length; i++) {
+                    const file = files[i];
+                    const formData = new FormData();
+                    formData.append('file', file);
+                    
+                    try {
+                        const res = await fetch('/api/media/upload', {
+                            method: 'POST',
+                            headers: { 'Authorization': `Bearer ${token}` },
+                            body: formData
+                        });
+                        if (res.ok) uploadedCount++;
+                    } catch (e) {
+                        console.error("Single file upload error", e);
+                    }
+                }
+                
+                showToast(`Successfully uploaded ${uploadedCount} file(s)!`);
+                pickerFileUploader.value = '';
+                loadPickerGrid();
+                loadMediaGrid();
+            }
+
+            // ========================================================
+            // UXI Startup management (CRUD)
+            // ========================================================
+
+            const uxiTeamModal = document.getElementById('uxi-team-modal');
+            const uxiTeamForm = document.getElementById('uxi-team-form');
+            const uxiProjModal = document.getElementById('uxi-project-modal');
+            const uxiProjForm = document.getElementById('uxi-project-form');
+
+            // Toggle project conditional fields
+            window.toggleUXIProjectFields = () => {
+                const status = document.getElementById('uxi-project-status').value;
+                const completedFields = document.querySelectorAll('.uxi-completed-only-field');
+                const upcomingFields = document.querySelectorAll('.uxi-upcoming-only-field');
+                
+                if (status === 'Completed') {
+                    completedFields.forEach(el => el.style.display = 'block');
+                    upcomingFields.forEach(el => el.style.display = 'none');
+                } else {
+                    completedFields.forEach(el => el.style.display = 'none');
+                    upcomingFields.forEach(el => el.style.display = 'block');
+                }
+            };
+
+            // General Info load & save
+            async function loadUXISettings() {
+                // 1. General settings
+                try {
+                    const gen = await fetch('/api/uxi/general').then(res => res.json());
+                    if (gen) {
+                        updateSelectorPreview('uxi-logo', gen.logo_url || '');
+                        document.getElementById('uxi-about-copy').value = gen.about_copy || '';
+                        document.getElementById('uxi-mission').value = gen.mission || '';
+                        document.getElementById('uxi-vision').value = gen.vision || '';
+                        document.getElementById('uxi-founded-year').value = gen.founded_year || '2026';
+                        document.getElementById('uxi-website-link').value = gen.website_link || 'https://uxitech.in';
+                        document.getElementById('uxi-email').value = gen.email || 'contact@uxitech.in';
+                        document.getElementById('uxi-phone').value = gen.phone || '';
+                        document.getElementById('uxi-location').value = gen.location || '';
+
+                        // Load Footer Settings
+                        document.getElementById('uxi-footer-company').value = gen.footer_btn_text || 'UXI Technologies';
+                        document.getElementById('uxi-footer-tagline').value = gen.footer_tagline || 'Empowering the next generation of seamless web experiences.';
+                        document.getElementById('uxi-footer-website').value = gen.footer_btn_link || 'https://uxitech.in';
+                        document.getElementById('uxi-footer-copyright').value = gen.footer_text || '© 2026 UXI Startup. All rights reserved.';
+                    }
+                } catch (e) {
+                    console.error("Failed to load UXI general settings", e);
+                }
+
+                // 2. Team list
+                loadUXITeam();
+
+                // 3. Projects list
+                loadUXIProjects();
+            }
+            window.loadUXISettings = loadUXISettings;
+
+            // Website Settings controller
+            async function loadWebsiteSettings() {
+                try {
+                    const data = await fetch('/api/settings').then(res => res.json());
+                    if (data) {
+                        updateSelectorPreview('settings-portfolio-favicon', data.portfolio_favicon_url || '');
+                        updateSelectorPreview('settings-uxi-favicon', data.uxi_favicon_url || '');
+                        updateSelectorPreview('settings-admin-favicon', data.admin_favicon_url || '');
+                    }
+                } catch (e) {
+                    console.error("Failed to load Website Settings", e);
+                }
+            }
+            window.loadWebsiteSettings = loadWebsiteSettings;
+
+            // Direct favicon upload handler
+            window.handleDirectFaviconUpload = async (input, targetId) => {
+                if (input.files.length === 0) return;
+                
+                const file = input.files[0];
+                showToast("Uploading logo to Supabase storage...", "accent");
+                
+                const formData = new FormData();
+                formData.append('file', file);
+                
+                try {
+                    const res = await fetch('/api/settings/upload', {
+                        method: 'POST',
+                        headers: { 'Authorization': `Bearer ${token}` },
+                        body: formData
+                    });
+                    const data = await res.json();
+                    if (!res.ok) throw new Error(data.error);
+                    
+                    updateSelectorPreview(targetId, data.url);
+                    showToast("Logo uploaded successfully!");
+                    input.value = ''; // Reset file input
+                } catch (e) {
+                    console.error(e);
+                    showToast("Logo upload failed: " + e.message, "error");
+                }
+            };
+
+            // Form Submit for website settings
+            document.getElementById('settings-form').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                const portfolio = document.getElementById('settings-portfolio-favicon').value;
+                const uxi = document.getElementById('settings-uxi-favicon').value;
+                const admin = document.getElementById('settings-admin-favicon').value;
+                
+                showToast("Saving settings...", "accent");
+                try {
+                    const res = await fetch('/api/settings', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({
+                            portfolio_favicon_url: portfolio,
+                            uxi_favicon_url: uxi,
+                            admin_favicon_url: admin
+                        })
+                    });
+                    
+                    const data = await res.json();
+                    if (!res.ok) throw new Error(data.error);
+                    
+                    showToast("Website Settings saved successfully!");
+                    
+                    // Instantly update current page's favicon
+                    const activeFavicon = admin || `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%230f172a'/%3E%3Ctext y='.78em' x='50%25' font-size='60' text-anchor='middle'%3E⚙️%3C/text%3E%3C/svg%3E`;
+                    document.getElementById('dynamic-favicon').href = activeFavicon;
+                    
+                } catch (err) {
+                    console.error(err);
+                    showToast("Failed to save settings: " + err.message, "error");
+                }
+            });
+
+            // Load Team
+            async function loadUXITeam() {
+                try {
+                    const team = await fetch('/api/uxi/team').then(res => res.json());
+                    const tbody = document.getElementById('uxi-team-table-body');
+                    tbody.innerHTML = '';
+                    if (team) {
+                        team.forEach(member => {
+                            const tr = document.createElement('tr');
+                            tr.setAttribute('data-id', member._id);
+                            tr.innerHTML = `
+                                <td><i class="fa-solid fa-grip-vertical drag-handle"></i></td>
+                                <td><img src="${member.photo_url || 'images/cert_placeholder.png'}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;"></td>
+                                <td><strong>${member.name}</strong></td>
+                                <td>${member.role}</td>
+                                <td><a href="${member.linkedin_link}" target="_blank">${member.linkedin_link !== '#' ? 'Link' : 'None'}</a></td>
+                                <td class="actions-cell">
+                                    <button class="btn-icon" onclick="editUXITeam('${member._id}')"><i class="fa-solid fa-pen"></i></button>
+                                    <button class="btn-icon delete" onclick="deleteUXITeam('${member._id}')"><i class="fa-solid fa-trash"></i></button>
+                                </td>
+                            `;
+                            tbody.appendChild(tr);
+                        });
+                    }
+                } catch (e) {
+                    console.error("Failed to load UXI team members", e);
+                }
+            }
+            window.loadUXITeam = loadUXITeam;
+
+            // Load Projects
+            async function loadUXIProjects() {
+                try {
+                    const projects = await fetch('/api/uxi/projects').then(res => res.json());
+                    const tbody = document.getElementById('uxi-project-table-body');
+                    tbody.innerHTML = '';
+                    if (projects) {
+                        projects.forEach(proj => {
+                            const tr = document.createElement('tr');
+                            tr.setAttribute('data-id', proj._id);
+                            tr.innerHTML = `
+                                <td><i class="fa-solid fa-grip-vertical drag-handle"></i></td>
+                                <td><strong>${proj.name}</strong></td>
+                                <td>${proj.description}</td>
+                                <td><span class="badge-status ${proj.status === 'Completed' ? 'badge-published' : 'badge-draft'}">${proj.status}</span></td>
+                                <td class="actions-cell">
+                                    <button class="btn-icon" onclick="editUXIProject('${proj._id}')"><i class="fa-solid fa-pen"></i></button>
+                                    <button class="btn-icon delete" onclick="deleteUXIProject('${proj._id}')"><i class="fa-solid fa-trash"></i></button>
+                                </td>
+                            `;
+                            tbody.appendChild(tr);
+                        });
+                    }
+                } catch (e) {
+                    console.error("Failed to load UXI projects", e);
+                }
+            }
+            window.loadUXIProjects = loadUXIProjects;
+
+            // General form submit
+            document.getElementById('uxi-general-form').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const logo_url = document.getElementById('uxi-logo').value;
+                const about_copy = document.getElementById('uxi-about-copy').value;
+                const mission = document.getElementById('uxi-mission').value;
+                const vision = document.getElementById('uxi-vision').value;
+                const founded_year = document.getElementById('uxi-founded-year').value;
+                const website_link = document.getElementById('uxi-website-link').value;
+                const email = document.getElementById('uxi-email').value;
+                const phone = document.getElementById('uxi-phone').value;
+                const location = document.getElementById('uxi-location').value;
+
+                try {
+                    // Fetch existing settings to preserve footer settings fields!
+                    const currentGen = await fetch('/api/uxi/general').then(res => res.json());
+
+                    const res = await fetch('/api/uxi/general', {
+                        method: 'POST',
+                        headers: { 
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({ 
+                            ...currentGen,
+                            logo_url, about_copy, mission, vision, founded_year, website_link, email, phone, location 
+                        })
+                    });
+                    if (res.ok) showToast("UXI General Information updated successfully!");
+                    else showToast("Failed to save UXI settings", "error");
+                } catch (e) {
+                    showToast("Error saving UXI settings: " + e.message, "error");
+                }
+            });
+
+            // Footer form submit
+            document.getElementById('uxi-footer-form').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const footer_btn_text = document.getElementById('uxi-footer-company').value;
+                const footer_tagline = document.getElementById('uxi-footer-tagline').value;
+                const footer_btn_link = document.getElementById('uxi-footer-website').value;
+                const footer_text = document.getElementById('uxi-footer-copyright').value;
+
+                try {
+                    // Fetch existing settings to preserve other general info fields!
+                    const currentGen = await fetch('/api/uxi/general').then(res => res.json());
+
+                    const res = await fetch('/api/uxi/general', {
+                        method: 'POST',
+                        headers: { 
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({ 
+                            ...currentGen, 
+                            footer_btn_text, 
+                            footer_tagline, 
+                            footer_btn_link, 
+                            footer_text 
+                        })
+                    });
+                    if (res.ok) showToast("UXI Footer Settings updated successfully!");
+                    else showToast("Failed to save footer settings", "error");
+                } catch (e) {
+                    showToast("Error saving footer settings: " + e.message, "error");
+                }
+            });
+
+            // Team Member operations
+            window.openUXITeamModal = () => {
+                document.getElementById('uxi-team-id').value = '';
+                document.getElementById('uxi-team-name').value = '';
+                document.getElementById('uxi-team-role').value = '';
+                document.getElementById('uxi-team-bio').value = '';
+                document.getElementById('uxi-team-responsibilities').value = '';
+                document.getElementById('uxi-team-skills').value = '';
+                document.getElementById('uxi-team-linkedin').value = '#';
+                updateSelectorPreview('uxi-team-photo', '');
+                document.getElementById('uxi-team-modal-title').textContent = "Add UXI Team Member";
+                uxiTeamModal.classList.add('active');
+            };
+
+            window.closeUXITeamModal = () => {
+                uxiTeamModal.classList.remove('active');
+            };
+
+            window.editUXITeam = async (id) => {
+                const member = await fetch('/api/uxi/team').then(res => res.json()).then(arr => arr.find(m => m._id === id));
+                if (member) {
+                    document.getElementById('uxi-team-id').value = member._id;
+                    document.getElementById('uxi-team-name').value = member.name;
+                    document.getElementById('uxi-team-role').value = member.role;
+                    document.getElementById('uxi-team-bio').value = member.bio || '';
+                    document.getElementById('uxi-team-responsibilities').value = member.responsibilities || '';
+                    document.getElementById('uxi-team-skills').value = member.skills ? member.skills.join(', ') : '';
+                    document.getElementById('uxi-team-linkedin').value = member.linkedin_link || '#';
+                    updateSelectorPreview('uxi-team-photo', member.photo_url || '');
+                    document.getElementById('uxi-team-modal-title').textContent = "Edit UXI Team Member";
+                    uxiTeamModal.classList.add('active');
+                }
+            };
+
+            uxiTeamForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const id = document.getElementById('uxi-team-id').value;
+                const name = document.getElementById('uxi-team-name').value;
+                const role = document.getElementById('uxi-team-role').value;
+                const bio = document.getElementById('uxi-team-bio').value;
+                const responsibilities = document.getElementById('uxi-team-responsibilities').value;
+                const skillsStr = document.getElementById('uxi-team-skills').value;
+                const linkedin_link = document.getElementById('uxi-team-linkedin').value;
+                const photo_url = document.getElementById('uxi-team-photo').value;
+
+                const skills = skillsStr.split(',').map(s => s.trim()).filter(s => s.length > 0);
+
+                const url = id ? `/api/uxi/team/${id}` : '/api/uxi/team';
+                const method = id ? 'PUT' : 'POST';
+
+                try {
+                    const res = await fetch(url, {
+                        method: method,
+                        headers: { 
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({ name, role, bio, responsibilities, skills, linkedin_link, photo_url })
+                    });
+                    if (res.ok) {
+                        showToast("Team member saved successfully!");
+                        closeUXITeamModal();
+                        loadUXITeam();
+                    } else showToast("Failed to save team member.", "error");
+                } catch (e) {
+                    showToast("Error: " + e.message, "error");
+                }
+            });
+
+            window.deleteUXITeam = async (id) => {
+                if (!confirm("Are you sure you want to delete this team member?")) return;
+                try {
+                    const res = await fetch(`/api/uxi/team/${id}`, {
+                        method: 'DELETE',
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    if (res.ok) {
+                        showToast("Team member deleted.");
+                        loadUXITeam();
+                    } else showToast("Failed to delete member.", "error");
+                } catch (e) {
+                    showToast("Error: " + e.message, "error");
+                }
+            };
+
+            // UXI Projects operations
+            window.openUXIProjectModal = () => {
+                document.getElementById('uxi-project-id').value = '';
+                document.getElementById('uxi-project-name').value = '';
+                document.getElementById('uxi-project-status').value = 'Completed';
+                document.getElementById('uxi-project-desc').value = '';
+                document.getElementById('uxi-project-tech').value = '';
+                updateSelectorPreview('uxi-project-image', '');
+                document.getElementById('uxi-project-github').value = '';
+                document.getElementById('uxi-project-live').value = '';
+                document.getElementById('uxi-project-completion-date').value = '';
+                document.getElementById('uxi-project-dev-stage').value = 'Planning';
+                document.getElementById('uxi-project-expected-release').value = '';
+                document.getElementById('uxi-project-progress-percent').value = '0';
+                document.getElementById('uxi-project-coming-soon').checked = false;
+                document.getElementById('uxi-project-expected-features').value = '';
+                document.getElementById('uxi-project-modal-title').textContent = "Add UXI Project";
+                toggleUXIProjectFields();
+                uxiProjModal.classList.add('active');
+            };
+
+            window.closeUXIProjectModal = () => {
+                uxiProjModal.classList.remove('active');
+            };
+
+            window.editUXIProject = async (id) => {
+                const proj = await fetch('/api/uxi/projects').then(res => res.json()).then(arr => arr.find(p => p._id === id));
+                if (proj) {
+                    document.getElementById('uxi-project-id').value = proj._id;
+                    document.getElementById('uxi-project-name').value = proj.name;
+                    document.getElementById('uxi-project-status').value = proj.status || 'Completed';
+                    document.getElementById('uxi-project-desc').value = proj.description;
+                    document.getElementById('uxi-project-tech').value = proj.technologies ? proj.technologies.join(', ') : '';
+                    updateSelectorPreview('uxi-project-image', proj.image_url || '');
+                    document.getElementById('uxi-project-github').value = proj.github_link || '';
+                    document.getElementById('uxi-project-live').value = proj.live_link || '';
+                    document.getElementById('uxi-project-completion-date').value = proj.completion_date || '';
+                    document.getElementById('uxi-project-dev-stage').value = proj.dev_stage || 'Planning';
+                    document.getElementById('uxi-project-expected-release').value = proj.expected_release || '';
+                    document.getElementById('uxi-project-progress-percent').value = proj.progress_percent || '0';
+                    document.getElementById('uxi-project-coming-soon').checked = !!proj.coming_soon;
+                    document.getElementById('uxi-project-expected-features').value = proj.expected_features ? proj.expected_features.join(', ') : '';
+                    document.getElementById('uxi-project-modal-title').textContent = "Edit UXI Project";
+                    toggleUXIProjectFields();
+                    uxiProjModal.classList.add('active');
+                }
+            };
+
+            uxiProjForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const id = document.getElementById('uxi-project-id').value;
+                const name = document.getElementById('uxi-project-name').value;
+                const status = document.getElementById('uxi-project-status').value;
+                const description = document.getElementById('uxi-project-desc').value;
+                const techStr = document.getElementById('uxi-project-tech').value;
+                const image_url = document.getElementById('uxi-project-image').value;
+                const github_link = document.getElementById('uxi-project-github').value;
+                const live_link = document.getElementById('uxi-project-live').value;
+                const completion_date = document.getElementById('uxi-project-completion-date').value;
+                const dev_stage = document.getElementById('uxi-project-dev-stage').value;
+                const expected_release = document.getElementById('uxi-project-expected-release').value;
+                const progress_percent = parseInt(document.getElementById('uxi-project-progress-percent').value) || 0;
+                const coming_soon = document.getElementById('uxi-project-coming-soon').checked;
+                const expected_features_str = document.getElementById('uxi-project-expected-features').value;
+
+                const technologies = techStr.split(',').map(s => s.trim()).filter(s => s.length > 0);
+                const expected_features = expected_features_str.split(',').map(s => s.trim()).filter(s => s.length > 0);
+
+                const url = id ? `/api/uxi/projects/${id}` : '/api/uxi/projects';
+                const method = id ? 'PUT' : 'POST';
+
+                try {
+                    const res = await fetch(url, {
+                        method: method,
+                        headers: { 
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({ 
+                            name, status, description, technologies, image_url, github_link, live_link, 
+                            completion_date, dev_stage, expected_release, progress_percent, coming_soon, expected_features 
+                        })
+                    });
+                    if (res.ok) {
+                        showToast("UXI Project saved!");
+                        closeUXIProjectModal();
+                        loadUXIProjects();
+                    } else showToast("Failed to save project.", "error");
+                } catch (e) {
+                    showToast("Error: " + e.message, "error");
+                }
+            });
+
+            window.deleteUXIProject = async (id) => {
+                if (!confirm("Are you sure you want to delete this UXI project?")) return;
+                try {
+                    const res = await fetch(`/api/uxi/projects/${id}`, {
+                        method: 'DELETE',
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    if (res.ok) {
+                        showToast("UXI Project deleted.");
+                        loadUXIProjects();
+                    } else showToast("Failed to delete project.", "error");
+                } catch (e) {
+                    showToast("Error: " + e.message, "error");
+                }
+            };
+
+            // Initialize Sortable on UXI Tables
+            const uxiTeamTable = document.getElementById('uxi-team-table-body');
+            Sortable.create(uxiTeamTable, {
+                handle: '.drag-handle',
+                animation: 150,
+                onEnd: async () => {
+                    const rows = uxiTeamTable.querySelectorAll('tr');
+                    const orders = Array.from(rows).map(row => row.getAttribute('data-id'));
+                    const res = await fetch('/api/uxi/team/reorder', {
+                        method: 'PUT',
+                        headers: { 
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({ orders })
+                    });
+                    if (res.ok) showToast("UXI Team reordered successfully!");
+                }
+            });
+
+            const uxiProjectTable = document.getElementById('uxi-project-table-body');
+            Sortable.create(uxiProjectTable, {
+                handle: '.drag-handle',
+                animation: 150,
+                onEnd: async () => {
+                    const rows = uxiProjectTable.querySelectorAll('tr');
+                    const orders = Array.from(rows).map(row => row.getAttribute('data-id'));
+                    const res = await fetch('/api/uxi/projects/reorder', {
+                        method: 'PUT',
+                        headers: { 
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({ orders })
+                    });
+                    if (res.ok) showToast("UXI Projects reordered successfully!");
+                }
+            });
+
+        });
+    </script>
+</body>
+</html>
