@@ -1654,10 +1654,14 @@ mongoose.connect(MONGO_URI)
             console.log("UXI Startup database records seeded successfully.");
         }
 
-        app.listen(PORT, () => {
-            console.log(`Server is running at http://localhost:${PORT}`);
-        });
+        if (!process.env.VERCEL) {
+            app.listen(PORT, () => {
+                console.log(`Server is running at http://localhost:${PORT}`);
+            });
+        }
     })
     .catch(err => {
         console.error("MongoDB Connection Error:", err);
     });
+
+module.exports = app;
