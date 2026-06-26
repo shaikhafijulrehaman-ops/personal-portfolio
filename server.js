@@ -38,8 +38,12 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // Create local uploads folder structures if they don't exist
 const mediaDir = path.join(__dirname, 'uploads', 'media');
 const resumeDir = path.join(__dirname, 'uploads', 'resumes');
-if (!fs.existsSync(mediaDir)) fs.mkdirSync(mediaDir, { recursive: true });
-if (!fs.existsSync(resumeDir)) fs.mkdirSync(resumeDir, { recursive: true });
+try {
+    if (!fs.existsSync(mediaDir)) fs.mkdirSync(mediaDir, { recursive: true });
+    if (!fs.existsSync(resumeDir)) fs.mkdirSync(resumeDir, { recursive: true });
+} catch (e) {
+    console.warn("Could not create local upload directories (expected in serverless environments):", e.message);
+}
 
 // Multer Storage Configuration
 const storage = multer.diskStorage({
