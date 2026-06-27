@@ -1917,19 +1917,25 @@
                 }
             });
 
-            window.deleteSkill = async (id) => {
-                if (!confirm("Are you sure you want to delete this skill?")) return;
+            window.deleteSkill = (id) => {
+                ConfirmationModal.show({
+                    title: "Delete Skill?",
+                    message: "Are you sure you want to delete this skill?",
+                    confirmText: "Delete",
+                    cancelText: "Cancel",
+                    onConfirm: async () => {
+                        const res = await fetch(`/api/skills/${id}`, {
+                            method: 'DELETE',
+                            headers: { 'Authorization': `Bearer ${token}` }
+                        });
 
-                const res = await fetch(`/api/skills/${id}`, {
-                    method: 'DELETE',
-                    headers: { 'Authorization': `Bearer ${token}` }
+                        if (!res.ok) showToast("Failed to delete skill.", "error");
+                        else {
+                            showToast("Skill deleted successfully.");
+                            loadSkills();
+                        }
+                    }
                 });
-
-                if (!res.ok) showToast("Failed to delete skill.", "error");
-                else {
-                    showToast("Skill deleted successfully.");
-                    loadSkills();
-                }
             };
 
             // Initialize Sortable on Skills table
@@ -2125,19 +2131,25 @@
                 }
             });
 
-            window.deleteProject = async (id) => {
-                if (!confirm("Are you sure you want to delete this project?")) return;
+            window.deleteProject = (id) => {
+                ConfirmationModal.show({
+                    title: "Delete Project?",
+                    message: "Are you sure you want to delete this project?",
+                    confirmText: "Delete",
+                    cancelText: "Cancel",
+                    onConfirm: async () => {
+                        const res = await fetch(`/api/projects/${id}`, {
+                            method: 'DELETE',
+                            headers: { 'Authorization': `Bearer ${token}` }
+                        });
 
-                const res = await fetch(`/api/projects/${id}`, {
-                    method: 'DELETE',
-                    headers: { 'Authorization': `Bearer ${token}` }
+                        if (!res.ok) showToast("Failed to delete project.", "error");
+                        else {
+                            showToast("Project deleted successfully.");
+                            loadProjects();
+                        }
+                    }
                 });
-
-                if (!res.ok) showToast("Failed to delete project.", "error");
-                else {
-                    showToast("Project deleted successfully.");
-                    loadProjects();
-                }
             };
 
             // ========================================================
@@ -2213,19 +2225,25 @@
                 }
             });
 
-            window.deleteTimeline = async (id) => {
-                if (!confirm("Are you sure you want to delete this entry?")) return;
+            window.deleteTimeline = (id) => {
+                ConfirmationModal.show({
+                    title: "Delete Timeline Entry?",
+                    message: "Are you sure you want to delete this timeline entry?",
+                    confirmText: "Delete",
+                    cancelText: "Cancel",
+                    onConfirm: async () => {
+                        const res = await fetch(`/api/timeline/${id}`, {
+                            method: 'DELETE',
+                            headers: { 'Authorization': `Bearer ${token}` }
+                        });
 
-                const res = await fetch(`/api/timeline/${id}`, {
-                    method: 'DELETE',
-                    headers: { 'Authorization': `Bearer ${token}` }
+                        if (!res.ok) showToast("Failed to delete entry.", "error");
+                        else {
+                            showToast("Timeline entry deleted.");
+                            loadTimeline();
+                        }
+                    }
                 });
-
-                if (!res.ok) showToast("Failed to delete entry.", "error");
-                else {
-                    showToast("Timeline entry deleted.");
-                    loadTimeline();
-                }
             };
 
             // ========================================================
@@ -2295,19 +2313,25 @@
                 }
             });
 
-            window.deleteCert = async (id) => {
-                if (!confirm("Are you sure you want to delete this certificate?")) return;
+            window.deleteCert = (id) => {
+                ConfirmationModal.show({
+                    title: "Delete Certificate?",
+                    message: "Are you sure you want to delete this certificate?",
+                    confirmText: "Delete",
+                    cancelText: "Cancel",
+                    onConfirm: async () => {
+                        const res = await fetch(`/api/certificates/${id}`, {
+                            method: 'DELETE',
+                            headers: { 'Authorization': `Bearer ${token}` }
+                        });
 
-                const res = await fetch(`/api/certificates/${id}`, {
-                    method: 'DELETE',
-                    headers: { 'Authorization': `Bearer ${token}` }
+                        if (!res.ok) showToast("Failed to delete certificate.", "error");
+                        else {
+                            showToast("Certification deleted.");
+                            loadCertifications();
+                        }
+                    }
                 });
-
-                if (!res.ok) showToast("Failed to delete certificate.", "error");
-                else {
-                    showToast("Certification deleted.");
-                    loadCertifications();
-                }
             };
 
             // ========================================================
@@ -2415,22 +2439,28 @@
                 });
             };
 
-            window.deleteMediaFile = async (name) => {
-                if (!confirm("Are you sure you want to delete this file?")) return;
-
-                try {
-                    const res = await fetch(`/api/media/${name}`, {
-                        method: 'DELETE',
-                        headers: { 'Authorization': `Bearer ${token}` }
-                    });
-                    const data = await res.json();
-                    if (!res.ok) throw new Error(data.error);
-                    
-                    showToast("File deleted successfully.");
-                    loadMediaGrid();
-                } catch (e) {
-                    showToast("Delete failed: " + e.message, "error");
-                }
+            window.deleteMediaFile = (name) => {
+                ConfirmationModal.show({
+                    title: "Delete File?",
+                    message: "Are you sure you want to delete this file?",
+                    confirmText: "Delete",
+                    cancelText: "Cancel",
+                    onConfirm: async () => {
+                        try {
+                            const res = await fetch(`/api/media/${name}`, {
+                                method: 'DELETE',
+                                headers: { 'Authorization': `Bearer ${token}` }
+                            });
+                            const data = await res.json();
+                            if (!res.ok) throw new Error(data.error);
+                            
+                            showToast("File deleted successfully.");
+                            loadMediaGrid();
+                        } catch (e) {
+                            showToast("Delete failed: " + e.message, "error");
+                        }
+                    }
+                });
             };
 
             // ========================================================
@@ -2706,33 +2736,40 @@
             });
 
             // Delete asset from library
-            window.deletePickerAsset = async () => {
+            window.deletePickerAsset = () => {
                 if (!selectedPickerAsset) return;
-                if (!confirm("Are you sure you want to delete this asset? This cannot be undone and will break links if currently used!")) return;
                 
-                const name = selectedPickerAsset.name;
-                
-                try {
-                    const res = await fetch(`/api/media/${name}`, {
-                        method: 'DELETE',
-                        headers: { 'Authorization': `Bearer ${token}` }
-                    });
-                    const data = await res.json();
-                    
-                    if (!res.ok) throw new Error(data.error);
-                    
-                    showToast("Asset deleted from library.");
-                    selectedPickerAsset = null;
-                    
-                    document.getElementById('picker-preview-box').innerHTML = `<i class="fa-solid fa-image"></i>`;
-                    document.getElementById('picker-info-box').style.display = 'none';
-                    document.getElementById('picker-actions-box').style.display = 'none';
-                    
-                    loadPickerGrid();
-                    loadMediaGrid();
-                } catch (e) {
-                    showToast("Delete failed: " + e.message, "error");
-                }
+                ConfirmationModal.show({
+                    title: "Delete Asset?",
+                    message: "Are you sure you want to delete this asset? This cannot be undone and will break links if currently used!",
+                    confirmText: "Delete",
+                    cancelText: "Cancel",
+                    onConfirm: async () => {
+                        const name = selectedPickerAsset.name;
+                        
+                        try {
+                            const res = await fetch(`/api/media/${name}`, {
+                                method: 'DELETE',
+                                headers: { 'Authorization': `Bearer ${token}` }
+                            });
+                            const data = await res.json();
+                            
+                            if (!res.ok) throw new Error(data.error);
+                            
+                            showToast("Asset deleted from library.");
+                            selectedPickerAsset = null;
+                            
+                            document.getElementById('picker-preview-box').innerHTML = `<i class="fa-solid fa-image"></i>`;
+                            document.getElementById('picker-info-box').style.display = 'none';
+                            document.getElementById('picker-actions-box').style.display = 'none';
+                            
+                            loadPickerGrid();
+                            loadMediaGrid();
+                        } catch (e) {
+                            showToast("Delete failed: " + e.message, "error");
+                        }
+                    }
+                });
             };
 
             // Picker upload drag-and-drop
@@ -3126,20 +3163,27 @@
                 }
             });
 
-            window.deleteUXITeam = async (id) => {
-                if (!confirm("Are you sure you want to delete this team member?")) return;
-                try {
-                    const res = await fetch(`/api/uxi/team/${id}`, {
-                        method: 'DELETE',
-                        headers: { 'Authorization': `Bearer ${token}` }
-                    });
-                    if (res.ok) {
-                        showToast("Team member deleted.");
-                        loadUXITeam();
-                    } else showToast("Failed to delete member.", "error");
-                } catch (e) {
-                    showToast("Error: " + e.message, "error");
-                }
+            window.deleteUXITeam = (id) => {
+                ConfirmationModal.show({
+                    title: "Delete Team Member?",
+                    message: "Are you sure you want to delete this team member?",
+                    confirmText: "Delete",
+                    cancelText: "Cancel",
+                    onConfirm: async () => {
+                        try {
+                            const res = await fetch(`/api/uxi/team/${id}`, {
+                                method: 'DELETE',
+                                headers: { 'Authorization': `Bearer ${token}` }
+                            });
+                            if (res.ok) {
+                                showToast("Team member deleted.");
+                                loadUXITeam();
+                            } else showToast("Failed to delete member.", "error");
+                        } catch (e) {
+                            showToast("Error: " + e.message, "error");
+                        }
+                    }
+                });
             };
 
             // UXI Projects operations
@@ -3235,20 +3279,27 @@
                 }
             });
 
-            window.deleteUXIProject = async (id) => {
-                if (!confirm("Are you sure you want to delete this UXI project?")) return;
-                try {
-                    const res = await fetch(`/api/uxi/projects/${id}`, {
-                        method: 'DELETE',
-                        headers: { 'Authorization': `Bearer ${token}` }
-                    });
-                    if (res.ok) {
-                        showToast("UXI Project deleted.");
-                        loadUXIProjects();
-                    } else showToast("Failed to delete project.", "error");
-                } catch (e) {
-                    showToast("Error: " + e.message, "error");
-                }
+            window.deleteUXIProject = (id) => {
+                ConfirmationModal.show({
+                    title: "Delete UXI Project?",
+                    message: "Are you sure you want to delete this UXI project?",
+                    confirmText: "Delete",
+                    cancelText: "Cancel",
+                    onConfirm: async () => {
+                        try {
+                            const res = await fetch(`/api/uxi/projects/${id}`, {
+                                method: 'DELETE',
+                                headers: { 'Authorization': `Bearer ${token}` }
+                            });
+                            if (res.ok) {
+                                showToast("UXI Project deleted.");
+                                loadUXIProjects();
+                            } else showToast("Failed to delete project.", "error");
+                        } catch (e) {
+                            showToast("Error: " + e.message, "error");
+                        }
+                    }
+                });
             };
 
             // Initialize Sortable on UXI Tables
@@ -3290,7 +3341,172 @@
                 }
             });
 
+            // Reusable Premium Confirmation Modal Logic
+            const ConfirmationModal = {
+                overlay: null,
+                container: null,
+                titleEl: null,
+                messageEl: null,
+                confirmBtn: null,
+                cancelBtn: null,
+                iconEl: null,
+                onConfirmCallback: null,
+                onCancelCallback: null,
+                activeElementBeforeOpen: null,
+
+                init() {
+                    this.overlay = document.getElementById('confirm-modal-overlay');
+                    this.container = document.getElementById('confirm-modal-container');
+                    this.titleEl = document.getElementById('confirm-modal-title');
+                    this.messageEl = document.getElementById('confirm-modal-message');
+                    this.confirmBtn = document.getElementById('confirm-modal-confirm-btn');
+                    this.cancelBtn = document.getElementById('confirm-modal-cancel-btn');
+                    this.iconEl = document.getElementById('confirm-modal-icon');
+
+                    // Close on Escape key
+                    document.addEventListener('keydown', (e) => {
+                        if (e.key === 'Escape' && this.isOpen()) {
+                            this.close();
+                        }
+                    });
+
+                    // Close on clicking outside container
+                    this.overlay.addEventListener('click', (e) => {
+                        if (e.target === this.overlay) {
+                            this.close();
+                        }
+                    });
+
+                    // Cancel button click
+                    this.cancelBtn.addEventListener('click', () => {
+                        this.close();
+                    });
+
+                    // Confirm button click
+                    this.confirmBtn.addEventListener('click', async () => {
+                        if (this.onConfirmCallback) {
+                            this.setLoading(true);
+                            try {
+                                await this.onConfirmCallback();
+                            } catch (err) {
+                                console.error("Confirmation modal error during confirm action:", err);
+                            } finally {
+                                this.setLoading(false);
+                                this.close();
+                            }
+                        } else {
+                            this.close();
+                        }
+                    });
+
+                    // Trap keyboard focus
+                    this.container.addEventListener('keydown', (e) => {
+                        if (e.key === 'Tab') {
+                            const focusableElements = this.container.querySelectorAll('button');
+                            const firstElement = focusableElements[0];
+                            const lastElement = focusableElements[focusableElements.length - 1];
+
+                            if (e.shiftKey) { // Shift + Tab
+                                if (document.activeElement === firstElement) {
+                                    lastElement.focus();
+                                    e.preventDefault();
+                                }
+                            } else { // Tab
+                                if (document.activeElement === lastElement) {
+                                    firstElement.focus();
+                                    e.preventDefault();
+                                }
+                            }
+                        }
+                    });
+                },
+
+                isOpen() {
+                    return this.overlay && this.overlay.classList.contains('active');
+                },
+
+                show(options) {
+                    if (!this.overlay) this.init();
+
+                    this.activeElementBeforeOpen = document.activeElement;
+
+                    // Set texts
+                    this.titleEl.textContent = options.title || 'Are you sure?';
+                    this.messageEl.textContent = options.message || '';
+                    this.confirmBtn.textContent = options.confirmText || 'Confirm';
+                    this.cancelBtn.textContent = options.cancelText || 'Cancel';
+                    
+                    // Set custom icon
+                    if (options.icon) {
+                        this.iconEl.className = options.icon;
+                    } else {
+                        this.iconEl.className = 'fa-solid fa-triangle-exclamation';
+                    }
+
+                    this.onConfirmCallback = options.onConfirm || null;
+                    this.onCancelCallback = options.onCancel || null;
+
+                    // Open dialog
+                    this.overlay.classList.add('active');
+                    this.container.classList.add('active');
+
+                    // Focus cancel button by default
+                    setTimeout(() => {
+                        this.cancelBtn.focus();
+                    }, 50);
+                },
+
+                close() {
+                    if (!this.isOpen()) return;
+
+                    this.overlay.classList.remove('active');
+                    this.container.classList.remove('active');
+
+                    if (this.onCancelCallback) {
+                        this.onCancelCallback();
+                    }
+
+                    if (this.activeElementBeforeOpen) {
+                        this.activeElementBeforeOpen.focus();
+                    }
+                },
+
+                setLoading(loading) {
+                    if (loading) {
+                        this.confirmBtn.disabled = true;
+                        this.cancelBtn.disabled = true;
+                        this.confirmBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing...';
+                    } else {
+                        this.confirmBtn.disabled = false;
+                        this.cancelBtn.disabled = false;
+                        this.confirmBtn.textContent = this.confirmBtn.textContent === 'Processing...' ? 'Delete' : this.confirmBtn.textContent;
+                    }
+                }
+            };
+
+            window.ConfirmationModal = ConfirmationModal;
+
         });
     </script>
+
+    <!-- Reusable Premium Confirmation Modal HTML -->
+    <div class="modal-overlay" id="confirm-modal-overlay">
+        <div class="confirm-modal-container" id="confirm-modal-container" role="dialog" aria-modal="true">
+            <div class="confirm-modal-header">
+                <div class="confirm-modal-icon-container">
+                    <i class="fa-solid fa-triangle-exclamation" id="confirm-modal-icon"></i>
+                </div>
+                <h3 id="confirm-modal-title">Delete Certificate?</h3>
+                <p id="confirm-modal-subtitle">This action cannot be undone.</p>
+            </div>
+            <div class="confirm-modal-body">
+                <p id="confirm-modal-message">Are you sure you want to delete this certificate?</p>
+            </div>
+            <div class="confirm-modal-footer">
+                <button class="btn-confirm-secondary" id="confirm-modal-cancel-btn">Cancel</button>
+                <button class="btn-confirm-primary" id="confirm-modal-confirm-btn">Delete</button>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
