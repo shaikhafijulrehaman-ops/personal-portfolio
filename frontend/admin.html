@@ -45,6 +45,7 @@
             <li data-module="media"><a href="#media"><i class="fa-solid fa-images"></i> Media Manager</a></li>
             <li data-module="resume"><a href="#resume"><i class="fa-solid fa-file-pdf"></i> Resume Settings</a></li>
             <li data-module="uxi"><a href="#uxi"><i class="fa-solid fa-rocket"></i> UXI Startup</a></li>
+            <li data-module="fab"><a href="#fab"><i class="fa-solid fa-mobile-screen-button"></i> Mobile FAB</a></li>
             <li data-module="settings"><a href="#settings"><i class="fa-solid fa-sliders"></i> Website Settings</a></li>
         </ul>
         <div class="sidebar-footer">
@@ -719,6 +720,132 @@
         </section>
 
         <!-- ========================================================
+             MODULE: Mobile Floating Action Button (FAB) Settings
+             ======================================================== -->
+        <section id="module-fab" class="dashboard-module">
+            <div class="admin-card">
+                <h3 style="font-family: 'Orbitron', sans-serif; margin-bottom: 20px;">Mobile FAB Configuration</h3>
+                <form id="fab-settings-form">
+                    <div style="display: flex; flex-direction: column; gap: 30px;">
+                        
+                        <!-- Toggle Switch -->
+                        <div class="form-group" style="display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.05); padding: 15px 20px; border-radius: 12px;">
+                            <div>
+                                <label style="font-weight: 600; margin-bottom: 4px; display: block;">Enable Mobile FAB</label>
+                                <span style="font-size: 12px; color: var(--text-muted);">Toggle the Floating Action Button visibility on mobile devices.</span>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" id="fab-enabled" checked>
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+
+                        <div class="form-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
+                            <!-- Icon/Image Config -->
+                            <div class="form-group">
+                                <label style="font-weight: 600; margin-bottom: 8px; display: block;">FAB Icon Class</label>
+                                <input type="text" id="fab-icon-class" class="form-control" placeholder="fa-solid fa-bars" value="fa-solid fa-bars">
+                                <span style="font-size: 11px; color: var(--text-muted);">FontAwesome icon class (e.g. <code>fa-solid fa-bars</code>). Ignored if custom image is uploaded.</span>
+                            </div>
+
+                            <div class="form-group">
+                                <label style="font-weight: 600; margin-bottom: 8px; display: block;">Custom FAB Image</label>
+                                <div class="image-selector-widget" data-target="fab-custom-image">
+                                    <div class="selector-preview-container" id="fab-custom-image-preview"></div>
+                                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                                        <div style="display: flex; gap: 8px;">
+                                            <button type="button" class="btn-select" onclick="openMediaPicker('fab-custom-image')"><i class="fa-solid fa-photo-film"></i> Select Image</button>
+                                            <button type="button" class="btn-remove" onclick="removeSelectedImage('fab-custom-image')"><i class="fa-solid fa-trash-can"></i> Remove</button>
+                                        </div>
+                                        <div class="direct-upload-box" style="display: flex; align-items: center; gap: 8px; margin-top: 5px;">
+                                            <input type="file" id="upload-fab-custom-image" accept="image/*" style="display: none;" onchange="handleDirectFaviconUpload(this, 'fab-custom-image')">
+                                            <button type="button" class="btn-select" onclick="document.getElementById('upload-fab-custom-image').click()" style="background: rgba(16, 185, 129, 0.2); border-color: rgba(16, 185, 129, 0.4);"><i class="fa-solid fa-upload"></i> Upload Image</button>
+                                            <div class="selector-info" id="fab-custom-image-info">No image selected</div>
+                                        </div>
+                                    </div>
+                                    <input type="hidden" id="fab-custom-image">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+                            <!-- Style Config -->
+                            <div class="form-group">
+                                <label style="font-weight: 600; margin-bottom: 8px; display: block;">Button Size (px)</label>
+                                <input type="number" id="fab-size" class="form-control" min="40" max="100" value="60">
+                            </div>
+
+                            <div class="form-group">
+                                <label style="font-weight: 600; margin-bottom: 8px; display: block;">Border Radius (%)</label>
+                                <input type="number" id="fab-border-radius" class="form-control" min="0" max="50" value="50">
+                            </div>
+
+                            <div class="form-group">
+                                <label style="font-weight: 600; margin-bottom: 8px; display: block;">Background Color</label>
+                                <div style="display: flex; gap: 10px;">
+                                    <input type="color" id="fab-bg-color-picker" class="form-control" style="width: 50px; height: 42px; padding: 2px;" value="#2563eb" oninput="document.getElementById('fab-bg-color').value = this.value">
+                                    <input type="text" id="fab-bg-color" class="form-control" placeholder="#2563eb" value="#2563eb" oninput="document.getElementById('fab-bg-color-picker').value = this.value">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px;">
+                            <div class="form-group" style="display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.02); padding: 10px 15px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);">
+                                <div>
+                                    <label style="font-weight: 600; display: block;">Glow Effect</label>
+                                    <span style="font-size: 11px; color: var(--text-muted);">Enable soft outer glow.</span>
+                                </div>
+                                <label class="switch">
+                                    <input type="checkbox" id="fab-glow" checked>
+                                    <span class="slider round"></span>
+                                </label>
+                            </div>
+
+                            <div class="form-group">
+                                <label style="font-weight: 600; margin-bottom: 8px; display: block;">Animation Type</label>
+                                <select id="fab-animation" class="form-control">
+                                    <option value="none">None</option>
+                                    <option value="pulse">Pulse (Circular)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 20px 0;">
+
+                        <!-- FAB Menu Items Manager -->
+                        <div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                                <h4 style="font-family: 'Orbitron', sans-serif;">FAB Menu Items</h4>
+                                <button type="button" class="btn-primary" id="btn-add-fab-item"><i class="fa-solid fa-plus"></i> Add Item</button>
+                            </div>
+
+                            <div class="table-responsive">
+                                <table class="admin-table">
+                                    <thead>
+                                        <tr>
+                                            <th style="width: 40px;"></th>
+                                            <th>Label</th>
+                                            <th>Icon Class</th>
+                                            <th>URL</th>
+                                            <th style="width: 100px;">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="fab-items-table-body">
+                                        <!-- Dynamically loaded menu items -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; justify-content: flex-end; margin-top: 20px;">
+                            <button type="submit" class="btn-primary" id="btn-save-fab-settings"><i class="fa-solid fa-save"></i> Save FAB Configuration</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </section>
+
+        <!-- ========================================================
              MODULE: Website Settings
              ======================================================== -->
         <section id="module-settings" class="dashboard-module">
@@ -1036,6 +1163,39 @@
     </div>
 
     <!-- ========================================================
+         MODAL: Mobile FAB Menu Item Edit/Add
+         ======================================================== -->
+    <div class="modal-overlay" id="fab-item-modal">
+        <div class="admin-card modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h3 id="fab-item-modal-title">Add FAB Menu Item</h3>
+                <button type="button" class="btn-icon" onclick="closeFABItemModal()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form id="fab-item-form">
+                <input type="hidden" id="fab-item-id">
+                <div style="display: flex; flex-direction: column; gap: 20px;">
+                    <div class="form-group">
+                        <label for="fab-item-label">Label / Name</label>
+                        <input type="text" id="fab-item-label" required placeholder="e.g. GitHub">
+                    </div>
+                    <div class="form-group">
+                        <label for="fab-item-icon">Icon Class (FontAwesome)</label>
+                        <input type="text" id="fab-item-icon" required placeholder="e.g. fa-brands fa-github">
+                    </div>
+                    <div class="form-group">
+                        <label for="fab-item-url">Target URL / Action</label>
+                        <input type="text" id="fab-item-url" required placeholder="e.g. https://github.com/username">
+                    </div>
+                    <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px;">
+                        <button type="button" class="btn-secondary" onclick="closeFABItemModal()">Cancel</button>
+                        <button type="submit" class="btn-primary">Save Item</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ========================================================
          MODAL: Certification Edit/Add
          ======================================================== -->
     <div class="modal-overlay" id="cert-modal">
@@ -1319,6 +1479,131 @@
         document.addEventListener("DOMContentLoaded", () => {
             const token = localStorage.getItem("admin_token");
             
+            // Caches for high performance Admin CRUD operations
+            let localSkills = [];
+            let localProjects = [];
+            let localTimeline = [];
+            let localCertificates = [];
+            let localUXITeam = [];
+            let localUXIProjects = [];
+
+            // Row rendering helper functions for instant DOM updates
+            function createSkillRow(skill) {
+                const tr = document.createElement('tr');
+                tr.setAttribute('data-id', skill._id);
+                tr.innerHTML = `
+                    <td><i class="fa-solid fa-grip-vertical drag-handle"></i></td>
+                    <td><strong>${skill.name}</strong></td>
+                    <td>${skill.category}</td>
+                    <td><code>${skill.icon_class}</code></td>
+                    <td><span style="display:inline-block;width:16px;height:16px;border-radius:40%;background:${skill.color};vertical-align:middle;margin-right:8px;"></span>${skill.color}</td>
+                    <td>${skill.is_visible ? '<span class="badge-status badge-published">Visible</span>' : '<span class="badge-status badge-draft">Hidden</span>'}</td>
+                    <td class="actions-cell">
+                        <button class="btn-icon edit-btn" onclick="editSkill('${skill._id}')"><i class="fa-solid fa-pen"></i></button>
+                        <button class="btn-icon delete-btn" onclick="deleteSkill(this, '${skill._id}')"><i class="fa-solid fa-trash"></i></button>
+                    </td>
+                `;
+                return tr;
+            }
+
+            function createProjectRow(proj) {
+                const tr = document.createElement('tr');
+                tr.setAttribute('data-id', proj._id);
+                if (proj.status === 'Completed') {
+                    tr.innerHTML = `
+                        <td><i class="fa-solid fa-grip-vertical drag-handle"></i></td>
+                        <td><strong>${proj.name}</strong></td>
+                        <td>${proj.short_desc}</td>
+                        <td>${proj.technologies.join(', ')}</td>
+                        <td>${proj.is_featured ? 'Yes' : 'No'}</td>
+                        <td class="actions-cell">
+                            <button class="btn-icon edit-btn" onclick="editProject('${proj._id}')"><i class="fa-solid fa-pen"></i></button>
+                            <button class="btn-icon delete-btn" onclick="deleteProject(this, '${proj._id}')"><i class="fa-solid fa-trash"></i></button>
+                        </td>
+                    `;
+                } else {
+                    tr.innerHTML = `
+                        <td><i class="fa-solid fa-grip-vertical drag-handle"></i></td>
+                        <td><strong>${proj.name}</strong></td>
+                        <td>${proj.short_desc}</td>
+                        <td>${proj.technologies.join(', ')}</td>
+                        <td><span class="badge-status badge-published">${proj.dev_stage || 'Planning'}</span></td>
+                        <td>${proj.progress_percent || 0}%</td>
+                        <td>${proj.coming_soon ? 'Yes' : 'No'}</td>
+                        <td class="actions-cell">
+                            <button class="btn-icon edit-btn" onclick="editProject('${proj._id}')"><i class="fa-solid fa-pen"></i></button>
+                            <button class="btn-icon delete-btn" onclick="deleteProject(this, '${proj._id}')"><i class="fa-solid fa-trash"></i></button>
+                        </td>
+                    `;
+                }
+                return tr;
+            }
+
+            function createTimelineRow(item) {
+                const tr = document.createElement('tr');
+                tr.setAttribute('data-id', item._id);
+                tr.innerHTML = `
+                    <td>${item.start_date} - ${item.end_date || 'Present'}</td>
+                    <td><strong>${item.title}</strong></td>
+                    <td>${item.company || ''}</td>
+                    <td><span class="badge-status badge-published">${item.badge}</span></td>
+                    <td class="actions-cell">
+                        <button class="btn-icon edit-btn" onclick="editTimeline('${item._id}')"><i class="fa-solid fa-pen"></i></button>
+                        <button class="btn-icon delete-btn" onclick="deleteTimeline(this, '${item._id}')"><i class="fa-solid fa-trash"></i></button>
+                    </td>
+                `;
+                return tr;
+            }
+
+            function createCertRow(c) {
+                const tr = document.createElement('tr');
+                tr.setAttribute('data-id', c._id);
+                tr.innerHTML = `
+                    <td><img src="${c.image_url}" style="width:50px;height:35px;border-radius:4px;object-fit:cover;"></td>
+                    <td><strong>${c.title}</strong></td>
+                    <td>${c.organization}</td>
+                    <td>${c.issue_date}</td>
+                    <td class="actions-cell">
+                        <button class="btn-icon edit-btn" onclick="editCert('${c._id}')"><i class="fa-solid fa-pen"></i></button>
+                        <button class="btn-icon delete-btn" onclick="deleteCert(this, '${c._id}')"><i class="fa-solid fa-trash"></i></button>
+                    </td>
+                `;
+                return tr;
+            }
+
+            function createUXITeamRow(member) {
+                const tr = document.createElement('tr');
+                tr.setAttribute('data-id', member._id);
+                tr.innerHTML = `
+                    <td><i class="fa-solid fa-grip-vertical drag-handle"></i></td>
+                    <td><img src="${member.photo_url || 'images/cert_placeholder.png'}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;"></td>
+                    <td><strong>${member.name}</strong></td>
+                    <td>${member.role}</td>
+                    <td><a href="${member.linkedin_link}" target="_blank">${member.linkedin_link !== '#' ? 'Link' : 'None'}</a></td>
+                    <td class="actions-cell">
+                        <button class="btn-icon edit-btn" onclick="editUXITeam('${member._id}')"><i class="fa-solid fa-pen"></i></button>
+                        <button class="btn-icon delete-btn" onclick="deleteUXITeam(this, '${member._id}')"><i class="fa-solid fa-trash"></i></button>
+                    </td>
+                `;
+                return tr;
+            }
+
+            function createUXIProjectRow(proj) {
+                const tr = document.createElement('tr');
+                tr.setAttribute('data-id', proj._id);
+                tr.innerHTML = `
+                    <td><i class="fa-solid fa-grip-vertical drag-handle"></i></td>
+                    <td><strong>${proj.name}</strong></td>
+                    <td>${proj.description}</td>
+                    <td><span class="badge-status ${proj.status === 'Completed' ? 'badge-published' : 'badge-draft'}">${proj.status}</span></td>
+                    <td class="actions-cell">
+                        <button class="btn-icon edit-btn" onclick="editUXIProject('${proj._id}')"><i class="fa-solid fa-pen"></i></button>
+                        <button class="btn-icon delete-btn" onclick="deleteUXIProject(this, '${proj._id}')"><i class="fa-solid fa-trash"></i></button>
+                    </td>
+                `;
+                return tr;
+            }
+
             // Check auth state
             if (!token) {
                 window.location.href = "login.html";
@@ -1346,6 +1631,7 @@
                     loadMediaGrid();
                     loadUXISettings();
                     loadWebsiteSettings();
+                    loadFABSettings();
                 }
             });
 
@@ -1583,123 +1869,65 @@
             }
 
             async function loadSkills() {
+                const startTime = performance.now();
                 const data = await fetch('/api/skills').then(res => res.json());
+                localSkills = data || [];
                 const tbody = document.getElementById('skills-table-body');
                 tbody.innerHTML = '';
                 
-                if (data) {
-                    data.forEach(skill => {
-                        const tr = document.createElement('tr');
-                        tr.setAttribute('data-id', skill._id);
-                        tr.innerHTML = `
-                            <td><i class="fa-solid fa-grip-vertical drag-handle"></i></td>
-                            <td><strong>${skill.name}</strong></td>
-                            <td>${skill.category}</td>
-                            <td><code>${skill.icon_class}</code></td>
-                            <td><span style="display:inline-block;width:16px;height:16px;border-radius:40%;background:${skill.color};vertical-align:middle;margin-right:8px;"></span>${skill.color}</td>
-                            <td>${skill.is_visible ? '<span class="badge-status badge-published">Visible</span>' : '<span class="badge-status badge-draft">Hidden</span>'}</td>
-                            <td class="actions-cell">
-                                <button class="btn-icon" onclick="editSkill('${skill._id}', '${skill.name}', '${skill.category}', '${skill.icon_class}', '${skill.color}', ${skill.is_visible})"><i class="fa-solid fa-pen"></i></button>
-                                <button class="btn-icon delete" onclick="deleteSkill('${skill._id}')"><i class="fa-solid fa-trash"></i></button>
-                            </td>
-                        `;
-                        tbody.appendChild(tr);
-                    });
-                }
+                localSkills.forEach(skill => {
+                    tbody.appendChild(createSkillRow(skill));
+                });
+                console.log(`[PERF] loadSkills completed in ${(performance.now() - startTime).toFixed(2)}ms`);
             }
             window.loadSkills = loadSkills;
 
             async function loadProjects() {
+                const startTime = performance.now();
                 const data = await fetch('/api/projects').then(res => res.json());
+                localProjects = data || [];
                 const completedTbody = document.getElementById('completed-projects-table-body');
                 const upcomingTbody = document.getElementById('upcoming-projects-table-body');
                 completedTbody.innerHTML = '';
                 upcomingTbody.innerHTML = '';
 
-                if (data) {
-                    data.forEach(proj => {
-                        const tr = document.createElement('tr');
-                        tr.setAttribute('data-id', proj._id);
-                        if (proj.status === 'Completed') {
-                            tr.innerHTML = `
-                                <td><i class="fa-solid fa-grip-vertical drag-handle"></i></td>
-                                <td><strong>${proj.name}</strong></td>
-                                <td>${proj.short_desc}</td>
-                                <td>${proj.technologies.join(', ')}</td>
-                                <td>${proj.is_featured ? 'Yes' : 'No'}</td>
-                                <td class="actions-cell">
-                                    <button class="btn-icon" onclick="editProject('${proj._id}')"><i class="fa-solid fa-pen"></i></button>
-                                    <button class="btn-icon delete" onclick="deleteProject('${proj._id}')"><i class="fa-solid fa-trash"></i></button>
-                                </td>
-                            `;
-                            completedTbody.appendChild(tr);
-                        } else {
-                            // Upcoming or Draft
-                            tr.innerHTML = `
-                                <td><i class="fa-solid fa-grip-vertical drag-handle"></i></td>
-                                <td><strong>${proj.name}</strong></td>
-                                <td>${proj.short_desc}</td>
-                                <td>${proj.technologies.join(', ')}</td>
-                                <td><span class="badge-status badge-published">${proj.dev_stage || 'Planning'}</span></td>
-                                <td>${proj.progress_percent || 0}%</td>
-                                <td>${proj.coming_soon ? 'Yes' : 'No'}</td>
-                                <td class="actions-cell">
-                                    <button class="btn-icon" onclick="editProject('${proj._id}')"><i class="fa-solid fa-pen"></i></button>
-                                    <button class="btn-icon delete" onclick="deleteProject('${proj._id}')"><i class="fa-solid fa-trash"></i></button>
-                                </td>
-                            `;
-                            upcomingTbody.appendChild(tr);
-                        }
-                    });
-                }
+                localProjects.forEach(proj => {
+                    const row = createProjectRow(proj);
+                    if (proj.status === 'Completed') {
+                        completedTbody.appendChild(row);
+                    } else {
+                        upcomingTbody.appendChild(row);
+                    }
+                });
+                console.log(`[PERF] loadProjects completed in ${(performance.now() - startTime).toFixed(2)}ms`);
             }
             window.loadProjects = loadProjects;
 
             async function loadTimeline() {
+                const startTime = performance.now();
                 const data = await fetch('/api/timeline').then(res => res.json());
+                localTimeline = data || [];
                 const tbody = document.getElementById('timeline-table-body');
                 tbody.innerHTML = '';
 
-                if (data) {
-                    data.forEach(item => {
-                        const tr = document.createElement('tr');
-                        tr.innerHTML = `
-                            <td>${item.start_date} - ${item.end_date || 'Present'}</td>
-                            <td><strong>${item.title}</strong></td>
-                            <td>${item.company || ''}</td>
-                            <td><span class="badge-status badge-published">${item.badge}</span></td>
-                            <td class="actions-cell">
-                                <button class="btn-icon" onclick="editTimeline('${item._id}')"><i class="fa-solid fa-pen"></i></button>
-                                <button class="btn-icon delete" onclick="deleteTimeline('${item._id}')"><i class="fa-solid fa-trash"></i></button>
-                            </td>
-                        `;
-                        tbody.appendChild(tr);
-                    });
-                }
+                localTimeline.forEach(item => {
+                    tbody.appendChild(createTimelineRow(item));
+                });
+                console.log(`[PERF] loadTimeline completed in ${(performance.now() - startTime).toFixed(2)}ms`);
             }
             window.loadTimeline = loadTimeline;
 
             async function loadCertifications() {
+                const startTime = performance.now();
                 const data = await fetch('/api/certificates').then(res => res.json());
+                localCertificates = data || [];
                 const tbody = document.getElementById('certs-table-body');
                 tbody.innerHTML = '';
 
-                if (data) {
-                    data.forEach(c => {
-                        const tr = document.createElement('tr');
-                        tr.innerHTML = `
-                            <td><img src="${c.image_url}" style="width:50px;height:35px;border-radius:4px;object-fit:cover;"></td>
-                            <td><strong>${c.title}</strong></td>
-                            <td>${c.organization}</td>
-                            <td>${c.issue_date}</td>
-                            <td class="actions-cell">
-                                <button class="btn-icon" onclick="editCert('${c._id}')"><i class="fa-solid fa-pen"></i></button>
-                                <button class="btn-icon delete" onclick="deleteCert('${c._id}')"><i class="fa-solid fa-trash"></i></button>
-                            </td>
-                        `;
-                        tbody.appendChild(tr);
-                    });
-                }
+                localCertificates.forEach(c => {
+                    tbody.appendChild(createCertRow(c));
+                });
+                console.log(`[PERF] loadCertifications completed in ${(performance.now() - startTime).toFixed(2)}ms`);
             }
             window.loadCertifications = loadCertifications;
 
@@ -1729,6 +1957,195 @@
                     updateSelectorPreview('seo-favicon', data.favicon_url || '');
                 }
             }
+
+            // Mobile FAB settings controllers
+            let localFABSettings = {
+                is_enabled: true,
+                custom_image_url: '',
+                icon_class: 'fa-solid fa-bars',
+                button_size: 60,
+                position: 'bottom-right',
+                bg_color: '#2563eb',
+                border_radius: 50,
+                glow_effect: true,
+                animation_type: 'pulse',
+                menu_items: []
+            };
+
+            function createFABItemRow(item, index) {
+                const tr = document.createElement('tr');
+                tr.setAttribute('data-index', index);
+                tr.innerHTML = `
+                    <td><i class="fa-solid fa-grip-vertical drag-handle"></i></td>
+                    <td><strong>${item.label}</strong></td>
+                    <td><code>${item.icon_class}</code></td>
+                    <td><code>${item.url}</code></td>
+                    <td class="actions-cell">
+                        <button type="button" class="btn-icon" onclick="editFABItem(${index})"><i class="fa-solid fa-pen"></i></button>
+                        <button type="button" class="btn-icon delete" onclick="deleteFABItem(${index})"><i class="fa-solid fa-trash"></i></button>
+                    </td>
+                `;
+                return tr;
+            }
+
+            function renderFABMenuItems() {
+                const tbody = document.getElementById('fab-items-table-body');
+                tbody.innerHTML = '';
+                (localFABSettings.menu_items || []).forEach((item, index) => {
+                    tbody.appendChild(createFABItemRow(item, index));
+                });
+            }
+
+            async function loadFABSettings() {
+                try {
+                    const data = await fetch('/api/settings/fab').then(res => res.json());
+                    if (data) {
+                        localFABSettings = data;
+                        document.getElementById('fab-enabled').checked = !!data.is_enabled;
+                        document.getElementById('fab-icon-class').value = data.icon_class || 'fa-solid fa-bars';
+                        document.getElementById('fab-custom-image').value = data.custom_image_url || '';
+                        updateSelectorPreview('fab-custom-image', data.custom_image_url || '');
+                        
+                        document.getElementById('fab-size').value = data.button_size || 60;
+                        document.getElementById('fab-border-radius').value = data.border_radius !== undefined ? data.border_radius : 50;
+                        document.getElementById('fab-bg-color').value = data.bg_color || '#2563eb';
+                        document.getElementById('fab-bg-color-picker').value = data.bg_color || '#2563eb';
+                        
+                        document.getElementById('fab-glow').checked = data.glow_effect !== false;
+                        document.getElementById('fab-animation').value = data.animation_type || 'pulse';
+
+                        renderFABMenuItems();
+                    }
+                } catch (e) {
+                    console.error("Failed to load Mobile FAB settings:", e);
+                }
+            }
+            window.loadFABSettings = loadFABSettings;
+
+            // Modal action functions
+            const fabItemModal = document.getElementById('fab-item-modal');
+            const fabItemForm = document.getElementById('fab-item-form');
+
+            window.openFABItemModal = (index = null) => {
+                if (index !== null) {
+                    const item = localFABSettings.menu_items[index];
+                    document.getElementById('fab-item-id').value = index;
+                    document.getElementById('fab-item-label').value = item.label;
+                    document.getElementById('fab-item-icon').value = item.icon_class;
+                    document.getElementById('fab-item-url').value = item.url;
+                    document.getElementById('fab-item-modal-title').textContent = "Edit FAB Menu Item";
+                } else {
+                    document.getElementById('fab-item-id').value = '';
+                    document.getElementById('fab-item-label').value = '';
+                    document.getElementById('fab-item-icon').value = '';
+                    document.getElementById('fab-item-url').value = '';
+                    document.getElementById('fab-item-modal-title').textContent = "Add FAB Menu Item";
+                }
+                fabItemModal.classList.add('active');
+            };
+
+            window.closeFABItemModal = () => {
+                fabItemModal.classList.remove('active');
+            };
+
+            document.getElementById('btn-add-fab-item').addEventListener('click', () => {
+                openFABItemModal();
+            });
+
+            fabItemForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const index = document.getElementById('fab-item-id').value;
+                const label = document.getElementById('fab-item-label').value.trim();
+                const icon_class = document.getElementById('fab-item-icon').value.trim();
+                const url = document.getElementById('fab-item-url').value.trim();
+
+                const item = { label, icon_class, url };
+
+                if (index !== '') {
+                    // Edit existing
+                    localFABSettings.menu_items[parseInt(index)] = item;
+                } else {
+                    // Add new
+                    if (!localFABSettings.menu_items) localFABSettings.menu_items = [];
+                    localFABSettings.menu_items.push(item);
+                }
+
+                renderFABMenuItems();
+                closeFABItemModal();
+                showToast("FAB menu item updated locally. Save configuration to apply.");
+            });
+
+            window.editFABItem = (index) => {
+                openFABItemModal(index);
+            };
+
+            window.deleteFABItem = (index) => {
+                ConfirmationModal.show({
+                    title: "Delete FAB Item?",
+                    message: "Are you sure you want to delete this menu item?",
+                    confirmText: "Delete",
+                    cancelText: "Cancel",
+                    onConfirm: () => {
+                        localFABSettings.menu_items.splice(index, 1);
+                        renderFABMenuItems();
+                        showToast("FAB menu item deleted locally. Save configuration to apply.");
+                    }
+                });
+            };
+
+            document.getElementById('fab-settings-form').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const submitBtn = document.getElementById('btn-save-fab-settings');
+                const originalBtnText = submitBtn.innerHTML;
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
+
+                // Sync form inputs to local settings object
+                localFABSettings.is_enabled = document.getElementById('fab-enabled').checked;
+                localFABSettings.icon_class = document.getElementById('fab-icon-class').value.trim();
+                localFABSettings.custom_image_url = document.getElementById('fab-custom-image').value;
+                localFABSettings.button_size = parseInt(document.getElementById('fab-size').value) || 60;
+                localFABSettings.border_radius = parseInt(document.getElementById('fab-border-radius').value) || 50;
+                localFABSettings.bg_color = document.getElementById('fab-bg-color').value.trim();
+                localFABSettings.glow_effect = document.getElementById('fab-glow').checked;
+                localFABSettings.animation_type = document.getElementById('fab-animation').value;
+
+                try {
+                    const res = await fetch('/api/settings/fab', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify(localFABSettings)
+                    });
+
+                    if (!res.ok) throw new Error("Failed to save FAB configuration.");
+                    showToast("Mobile FAB Configuration saved successfully!");
+                } catch (err) {
+                    showToast(err.message, "error");
+                } finally {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalBtnText;
+                }
+            });
+
+            // Initialize Sortable on FAB items table
+            const fabItemsTable = document.getElementById('fab-items-table-body');
+            Sortable.create(fabItemsTable, {
+                handle: '.drag-handle',
+                animation: 150,
+                onEnd: () => {
+                    const rows = fabItemsTable.querySelectorAll('tr');
+                    const newItems = [];
+                    rows.forEach(row => {
+                        const oldIdx = parseInt(row.getAttribute('data-index'));
+                        newItems.push(localFABSettings.menu_items[oldIdx]);
+                    });
+                    localFABSettings.menu_items = newItems;
+                    renderFABMenuItems();
+                }
+            });
 
             // ========================================================
             // SAVE FORM OPERATIONS
@@ -1876,63 +2293,140 @@
                 skillModal.classList.remove('active');
             };
 
-            window.editSkill = (id, name, category, icon, color, visible) => {
-                document.getElementById('skill-id').value = id;
-                document.getElementById('skill-name').value = name;
-                document.getElementById('skill-category').value = category;
-                document.getElementById('skill-icon').value = icon;
-                document.getElementById('skill-color').value = color;
-                document.getElementById('skill-visible').checked = visible;
+            window.editSkill = (id) => {
+                const startTime = performance.now();
+                const skill = localSkills.find(s => s._id === id);
+                if (!skill) return;
+
+                document.getElementById('skill-id').value = skill._id;
+                document.getElementById('skill-name').value = skill.name;
+                document.getElementById('skill-category').value = skill.category;
+                document.getElementById('skill-icon').value = skill.icon_class;
+                document.getElementById('skill-color').value = skill.color;
+                document.getElementById('skill-visible').checked = skill.is_visible;
                 document.getElementById('skill-modal-title').textContent = "Edit Skill";
+                
                 skillModal.classList.add('active');
+                console.log(`[PERF] editSkill modal opened in ${(performance.now() - startTime).toFixed(2)}ms`);
             };
 
             skillForm.addEventListener("submit", async (e) => {
                 e.preventDefault();
+                const startTime = performance.now();
 
                 const id = document.getElementById('skill-id').value;
-                const name = document.getElementById('skill-name').value;
+                const name = document.getElementById('skill-name').value.trim();
                 const category = document.getElementById('skill-category').value;
-                const icon = document.getElementById('skill-icon').value;
-                const color = document.getElementById('skill-color').value;
+                const icon = document.getElementById('skill-icon').value.trim();
+                const color = document.getElementById('skill-color').value.trim();
                 const visible = document.getElementById('skill-visible').checked;
+
+                const submitBtn = skillForm.querySelector('button[type="submit"]');
+                const originalBtnText = submitBtn.innerHTML;
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
 
                 const url = id ? `/api/skills/${id}` : '/api/skills';
                 const method = id ? 'PUT' : 'POST';
 
-                const res = await fetch(url, {
-                    method: method,
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify({ name, category, icon_class: icon, color, is_visible: visible })
-                });
+                try {
+                    const res = await fetch(url, {
+                        method: method,
+                        headers: { 
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({ name, category, icon_class: icon, color, is_visible: visible })
+                    });
 
-                if (!res.ok) showToast("Failed to save skill.", "error");
-                else {
+                    if (!res.ok) throw new Error("Failed to save skill.");
+                    
+                    const savedSkill = await res.json();
+                    
+                    // In-place UI update
+                    const tbody = document.getElementById('skills-table-body');
+                    if (id) {
+                        // Edit: Update item in cache
+                        const idx = localSkills.findIndex(s => s._id === id);
+                        if (idx > -1) localSkills[idx] = savedSkill;
+                        
+                        // Replace row in DOM
+                        const oldRow = tbody.querySelector(`tr[data-id="${id}"]`);
+                        if (oldRow) {
+                            const newRow = createSkillRow(savedSkill);
+                            tbody.replaceChild(newRow, oldRow);
+                        }
+                    } else {
+                        // Create: Append item in cache
+                        localSkills.push(savedSkill);
+                        
+                        // Append row in DOM
+                        tbody.appendChild(createSkillRow(savedSkill));
+                    }
+
                     showToast("Skill saved successfully!");
                     closeSkillModal();
-                    loadSkills();
+                    console.log(`[PERF] Save skill workflow completed in ${(performance.now() - startTime).toFixed(2)}ms`);
+                } catch (err) {
+                    showToast(err.message, "error");
+                } finally {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalBtnText;
                 }
             });
 
-            window.deleteSkill = (id) => {
+            window.deleteSkill = (btn, id) => {
                 ConfirmationModal.show({
                     title: "Delete Skill?",
                     message: "Are you sure you want to delete this skill?",
                     confirmText: "Delete",
                     cancelText: "Cancel",
                     onConfirm: async () => {
-                        const res = await fetch(`/api/skills/${id}`, {
-                            method: 'DELETE',
-                            headers: { 'Authorization': `Bearer ${token}` }
-                        });
+                        const startTime = performance.now();
+                        const tr = btn.closest('tr');
+                        
+                        // 1. Optimistic UI update: Fade out & hide row
+                        tr.classList.add('row-fade-out');
+                        
+                        // Store in cache for rollback
+                        const skillIndex = localSkills.findIndex(s => s._id === id);
+                        const deletedSkill = localSkills[skillIndex];
+                        const nextSibling = tr.nextSibling;
+                        
+                        // Remove from local array
+                        if (skillIndex > -1) localSkills.splice(skillIndex, 1);
+                        
+                        // Remove from DOM after transition
+                        setTimeout(() => {
+                            if (tr.parentNode) tr.parentNode.removeChild(tr);
+                        }, 250);
 
-                        if (!res.ok) showToast("Failed to delete skill.", "error");
-                        else {
+                        try {
+                            const res = await fetch(`/api/skills/${id}`, {
+                                method: 'DELETE',
+                                headers: { 'Authorization': `Bearer ${token}` }
+                            });
+
+                            if (!res.ok) throw new Error("Failed to delete skill.");
+                            
                             showToast("Skill deleted successfully.");
-                            loadSkills();
+                            console.log(`[PERF] deleteSkill API & DB completed in ${(performance.now() - startTime).toFixed(2)}ms`);
+                        } catch (err) {
+                            // Rollback
+                            console.error("Delete skill rollback:", err);
+                            showToast("Failed to delete skill: " + err.message, "error");
+                            
+                            // Restore in local array
+                            if (skillIndex > -1) localSkills.splice(skillIndex, 0, deletedSkill);
+                            
+                            // Restore in DOM
+                            tr.classList.remove('row-fade-out');
+                            const tbody = document.getElementById('skills-table-body');
+                            if (nextSibling) {
+                                tbody.insertBefore(tr, nextSibling);
+                            } else {
+                                tbody.appendChild(tr);
+                            }
                         }
                     }
                 });
@@ -2055,8 +2549,9 @@
                 projModal.classList.remove('active');
             };
 
-            window.editProject = async (id) => {
-                const data = await fetch(`/api/projects`).then(res => res.json()).then(arr => arr.find(p => p._id === id));
+            window.editProject = (id) => {
+                const startTime = performance.now();
+                const data = localProjects.find(p => p._id === id);
                 
                 if (data) {
                     document.getElementById('project-id').value = data._id;
@@ -2079,74 +2574,148 @@
                     document.getElementById('project-modal-title').textContent = "Edit Project";
                     toggleProjectFields();
                     projModal.classList.add('active');
+                    console.log(`[PERF] editProject modal opened in ${(performance.now() - startTime).toFixed(2)}ms`);
                 }
             };
 
             projForm.addEventListener("submit", async (e) => {
                 e.preventDefault();
+                const startTime = performance.now();
 
                 const id = document.getElementById('project-id').value;
-                const name = document.getElementById('project-name').value;
+                const name = document.getElementById('project-name').value.trim();
                 const category = document.getElementById('project-category').value;
-                const short = document.getElementById('project-short').value;
-                const long = document.getElementById('project-long').value;
-                const techStr = document.getElementById('project-tech').value;
+                const short = document.getElementById('project-short').value.trim();
+                const long = document.getElementById('project-long').value.trim();
+                const techStr = document.getElementById('project-tech').value.trim();
                 const image = document.getElementById('project-image').value;
-                const github = document.getElementById('project-github').value;
-                const live = document.getElementById('project-live').value;
+                const github = document.getElementById('project-github').value.trim();
+                const live = document.getElementById('project-live').value.trim();
                 const completion_date = document.getElementById('project-completion-date').value;
                 const dev_stage = document.getElementById('project-dev-stage').value;
                 const expected_release = document.getElementById('project-expected-release').value;
                 const progress_percent = parseInt(document.getElementById('project-progress-percent').value) || 0;
                 const coming_soon = document.getElementById('project-coming-soon').checked;
-                const expected_features_str = document.getElementById('project-expected-features').value;
+                const expected_features_str = document.getElementById('project-expected-features').value.trim();
                 const featured = document.getElementById('project-featured').checked;
                 const status = document.getElementById('project-status').value;
 
                 const techArr = techStr.split(',').map(s => s.trim()).filter(s => s.length > 0);
                 const featuresArr = expected_features_str.split(',').map(s => s.trim()).filter(s => s.length > 0);
 
+                const submitBtn = projForm.querySelector('button[type="submit"]');
+                const originalBtnText = submitBtn.innerHTML;
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
+
                 const url = id ? `/api/projects/${id}` : '/api/projects';
                 const method = id ? 'PUT' : 'POST';
 
-                const res = await fetch(url, {
-                    method: method,
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify({ 
-                        name, category, short_desc: short, long_desc: long, technologies: techArr, image_url: image, 
-                        github_link: github, live_link: live, is_featured: featured, status,
-                        completion_date, dev_stage, expected_release, progress_percent, coming_soon,
-                        expected_features: featuresArr
-                    })
-                });
+                try {
+                    const res = await fetch(url, {
+                        method: method,
+                        headers: { 
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({ 
+                            name, category, short_desc: short, long_desc: long, technologies: techArr, image_url: image, 
+                            github_link: github, live_link: live, is_featured: featured, status,
+                            completion_date, dev_stage, expected_release, progress_percent, coming_soon,
+                            expected_features: featuresArr
+                        })
+                    });
 
-                if (!res.ok) showToast("Failed to save project.", "error");
-                else {
+                    if (!res.ok) throw new Error("Failed to save project.");
+                    
+                    const savedProj = await res.json();
+                    
+                    const completedTbody = document.getElementById('completed-projects-table-body');
+                    const upcomingTbody = document.getElementById('upcoming-projects-table-body');
+
+                    // In-place UI update
+                    if (id) {
+                        const idx = localProjects.findIndex(p => p._id === id);
+                        if (idx > -1) localProjects[idx] = savedProj;
+                        
+                        const oldRow = completedTbody.querySelector(`tr[data-id="${id}"]`) || upcomingTbody.querySelector(`tr[data-id="${id}"]`);
+                        if (oldRow) {
+                            oldRow.parentNode.removeChild(oldRow);
+                        }
+                    } else {
+                        localProjects.push(savedProj);
+                    }
+
+                    const newRow = createProjectRow(savedProj);
+                    if (savedProj.status === 'Completed') {
+                        completedTbody.appendChild(newRow);
+                    } else {
+                        upcomingTbody.appendChild(newRow);
+                    }
+
                     showToast("Project saved successfully!");
                     closeProjectModal();
-                    loadProjects();
+                    console.log(`[PERF] Save project workflow completed in ${(performance.now() - startTime).toFixed(2)}ms`);
+                } catch (err) {
+                    showToast(err.message, "error");
+                } finally {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalBtnText;
                 }
             });
 
-            window.deleteProject = (id) => {
+            window.deleteProject = (btn, id) => {
                 ConfirmationModal.show({
                     title: "Delete Project?",
                     message: "Are you sure you want to delete this project?",
                     confirmText: "Delete",
                     cancelText: "Cancel",
                     onConfirm: async () => {
-                        const res = await fetch(`/api/projects/${id}`, {
-                            method: 'DELETE',
-                            headers: { 'Authorization': `Bearer ${token}` }
-                        });
+                        const startTime = performance.now();
+                        const tr = btn.closest('tr');
+                        
+                        // 1. Optimistic UI update: Fade out & hide row
+                        tr.classList.add('row-fade-out');
+                        
+                        // Store in cache for rollback
+                        const projIndex = localProjects.findIndex(p => p._id === id);
+                        const deletedProj = localProjects[projIndex];
+                        const nextSibling = tr.nextSibling;
+                        const parentNode = tr.parentNode;
+                        
+                        // Remove from local array
+                        if (projIndex > -1) localProjects.splice(projIndex, 1);
+                        
+                        // Remove from DOM after transition
+                        setTimeout(() => {
+                            if (tr.parentNode) tr.parentNode.removeChild(tr);
+                        }, 250);
 
-                        if (!res.ok) showToast("Failed to delete project.", "error");
-                        else {
+                        try {
+                            const res = await fetch(`/api/projects/${id}`, {
+                                method: 'DELETE',
+                                headers: { 'Authorization': `Bearer ${token}` }
+                            });
+
+                            if (!res.ok) throw new Error("Failed to delete project.");
+                            
                             showToast("Project deleted successfully.");
-                            loadProjects();
+                            console.log(`[PERF] deleteProject API & DB completed in ${(performance.now() - startTime).toFixed(2)}ms`);
+                        } catch (err) {
+                            // Rollback
+                            console.error("Delete project rollback:", err);
+                            showToast("Failed to delete project: " + err.message, "error");
+                            
+                            // Restore in local array
+                            if (projIndex > -1) localProjects.splice(projIndex, 0, deletedProj);
+                            
+                            // Restore in DOM
+                            tr.classList.remove('row-fade-out');
+                            if (nextSibling) {
+                                parentNode.insertBefore(tr, nextSibling);
+                            } else {
+                                parentNode.appendChild(tr);
+                            }
                         }
                     }
                 });
@@ -2176,8 +2745,9 @@
                 tlineModal.classList.remove('active');
             };
 
-            window.editTimeline = async (id) => {
-                const data = await fetch(`/api/timeline`).then(res => res.json()).then(arr => arr.find(item => item._id === id));
+            window.editTimeline = (id) => {
+                const startTime = performance.now();
+                const data = localTimeline.find(item => item._id === id);
 
                 if (data) {
                     document.getElementById('timeline-id').value = data._id;
@@ -2190,57 +2760,116 @@
                     updateSelectorPreview('timeline-logo', data.logo_url || '');
                     document.getElementById('timeline-modal-title').textContent = "Edit Timeline Entry";
                     tlineModal.classList.add('active');
+                    console.log(`[PERF] editTimeline modal opened in ${(performance.now() - startTime).toFixed(2)}ms`);
                 }
             };
 
             tlineForm.addEventListener("submit", async (e) => {
                 e.preventDefault();
+                const startTime = performance.now();
 
                 const id = document.getElementById('timeline-id').value;
-                const title = document.getElementById('timeline-title').value;
-                const company = document.getElementById('timeline-company').value;
-                const start = document.getElementById('timeline-start').value;
-                const end = document.getElementById('timeline-end').value;
+                const title = document.getElementById('timeline-title').value.trim();
+                const company = document.getElementById('timeline-company').value.trim();
+                const start = document.getElementById('timeline-start').value.trim();
+                const end = document.getElementById('timeline-end').value.trim();
                 const badge = document.getElementById('timeline-badge').value;
-                const desc = document.getElementById('timeline-desc').value;
+                const desc = document.getElementById('timeline-desc').value.trim();
                 const logo = document.getElementById('timeline-logo').value;
+
+                const submitBtn = tlineForm.querySelector('button[type="submit"]');
+                const originalBtnText = submitBtn.innerHTML;
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
 
                 const url = id ? `/api/timeline/${id}` : '/api/timeline';
                 const method = id ? 'PUT' : 'POST';
 
-                const res = await fetch(url, {
-                    method: method,
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify({ title, company, start_date: start, end_date: end, badge, description: desc, logo_url: logo })
-                });
+                try {
+                    const res = await fetch(url, {
+                        method: method,
+                        headers: { 
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({ title, company, start_date: start, end_date: end, badge, description: desc, logo_url: logo })
+                    });
 
-                if (!res.ok) showToast("Failed to save timeline entry.", "error");
-                else {
+                    if (!res.ok) throw new Error("Failed to save timeline entry.");
+                    
+                    const savedItem = await res.json();
+                    
+                    const tbody = document.getElementById('timeline-table-body');
+                    if (id) {
+                        const idx = localTimeline.findIndex(item => item._id === id);
+                        if (idx > -1) localTimeline[idx] = savedItem;
+                        
+                        const oldRow = tbody.querySelector(`tr[data-id="${id}"]`);
+                        if (oldRow) {
+                            const newRow = createTimelineRow(savedItem);
+                            tbody.replaceChild(newRow, oldRow);
+                        }
+                    } else {
+                        localTimeline.push(savedItem);
+                        tbody.appendChild(createTimelineRow(savedItem));
+                    }
+
                     showToast("Timeline entry saved successfully!");
                     closeTimelineModal();
-                    loadTimeline();
+                    console.log(`[PERF] Save timeline workflow completed in ${(performance.now() - startTime).toFixed(2)}ms`);
+                } catch (err) {
+                    showToast(err.message, "error");
+                } finally {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalBtnText;
                 }
             });
 
-            window.deleteTimeline = (id) => {
+            window.deleteTimeline = (btn, id) => {
                 ConfirmationModal.show({
                     title: "Delete Timeline Entry?",
                     message: "Are you sure you want to delete this timeline entry?",
                     confirmText: "Delete",
                     cancelText: "Cancel",
                     onConfirm: async () => {
-                        const res = await fetch(`/api/timeline/${id}`, {
-                            method: 'DELETE',
-                            headers: { 'Authorization': `Bearer ${token}` }
-                        });
+                        const startTime = performance.now();
+                        const tr = btn.closest('tr');
+                        
+                        tr.classList.add('row-fade-out');
+                        
+                        const timelineIndex = localTimeline.findIndex(item => item._id === id);
+                        const deletedItem = localTimeline[timelineIndex];
+                        const nextSibling = tr.nextSibling;
+                        
+                        if (timelineIndex > -1) localTimeline.splice(timelineIndex, 1);
+                        
+                        setTimeout(() => {
+                            if (tr.parentNode) tr.parentNode.removeChild(tr);
+                        }, 250);
 
-                        if (!res.ok) showToast("Failed to delete entry.", "error");
-                        else {
+                        try {
+                            const res = await fetch(`/api/timeline/${id}`, {
+                                method: 'DELETE',
+                                headers: { 'Authorization': `Bearer ${token}` }
+                            });
+
+                            if (!res.ok) throw new Error("Failed to delete timeline entry.");
+                            
                             showToast("Timeline entry deleted.");
-                            loadTimeline();
+                            console.log(`[PERF] deleteTimeline API & DB completed in ${(performance.now() - startTime).toFixed(2)}ms`);
+                        } catch (err) {
+                            console.error("Delete timeline rollback:", err);
+                            showToast("Failed to delete entry: " + err.message, "error");
+                            
+                            if (timelineIndex > -1) localTimeline.splice(timelineIndex, 0, deletedItem);
+                            
+                            tr.classList.remove('row-fade-out');
+                            const tbody = document.getElementById('timeline-table-body');
+                            if (nextSibling) {
+                                tbody.insertBefore(tr, nextSibling);
+                            } else {
+                                tbody.appendChild(tr);
+                            }
                         }
                     }
                 });
@@ -2268,8 +2897,9 @@
                 certModal.classList.remove('active');
             };
 
-            window.editCert = async (id) => {
-                const data = await fetch(`/api/certificates`).then(res => res.json()).then(arr => arr.find(c => c._id === id));
+            window.editCert = (id) => {
+                const startTime = performance.now();
+                const data = localCertificates.find(c => c._id === id);
 
                 if (data) {
                     document.getElementById('cert-id').value = data._id;
@@ -2280,55 +2910,114 @@
                     updateSelectorPreview('cert-image', data.image_url || '');
                     document.getElementById('cert-modal-title').textContent = "Edit Certification";
                     certModal.classList.add('active');
+                    console.log(`[PERF] editCert modal opened in ${(performance.now() - startTime).toFixed(2)}ms`);
                 }
             };
 
             certForm.addEventListener("submit", async (e) => {
                 e.preventDefault();
+                const startTime = performance.now();
 
                 const id = document.getElementById('cert-id').value;
-                const title = document.getElementById('cert-title').value;
-                const org = document.getElementById('cert-org').value;
+                const title = document.getElementById('cert-title').value.trim();
+                const org = document.getElementById('cert-org').value.trim();
                 const date = document.getElementById('cert-date').value;
-                const link = document.getElementById('cert-link').value;
+                const link = document.getElementById('cert-link').value.trim();
                 const image = document.getElementById('cert-image').value;
+
+                const submitBtn = certForm.querySelector('button[type="submit"]');
+                const originalBtnText = submitBtn.innerHTML;
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
 
                 const url = id ? `/api/certificates/${id}` : '/api/certificates';
                 const method = id ? 'PUT' : 'POST';
 
-                const res = await fetch(url, {
-                    method: method,
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify({ title, organization: org, issue_date: date, credential_link: link, image_url: image })
-                });
+                try {
+                    const res = await fetch(url, {
+                        method: method,
+                        headers: { 
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({ title, organization: org, issue_date: date, credential_link: link, image_url: image })
+                    });
 
-                if (!res.ok) showToast("Failed to save certification.", "error");
-                else {
+                    if (!res.ok) throw new Error("Failed to save certification.");
+                    
+                    const savedCert = await res.json();
+                    
+                    const tbody = document.getElementById('certs-table-body');
+                    if (id) {
+                        const idx = localCertificates.findIndex(c => c._id === id);
+                        if (idx > -1) localCertificates[idx] = savedCert;
+                        
+                        const oldRow = tbody.querySelector(`tr[data-id="${id}"]`);
+                        if (oldRow) {
+                            const newRow = createCertRow(savedCert);
+                            tbody.replaceChild(newRow, oldRow);
+                        }
+                    } else {
+                        localCertificates.push(savedCert);
+                        tbody.appendChild(createCertRow(savedCert));
+                    }
+
                     showToast("Certification saved successfully!");
                     closeCertModal();
-                    loadCertifications();
+                    console.log(`[PERF] Save cert workflow completed in ${(performance.now() - startTime).toFixed(2)}ms`);
+                } catch (err) {
+                    showToast(err.message, "error");
+                } finally {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalBtnText;
                 }
             });
 
-            window.deleteCert = (id) => {
+            window.deleteCert = (btn, id) => {
                 ConfirmationModal.show({
                     title: "Delete Certificate?",
                     message: "Are you sure you want to delete this certificate?",
                     confirmText: "Delete",
                     cancelText: "Cancel",
                     onConfirm: async () => {
-                        const res = await fetch(`/api/certificates/${id}`, {
-                            method: 'DELETE',
-                            headers: { 'Authorization': `Bearer ${token}` }
-                        });
+                        const startTime = performance.now();
+                        const tr = btn.closest('tr');
+                        
+                        tr.classList.add('row-fade-out');
+                        
+                        const certIndex = localCertificates.findIndex(c => c._id === id);
+                        const deletedCert = localCertificates[certIndex];
+                        const nextSibling = tr.nextSibling;
+                        
+                        if (certIndex > -1) localCertificates.splice(certIndex, 1);
+                        
+                        setTimeout(() => {
+                            if (tr.parentNode) tr.parentNode.removeChild(tr);
+                        }, 250);
 
-                        if (!res.ok) showToast("Failed to delete certificate.", "error");
-                        else {
+                        try {
+                            const res = await fetch(`/api/certificates/${id}`, {
+                                method: 'DELETE',
+                                headers: { 'Authorization': `Bearer ${token}` }
+                            });
+
+                            if (!res.ok) throw new Error("Failed to delete certificate.");
+                            
                             showToast("Certification deleted.");
-                            loadCertifications();
+                            console.log(`[PERF] deleteCert API & DB completed in ${(performance.now() - startTime).toFixed(2)}ms`);
+                        } catch (err) {
+                            console.error("Delete cert rollback:", err);
+                            showToast("Failed to delete certificate: " + err.message, "error");
+                            
+                            if (certIndex > -1) localCertificates.splice(certIndex, 0, deletedCert);
+                            
+                            tr.classList.remove('row-fade-out');
+                            const tbody = document.getElementById('certs-table-body');
+                            if (nextSibling) {
+                                tbody.insertBefore(tr, nextSibling);
+                            } else {
+                                tbody.appendChild(tr);
+                            }
                         }
                     }
                 });
@@ -2970,27 +3659,16 @@
             // Load Team
             async function loadUXITeam() {
                 try {
+                    const startTime = performance.now();
                     const team = await fetch('/api/uxi/team').then(res => res.json());
+                    localUXITeam = team || [];
                     const tbody = document.getElementById('uxi-team-table-body');
                     tbody.innerHTML = '';
-                    if (team) {
-                        team.forEach(member => {
-                            const tr = document.createElement('tr');
-                            tr.setAttribute('data-id', member._id);
-                            tr.innerHTML = `
-                                <td><i class="fa-solid fa-grip-vertical drag-handle"></i></td>
-                                <td><img src="${member.photo_url || 'images/cert_placeholder.png'}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;"></td>
-                                <td><strong>${member.name}</strong></td>
-                                <td>${member.role}</td>
-                                <td><a href="${member.linkedin_link}" target="_blank">${member.linkedin_link !== '#' ? 'Link' : 'None'}</a></td>
-                                <td class="actions-cell">
-                                    <button class="btn-icon" onclick="editUXITeam('${member._id}')"><i class="fa-solid fa-pen"></i></button>
-                                    <button class="btn-icon delete" onclick="deleteUXITeam('${member._id}')"><i class="fa-solid fa-trash"></i></button>
-                                </td>
-                            `;
-                            tbody.appendChild(tr);
-                        });
-                    }
+                    
+                    localUXITeam.forEach(member => {
+                        tbody.appendChild(createUXITeamRow(member));
+                    });
+                    console.log(`[PERF] loadUXITeam completed in ${(performance.now() - startTime).toFixed(2)}ms`);
                 } catch (e) {
                     console.error("Failed to load UXI team members", e);
                 }
@@ -3000,26 +3678,16 @@
             // Load Projects
             async function loadUXIProjects() {
                 try {
+                    const startTime = performance.now();
                     const projects = await fetch('/api/uxi/projects').then(res => res.json());
+                    localUXIProjects = projects || [];
                     const tbody = document.getElementById('uxi-project-table-body');
                     tbody.innerHTML = '';
-                    if (projects) {
-                        projects.forEach(proj => {
-                            const tr = document.createElement('tr');
-                            tr.setAttribute('data-id', proj._id);
-                            tr.innerHTML = `
-                                <td><i class="fa-solid fa-grip-vertical drag-handle"></i></td>
-                                <td><strong>${proj.name}</strong></td>
-                                <td>${proj.description}</td>
-                                <td><span class="badge-status ${proj.status === 'Completed' ? 'badge-published' : 'badge-draft'}">${proj.status}</span></td>
-                                <td class="actions-cell">
-                                    <button class="btn-icon" onclick="editUXIProject('${proj._id}')"><i class="fa-solid fa-pen"></i></button>
-                                    <button class="btn-icon delete" onclick="deleteUXIProject('${proj._id}')"><i class="fa-solid fa-trash"></i></button>
-                                </td>
-                            `;
-                            tbody.appendChild(tr);
-                        });
-                    }
+                    
+                    localUXIProjects.forEach(proj => {
+                        tbody.appendChild(createUXIProjectRow(proj));
+                    });
+                    console.log(`[PERF] loadUXIProjects completed in ${(performance.now() - startTime).toFixed(2)}ms`);
                 } catch (e) {
                     console.error("Failed to load UXI projects", e);
                 }
@@ -3112,8 +3780,9 @@
                 uxiTeamModal.classList.remove('active');
             };
 
-            window.editUXITeam = async (id) => {
-                const member = await fetch('/api/uxi/team').then(res => res.json()).then(arr => arr.find(m => m._id === id));
+            window.editUXITeam = (id) => {
+                const startTime = performance.now();
+                const member = localUXITeam.find(m => m._id === id);
                 if (member) {
                     document.getElementById('uxi-team-id').value = member._id;
                     document.getElementById('uxi-team-name').value = member.name;
@@ -3125,21 +3794,29 @@
                     updateSelectorPreview('uxi-team-photo', member.photo_url || '');
                     document.getElementById('uxi-team-modal-title').textContent = "Edit UXI Team Member";
                     uxiTeamModal.classList.add('active');
+                    console.log(`[PERF] editUXITeam modal opened in ${(performance.now() - startTime).toFixed(2)}ms`);
                 }
             };
 
             uxiTeamForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
+                const startTime = performance.now();
+
                 const id = document.getElementById('uxi-team-id').value;
-                const name = document.getElementById('uxi-team-name').value;
-                const role = document.getElementById('uxi-team-role').value;
-                const bio = document.getElementById('uxi-team-bio').value;
-                const responsibilities = document.getElementById('uxi-team-responsibilities').value;
-                const skillsStr = document.getElementById('uxi-team-skills').value;
-                const linkedin_link = document.getElementById('uxi-team-linkedin').value;
+                const name = document.getElementById('uxi-team-name').value.trim();
+                const role = document.getElementById('uxi-team-role').value.trim();
+                const bio = document.getElementById('uxi-team-bio').value.trim();
+                const responsibilities = document.getElementById('uxi-team-responsibilities').value.trim();
+                const skillsStr = document.getElementById('uxi-team-skills').value.trim();
+                const linkedin_link = document.getElementById('uxi-team-linkedin').value.trim();
                 const photo_url = document.getElementById('uxi-team-photo').value;
 
                 const skills = skillsStr.split(',').map(s => s.trim()).filter(s => s.length > 0);
+
+                const submitBtn = uxiTeamForm.querySelector('button[type="submit"]');
+                const originalBtnText = submitBtn.innerHTML;
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
 
                 const url = id ? `/api/uxi/team/${id}` : '/api/uxi/team';
                 const method = id ? 'PUT' : 'POST';
@@ -3153,34 +3830,82 @@
                         },
                         body: JSON.stringify({ name, role, bio, responsibilities, skills, linkedin_link, photo_url })
                     });
-                    if (res.ok) {
-                        showToast("Team member saved successfully!");
-                        closeUXITeamModal();
-                        loadUXITeam();
-                    } else showToast("Failed to save team member.", "error");
-                } catch (e) {
-                    showToast("Error: " + e.message, "error");
+
+                    if (!res.ok) throw new Error("Failed to save team member.");
+
+                    const savedMember = await res.json();
+                    
+                    const tbody = document.getElementById('uxi-team-table-body');
+                    if (id) {
+                        const idx = localUXITeam.findIndex(m => m._id === id);
+                        if (idx > -1) localUXITeam[idx] = savedMember;
+                        
+                        const oldRow = tbody.querySelector(`tr[data-id="${id}"]`);
+                        if (oldRow) {
+                            const newRow = createUXITeamRow(savedMember);
+                            tbody.replaceChild(newRow, oldRow);
+                        }
+                    } else {
+                        localUXITeam.push(savedMember);
+                        tbody.appendChild(createUXITeamRow(savedMember));
+                    }
+
+                    showToast("Team member saved successfully!");
+                    closeUXITeamModal();
+                    console.log(`[PERF] Save team member workflow completed in ${(performance.now() - startTime).toFixed(2)}ms`);
+                } catch (err) {
+                    showToast(err.message, "error");
+                } finally {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalBtnText;
                 }
             });
 
-            window.deleteUXITeam = (id) => {
+            window.deleteUXITeam = (btn, id) => {
                 ConfirmationModal.show({
                     title: "Delete Team Member?",
                     message: "Are you sure you want to delete this team member?",
                     confirmText: "Delete",
                     cancelText: "Cancel",
                     onConfirm: async () => {
+                        const startTime = performance.now();
+                        const tr = btn.closest('tr');
+                        
+                        tr.classList.add('row-fade-out');
+                        
+                        const memberIndex = localUXITeam.findIndex(m => m._id === id);
+                        const deletedMember = localUXITeam[memberIndex];
+                        const nextSibling = tr.nextSibling;
+                        
+                        if (memberIndex > -1) localUXITeam.splice(memberIndex, 1);
+                        
+                        setTimeout(() => {
+                            if (tr.parentNode) tr.parentNode.removeChild(tr);
+                        }, 250);
+
                         try {
                             const res = await fetch(`/api/uxi/team/${id}`, {
                                 method: 'DELETE',
                                 headers: { 'Authorization': `Bearer ${token}` }
                             });
-                            if (res.ok) {
-                                showToast("Team member deleted.");
-                                loadUXITeam();
-                            } else showToast("Failed to delete member.", "error");
-                        } catch (e) {
-                            showToast("Error: " + e.message, "error");
+
+                            if (!res.ok) throw new Error("Failed to delete team member.");
+                            
+                            showToast("Team member deleted.");
+                            console.log(`[PERF] deleteUXITeam API & DB completed in ${(performance.now() - startTime).toFixed(2)}ms`);
+                        } catch (err) {
+                            console.error("Delete UXI team member rollback:", err);
+                            showToast("Failed to delete member: " + err.message, "error");
+                            
+                            if (memberIndex > -1) localUXITeam.splice(memberIndex, 0, deletedMember);
+                            
+                            tr.classList.remove('row-fade-out');
+                            const tbody = document.getElementById('uxi-team-table-body');
+                            if (nextSibling) {
+                                tbody.insertBefore(tr, nextSibling);
+                            } else {
+                                tbody.appendChild(tr);
+                            }
                         }
                     }
                 });
@@ -3211,8 +3936,9 @@
                 uxiProjModal.classList.remove('active');
             };
 
-            window.editUXIProject = async (id) => {
-                const proj = await fetch('/api/uxi/projects').then(res => res.json()).then(arr => arr.find(p => p._id === id));
+            window.editUXIProject = (id) => {
+                const startTime = performance.now();
+                const proj = localUXIProjects.find(p => p._id === id);
                 if (proj) {
                     document.getElementById('uxi-project-id').value = proj._id;
                     document.getElementById('uxi-project-name').value = proj.name;
@@ -3231,28 +3957,36 @@
                     document.getElementById('uxi-project-modal-title').textContent = "Edit UXI Project";
                     toggleUXIProjectFields();
                     uxiProjModal.classList.add('active');
+                    console.log(`[PERF] editUXIProject modal opened in ${(performance.now() - startTime).toFixed(2)}ms`);
                 }
             };
 
             uxiProjForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
+                const startTime = performance.now();
+
                 const id = document.getElementById('uxi-project-id').value;
-                const name = document.getElementById('uxi-project-name').value;
+                const name = document.getElementById('uxi-project-name').value.trim();
                 const status = document.getElementById('uxi-project-status').value;
-                const description = document.getElementById('uxi-project-desc').value;
-                const techStr = document.getElementById('uxi-project-tech').value;
+                const description = document.getElementById('uxi-project-desc').value.trim();
+                const techStr = document.getElementById('uxi-project-tech').value.trim();
                 const image_url = document.getElementById('uxi-project-image').value;
-                const github_link = document.getElementById('uxi-project-github').value;
-                const live_link = document.getElementById('uxi-project-live').value;
+                const github_link = document.getElementById('uxi-project-github').value.trim();
+                const live_link = document.getElementById('uxi-project-live').value.trim();
                 const completion_date = document.getElementById('uxi-project-completion-date').value;
                 const dev_stage = document.getElementById('uxi-project-dev-stage').value;
                 const expected_release = document.getElementById('uxi-project-expected-release').value;
                 const progress_percent = parseInt(document.getElementById('uxi-project-progress-percent').value) || 0;
                 const coming_soon = document.getElementById('uxi-project-coming-soon').checked;
-                const expected_features_str = document.getElementById('uxi-project-expected-features').value;
+                const expected_features_str = document.getElementById('uxi-project-expected-features').value.trim();
 
                 const technologies = techStr.split(',').map(s => s.trim()).filter(s => s.length > 0);
                 const expected_features = expected_features_str.split(',').map(s => s.trim()).filter(s => s.length > 0);
+
+                const submitBtn = uxiProjForm.querySelector('button[type="submit"]');
+                const originalBtnText = submitBtn.innerHTML;
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
 
                 const url = id ? `/api/uxi/projects/${id}` : '/api/uxi/projects';
                 const method = id ? 'PUT' : 'POST';
@@ -3269,34 +4003,82 @@
                             completion_date, dev_stage, expected_release, progress_percent, coming_soon, expected_features 
                         })
                     });
-                    if (res.ok) {
-                        showToast("UXI Project saved!");
-                        closeUXIProjectModal();
-                        loadUXIProjects();
-                    } else showToast("Failed to save project.", "error");
-                } catch (e) {
-                    showToast("Error: " + e.message, "error");
+
+                    if (!res.ok) throw new Error("Failed to save project.");
+
+                    const savedProj = await res.json();
+                    
+                    const tbody = document.getElementById('uxi-project-table-body');
+                    if (id) {
+                        const idx = localUXIProjects.findIndex(p => p._id === id);
+                        if (idx > -1) localUXIProjects[idx] = savedProj;
+                        
+                        const oldRow = tbody.querySelector(`tr[data-id="${id}"]`);
+                        if (oldRow) {
+                            const newRow = createUXIProjectRow(savedProj);
+                            tbody.replaceChild(newRow, oldRow);
+                        }
+                    } else {
+                        localUXIProjects.push(savedProj);
+                        tbody.appendChild(createUXIProjectRow(savedProj));
+                    }
+
+                    showToast("UXI Project saved successfully!");
+                    closeUXIProjectModal();
+                    console.log(`[PERF] Save UXI project workflow completed in ${(performance.now() - startTime).toFixed(2)}ms`);
+                } catch (err) {
+                    showToast(err.message, "error");
+                } finally {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalBtnText;
                 }
             });
 
-            window.deleteUXIProject = (id) => {
+            window.deleteUXIProject = (btn, id) => {
                 ConfirmationModal.show({
                     title: "Delete UXI Project?",
                     message: "Are you sure you want to delete this UXI project?",
                     confirmText: "Delete",
                     cancelText: "Cancel",
                     onConfirm: async () => {
+                        const startTime = performance.now();
+                        const tr = btn.closest('tr');
+                        
+                        tr.classList.add('row-fade-out');
+                        
+                        const projIndex = localUXIProjects.findIndex(p => p._id === id);
+                        const deletedProj = localUXIProjects[projIndex];
+                        const nextSibling = tr.nextSibling;
+                        
+                        if (projIndex > -1) localUXIProjects.splice(projIndex, 1);
+                        
+                        setTimeout(() => {
+                            if (tr.parentNode) tr.parentNode.removeChild(tr);
+                        }, 250);
+
                         try {
                             const res = await fetch(`/api/uxi/projects/${id}`, {
                                 method: 'DELETE',
                                 headers: { 'Authorization': `Bearer ${token}` }
                             });
-                            if (res.ok) {
-                                showToast("UXI Project deleted.");
-                                loadUXIProjects();
-                            } else showToast("Failed to delete project.", "error");
-                        } catch (e) {
-                            showToast("Error: " + e.message, "error");
+
+                            if (!res.ok) throw new Error("Failed to delete UXI project.");
+                            
+                            showToast("UXI Project deleted.");
+                            console.log(`[PERF] deleteUXIProject API & DB completed in ${(performance.now() - startTime).toFixed(2)}ms`);
+                        } catch (err) {
+                            console.error("Delete UXI project rollback:", err);
+                            showToast("Failed to delete project: " + err.message, "error");
+                            
+                            if (projIndex > -1) localUXIProjects.splice(projIndex, 0, deletedProj);
+                            
+                            tr.classList.remove('row-fade-out');
+                            const tbody = document.getElementById('uxi-project-table-body');
+                            if (nextSibling) {
+                                tbody.insertBefore(tr, nextSibling);
+                            } else {
+                                tbody.appendChild(tr);
+                            }
                         }
                     }
                 });

@@ -254,6 +254,26 @@ const WebsiteSettingsSchema = new mongoose.Schema({
 });
 const WebsiteSettings = mongoose.model('WebsiteSettings', WebsiteSettingsSchema);
 
+const MobileFABMenuItemSchema = new mongoose.Schema({
+    label: { type: String, required: true },
+    icon_class: { type: String, required: true },
+    url: { type: String, required: true }
+});
+
+const MobileFABSettingsSchema = new mongoose.Schema({
+    is_enabled: { type: Boolean, default: true },
+    custom_image_url: { type: String, default: '' },
+    icon_class: { type: String, default: 'fa-solid fa-bars' },
+    button_size: { type: Number, default: 60 },
+    position: { type: String, default: 'bottom-right' },
+    bg_color: { type: String, default: '#2563eb' },
+    border_radius: { type: Number, default: 50 }, // in percentage
+    glow_effect: { type: Boolean, default: true },
+    animation_type: { type: String, default: 'pulse' },
+    menu_items: { type: [MobileFABMenuItemSchema], default: [] }
+});
+const MobileFABSettings = mongoose.model('MobileFABSettings', MobileFABSettingsSchema);
+
 // ==========================================
 // Authentication Middleware
 // ==========================================
@@ -622,6 +642,116 @@ app.post('/api/settings', authenticateToken, async (req, res) => {
     settings.admin_favicon_url = admin_favicon_url || '';
     await settings.save();
     res.json(settings);
+});
+
+// Mobile FAB Settings Section
+app.get('/api/settings/fab', async (req, res) => {
+    let fabData = null;
+    if (supabase) {
+        try {
+            const { data, error } = await supabase
+                .from('mobile_fab_settings')
+                .select('*')
+                .limit(1)
+                .maybeSingle();
+            if (!error && data) {
+                fabData = {
+                    _id: data.id,
+                    is_enabled: data.is_enabled,
+                    custom_image_url: data.custom_image_url || '',
+                    icon_class: data.icon_class || 'fa-solid fa-bars',
+                    button_size: data.button_size !== undefined ? data.button_size : 60,
+                    position: data.position || 'bottom-right',
+                    bg_color: data.bg_color || '#2563eb',
+                    border_radius: data.border_radius !== undefined ? data.border_radius : 50,
+                    glow_effect: data.glow_effect !== undefined ? data.glow_effect : true,
+                    animation_type: data.animation_type || 'pulse',
+                    menu_items: typeof data.menu_items === 'string' ? JSON.parse(data.menu_items) : (data.menu_items || [])
+                };
+            }
+        } catch (e) {
+            console.error("Failed to load FAB settings from Supabase:", e.message);
+        }
+    }
+
+    if (!fabData) {
+        // Fallback to MongoDB
+        let fab = await MobileFABSettings.findOne();
+        if (!fab) {
+            fab = new MobileFABSettings({
+                is_enabled: true,
+                custom_image_url: '',
+                icon_class: 'fa-solid fa-bars',
+                button_size: 60,
+                position: 'bottom-right',
+                bg_color: '#2563eb',
+                border_radius: 50,
+                glow_effect: true,
+                animation_type: 'pulse',
+                menu_items: [
+                    { label: 'GitHub', icon_class: 'fa-brands fa-github', url: 'https://github.com' },
+                    { label: 'LinkedIn', icon_class: 'fa-brands fa-linkedin', url: 'https://linkedin.com' },
+                    { label: 'Email', icon_class: 'fa-solid fa-envelope', url: 'mailto:test@example.com' },
+                    { label: 'WhatsApp', icon_class: 'fa-brands fa-whatsapp', url: 'https://wa.me/1234567890' },
+                    { label: 'Resume', icon_class: 'fa-solid fa-file-pdf', url: '/resume.pdf' },
+                    { label: 'Call', icon_class: 'fa-solid fa-phone', url: 'tel:+1234567890' }
+                ]
+            });
+            await fab.save();
+        }
+        fabData = fab;
+    }
+    res.json(fabData);
+});
+
+app.post('/api/settings/fab', authenticateToken, async (req, res) => {
+    const {
+        is_enabled, custom_image_url, icon_class, button_size,
+        position, bg_color, border_radius, glow_effect, animation_type,
+        menu_items
+    } = req.body;
+
+    let fab = await MobileFABSettings.findOne();
+    if (!fab) fab = new MobileFABSettings();
+
+    fab.is_enabled = is_enabled !== undefined ? !!is_enabled : true;
+    fab.custom_image_url = custom_image_url || '';
+    fab.icon_class = icon_class || 'fa-solid fa-bars';
+    fab.button_size = button_size !== undefined ? Number(button_size) : 60;
+    fab.position = position || 'bottom-right';
+    fab.bg_color = bg_color || '#2563eb';
+    fab.border_radius = border_radius !== undefined ? Number(border_radius) : 50;
+    fab.glow_effect = glow_effect !== undefined ? !!glow_effect : true;
+    fab.animation_type = animation_type || 'pulse';
+    fab.menu_items = menu_items || [];
+    await fab.save();
+
+    if (supabase) {
+        try {
+            const { data: existing } = await supabase.from('mobile_fab_settings').select('id').limit(1);
+            const record = {
+                is_enabled: is_enabled !== undefined ? !!is_enabled : true,
+                custom_image_url: custom_image_url || '',
+                icon_class: icon_class || 'fa-solid fa-bars',
+                button_size: button_size !== undefined ? Number(button_size) : 60,
+                position: position || 'bottom-right',
+                bg_color: bg_color || '#2563eb',
+                border_radius: border_radius !== undefined ? Number(border_radius) : 50,
+                glow_effect: glow_effect !== undefined ? !!glow_effect : true,
+                animation_type: animation_type || 'pulse',
+                menu_items: menu_items || []
+            };
+            if (existing && existing.length > 0) {
+                record.id = existing[0].id;
+            }
+            const { error } = await supabase.from('mobile_fab_settings').upsert(record);
+            if (error) console.error("Supabase upsert mobile_fab_settings error:", error);
+        } catch (e) {
+            console.error("Failed to sync FAB settings to Supabase:", e.message);
+        }
+    }
+
+    res.json(fab);
 });
 
 app.post('/api/settings/upload', authenticateToken, upload.single('file'), async (req, res) => {
