@@ -1486,120 +1486,7 @@ section {
     }
 }
 
-@media (max-width: 600px) {
-    .head {
-        flex-direction: column;
-        gap: 14px;
-        padding: 18px 20px;
-        height: auto;
-    }
-    .link-ul {
-        gap: 15px;
-        padding: 8px 20px;
-    }
-    .link-ul li a {
-        font-size: 12px;
-    }
-    .sco-ul {
-        display: none;
-    }
-    section {
-        padding: 80px 20px; /* Mobile Padding */
-    }
-    .main {
-        padding: 120px 20px 60px;
-    }
-    .container {
-        flex-direction: column-reverse; /* Image first is handled by column-reverse since image markup is after content */
-        gap: 40px;
-    }
-    .hi h1 {
-        font-size: 36px;
-    }
-    .main h3 {
-        font-size: 24px;
-        justify-content: center;
-    }
-    .main p {
-        font-size: 14px;
-        line-height: 1.8;
-    }
-    .btn {
-        flex-direction: column;
-        align-items: center;
-        width: 100%;
-    }
-    .btn a {
-        width: 100%;
-        max-width: 320px;
-    }
-    .Me {
-        width: 280px;
-        height: 280px;
-    }
-    .profile-image-container {
-        width: 180px;
-        height: 180px;
-    }
-    .orbit {
-        width: 280px;
-        height: 280px;
-    }
-    .icon {
-        width: 32px;
-        height: 32px;
-        font-size: 14px;
-    }
-    .html   { transform: rotate(0deg)   translate(140px) rotate(0deg); }
-    .unity  { transform: rotate(51deg)  translate(140px) rotate(-51deg); }
-    .java   { transform: rotate(103deg) translate(140px) rotate(-103deg); }
-    .C      { transform: rotate(154deg) translate(140px) rotate(-154deg); }
-    .figma  { transform: rotate(206deg) translate(140px) rotate(-206deg); }
-    .js     { transform: rotate(257deg) translate(140px) rotate(-257deg); }
-    .css    { transform: rotate(309deg) translate(140px) rotate(-309deg); }
-
-    .about-content {
-        flex-direction: column;
-        gap: 45px;
-    }
-    .about-img-container {
-        width: 260px;
-        height: 260px;
-        border-radius: 24px;
-    }
-    .timeline-container::after {
-        left: 20px;
-    }
-    .timeline-item {
-        width: 100%;
-        padding-left: 45px;
-        padding-right: 0px;
-    }
-    .timeline-item::after {
-        left: 11px;
-        width: 14px;
-        height: 14px;
-    }
-    .timeline-right {
-        left: 0%;
-    }
-    .timeline-content {
-        padding: 15px;
-    }
-    .projects-grid {
-        grid-template-columns: 1fr;
-        gap: 25px;
-    }
-    .github-stats-grid {
-        grid-template-columns: 1fr;
-    }
-    .github-repos-grid {
-        grid-template-columns: 1fr;
-    }
-    .contact-form {
-        padding: 20px;
-    }
-}
+/* Redundant mobile media query overrides removed in favor of unified 768px block */
 
 /* UXI Hero Button & Page transitions */
 .btn a.btn-uxi {
@@ -1689,6 +1576,40 @@ body.fade-out {
 }
 
 @media (max-width: 768px) {
+    /* General Responsiveness and Viewport constraints */
+    html, body {
+        overflow-x: hidden !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+    
+    * {
+        box-sizing: border-box !important;
+    }
+
+    section {
+        padding-top: 100px !important;
+        padding-bottom: 100px !important;
+        padding-left: 20px !important;
+        padding-right: 20px !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+        margin: 0 auto !important;
+        overflow: hidden !important;
+    }
+
+    .container {
+        flex-direction: column-reverse !important;
+        gap: 40px !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    /* Compact header navbar styles */
     .links, .sco {
         display: none !important;
     }
@@ -1728,5 +1649,252 @@ body.fade-out {
     .mobile-compact-nav a:hover,
     .mobile-compact-nav a:active {
         color: var(--primary);
+    }
+
+    /* Hero Section Redesign */
+    .main {
+        padding-top: 140px !important;
+        padding-bottom: 80px !important;
+    }
+
+    .main .container {
+        display: flex !important;
+        flex-direction: column-reverse !important;
+        align-items: center !important;
+        text-align: center !important;
+        gap: 45px !important;
+    }
+
+    .content {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        text-align: center !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        padding: 0 !important;
+    }
+
+    /* Profile Image & Orbit positioning */
+    .Me {
+        flex: none !important;
+        width: 280px !important;
+        height: 280px !important;
+        margin: 0 auto !important;
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        position: relative !important;
+    }
+
+    .profile-image-container {
+        width: 170px !important;
+        height: 170px !important;
+        border-width: 3px !important;
+        box-shadow: 0 8px 30px rgba(59, 130, 246, 0.15) !important;
+        animation: floatProfile 5s ease-in-out infinite !important;
+        margin: 0 !important;
+    }
+
+    .orbit {
+        width: 270px !important;
+        height: 270px !important;
+        border: 1px dashed rgba(59, 130, 246, 0.2) !important;
+    }
+
+    .icon {
+        width: 32px !important;
+        height: 32px !important;
+        font-size: 14px !important;
+    }
+
+    /* Precise translation offsets to position icons outside the profile container */
+    .html   { transform: rotate(0deg)   translate(135px) rotate(0deg) !important; }
+    .unity  { transform: rotate(51deg)  translate(135px) rotate(-51deg) !important; }
+    .java   { transform: rotate(103deg) translate(135px) rotate(-103deg) !important; }
+    .C      { transform: rotate(154deg) translate(135px) rotate(-154deg) !important; }
+    .figma  { transform: rotate(206deg) translate(135px) rotate(-206deg) !important; }
+    .js     { transform: rotate(257deg) translate(135px) rotate(-257deg) !important; }
+    .css    { transform: rotate(309deg) translate(135px) rotate(-309deg) !important; }
+
+    /* Text Spacing & typography scaling */
+    .hi {
+        margin-bottom: 24px !important;
+    }
+    
+    .hi h1:first-child {
+        font-size: clamp(24px, 6vw, 32px) !important;
+        margin-bottom: 12px !important;
+    }
+
+    .hi h1:last-child {
+        font-size: clamp(28px, 8vw, 40px) !important;
+        line-height: 1.2 !important;
+    }
+
+    .main h3 {
+        font-size: clamp(18px, 5vw, 22px) !important;
+        margin-bottom: 20px !important;
+        justify-content: center !important;
+    }
+
+    .tagline-bullet-list {
+        font-size: clamp(11px, 3.5vw, 13px) !important;
+        margin-bottom: 24px !important;
+        line-height: 1.5 !important;
+        justify-content: center !important;
+    }
+
+    .main p {
+        font-size: clamp(13px, 4vw, 14.5px) !important;
+        line-height: 1.8 !important;
+        margin-bottom: 35px !important;
+        color: var(--text-muted) !important;
+    }
+
+    /* Buttons scaling and alignment */
+    .btn {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        width: 100% !important;
+        gap: 16px !important;
+        margin-top: 15px !important;
+    }
+
+    .btn a, .btn button {
+        width: 100% !important;
+        max-width: 320px !important;
+        height: 50px !important;
+        box-sizing: border-box !important;
+        margin: 0 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+
+    /* About Section */
+    .about-content {
+        flex-direction: column !important;
+        gap: 45px !important;
+        align-items: center !important;
+    }
+    .about-img-container {
+        width: 240px !important;
+        height: 240px !important;
+        border-radius: 24px !important;
+    }
+
+    /* Skills Grid mobile */
+    .skills-grid {
+        grid-template-columns: 1fr !important;
+        gap: 20px !important;
+    }
+
+    /* Projects Grid mobile */
+    .projects-grid {
+        grid-template-columns: 1fr !important;
+        gap: 25px !important;
+    }
+
+    /* Premium Timeline styling (Apple, Linear, Framer modern look) */
+    .timeline-container {
+        padding: 30px 0 !important;
+    }
+
+    .timeline-container::after {
+        left: 20px !important;
+        background: linear-gradient(to bottom, var(--primary), var(--accent-gradient), var(--primary)) !important;
+        box-shadow: 0 0 12px rgba(59, 130, 246, 0.4) !important;
+    }
+
+    .timeline-item {
+        width: 100% !important;
+        padding-left: 45px !important;
+        padding-right: 0px !important;
+        margin-bottom: 30px !important;
+    }
+
+    .timeline-item::after {
+        left: 11px !important;
+        width: 16px !important;
+        height: 16px !important;
+        background-color: var(--bg) !important;
+        border: 3px solid var(--accent) !important;
+        box-shadow: 0 0 10px var(--accent) !important;
+        top: 28px !important;
+    }
+
+    .timeline-item:hover::after {
+        transform: scale(1.4) !important;
+        background-color: var(--accent) !important;
+    }
+
+    .timeline-right {
+        left: 0% !important;
+    }
+
+    .timeline-right::after {
+        left: 11px !important;
+    }
+
+    .timeline-content.glass-card {
+        padding: 22px !important;
+        border-radius: 20px !important;
+        background: rgba(255, 255, 255, 0.03) !important;
+        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        box-shadow: 0 8px 32px 0 rgba(15, 23, 42, 0.08) !important;
+        transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1) !important;
+    }
+
+    .timeline-content.glass-card:hover {
+        transform: translateY(-5px) !important;
+        box-shadow: 0 12px 30px rgba(59, 130, 246, 0.18) !important;
+        border-color: rgba(59, 130, 246, 0.35) !important;
+        background: rgba(255, 255, 255, 0.05) !important;
+    }
+
+    /* GitHub Repos Grid spacing and scaling */
+    .github-repos-grid {
+        grid-template-columns: 1fr !important;
+        gap: 20px !important;
+    }
+
+    /* Support 2 columns on tablets and wider mobile viewports */
+    @media (min-width: 550px) {
+        .github-repos-grid {
+            grid-template-columns: repeat(2, 1fr) !important;
+        }
+    }
+
+    .repo-card {
+        padding: 20px !important;
+        border-radius: 18px !important;
+        background: rgba(255, 255, 255, 0.02) !important;
+        border: 1px solid rgba(255, 255, 255, 0.05) !important;
+        box-shadow: 0 4px 20px rgba(15, 23, 42, 0.05) !important;
+        transition: all 0.3s ease !important;
+    }
+
+    .repo-card:hover {
+        transform: translateY(-4px) !important;
+        border-color: rgba(59, 130, 246, 0.25) !important;
+        box-shadow: 0 10px 25px rgba(59, 130, 246, 0.12) !important;
+        background: rgba(255, 255, 255, 0.04) !important;
+    }
+
+    .repo-header a {
+        word-break: break-all !important;
+        overflow-wrap: anywhere !important;
+        white-space: normal !important;
+    }
+
+    .github-stats-grid {
+        grid-template-columns: 1fr !important;
+        gap: 20px !important;
+    }
+
+    .contact-form {
+        padding: 20px !important;
     }
 }
