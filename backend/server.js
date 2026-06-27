@@ -30,8 +30,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'secret_fallback';
 app.use(cors());
 app.use(express.json());
 
-// Serve static project files
-app.use(express.static(path.join(__dirname, 'public')));
+// Static serving of frontend files is removed (handled separately by frontend project)
 // Serve uploads folder statically
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
@@ -911,10 +910,7 @@ app.post('/api/resume/upload', authenticateToken, upload.single('file'), async (
     res.json({ url: fileUrl });
 });
 
-// UXI Startup Page Route
-app.get('/uxi', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'uxi.html'));
-});
+// UXI Startup Page Route is served by the static frontend project.
 
 // ==========================================
 // UXI Startup Page API Routes
@@ -1485,9 +1481,9 @@ app.delete('/api/uxi/projects/:id', authenticateToken, async (req, res) => {
     res.json({ success: true });
 });
 
-// Catch-all route to serve portfolio index.html
+// Catch-all route to confirm API status
 app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+    res.json({ message: "Shaik Portfolio API is running.", status: "online" });
 });
 
 // ==========================================
@@ -1496,13 +1492,12 @@ app.get('*', (req, res) => {
 
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/portfolio';
 
-mongoose.connect(MONGO_URI, {
-    serverSelectionTimeoutMS: 5000
-})
-    .then(async () => {
-        console.log("Connected to MongoDB successfully!");
-        
-        // Seed default admin user if none exists
+// Disable buffering so queries fail immediately if database connection is down
+mongoose.set('bufferCommands', false);
+
+// Seeding function
+async function seedDatabase() {
+    // Seed default admin user if none exists
         const userCount = await User.countDocuments();
         if (userCount === 0) {
             const hashedPassword = await bcrypt.hash('admin123', 10);
@@ -1659,15 +1654,60 @@ mongoose.connect(MONGO_URI, {
             await UXIProject.insertMany(defaultUXIProjects);
             console.log("UXI Startup database records seeded successfully.");
         }
+}
 
-        if (!process.env.VERCEL) {
-            app.listen(PORT, () => {
-                console.log(`Server is running at http://localhost:${PORT}`);
-            });
+let dbConnectionPromise = null;
+let isSeeded = false;
+
+async function connectToDatabase() {
+    if (dbConnectionPromise) {
+        return dbConnectionPromise;
+    }
+
+    console.log("Connecting to MongoDB...");
+    dbConnectionPromise = mongoose.connect(MONGO_URI, {
+        serverSelectionTimeoutMS: 5000
+    }).then(async (conn) => {
+        console.log("Connected to MongoDB successfully!");
+        
+        if (!isSeeded) {
+            isSeeded = true;
+            try {
+                await seedDatabase();
+            } catch (seedErr) {
+                console.error("Database seeding failed:", seedErr.message);
+            }
         }
-    })
-    .catch(err => {
-        console.error("MongoDB Connection Error:", err);
+        return conn;
+    }).catch(err => {
+        dbConnectionPromise = null; // Clear connection cache on failure to retry next time
+        console.error("MongoDB Connection Error:", err.message);
+        throw err;
     });
+
+    return dbConnectionPromise;
+}
+
+// Middleware to ensure DB connection is active for any API routes
+app.use('/api', async (req, res, next) => {
+    try {
+        await connectToDatabase();
+        next();
+    } catch (err) {
+        console.error("DB connection middleware failed:", err.message);
+        res.status(500).json({ 
+            error: "Database Connection Failed", 
+            message: "The server failed to connect to MongoDB. If this is in production, please verify that your MongoDB connection string (MONGO_URI) is correct in Vercel settings and that your MongoDB Atlas IP Whitelist allows access from all IPs (0.0.0.0/0). Detail: " + err.message
+        });
+    }
+});
+
+// Proactively listen and trigger connection in non-serverless environments
+if (!process.env.VERCEL) {
+    app.listen(PORT, () => {
+        console.log(`Server is running at http://localhost:${PORT}`);
+        connectToDatabase().catch(() => {});
+    });
+}
 
 module.exports = app;

@@ -1,3 +1,7 @@
 node_modules/
-.env
-uploads/
+backend/node_modules/
+backend/.env
+backend/uploads/
+frontend/node_modules/
+frontend/dist/
+.DS_Store

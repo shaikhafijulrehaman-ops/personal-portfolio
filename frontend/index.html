@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Shaik Hafijulrehaman | AI/ML Student & Full Stack Developer</title>
+    <script src="config.js"></script>
     
     <!-- CSS Stylesheets -->
     <link rel="stylesheet" href="style.css">
@@ -70,7 +71,7 @@
                     <a href="#projects"><i class="fa-solid fa-briefcase"></i> View Projects</a>
                     <a href="resume.pdf" class="btn-secondary" target="_blank" download="Shaik Hafijul Rehaman — Resume.pdf"><i class="fa-solid fa-file-arrow-down"></i> Download Resume</a>
                     <a href="#contact" class="btn-secondary"><i class="fa-solid fa-paper-plane"></i> Contact Me</a>
-                    <a href="/uxi" class="btn-uxi"><i class="fa-solid fa-rocket"></i> UXI-Unified eXperience Intelligence</a>
+                    <a href="uxi.html" class="btn-uxi"><i class="fa-solid fa-rocket"></i> UXI-Unified eXperience Intelligence</a>
                 </div>
             </div>
             <div class="Me" data-aos="fade-left" data-aos-duration="1000">
@@ -1019,12 +1020,12 @@
             loadDynamicPortfolio();
 
             // Page fade out transition on UXI links
-            document.querySelectorAll('a[href="/uxi"]').forEach(link => {
+            document.querySelectorAll('a[href="uxi.html"]').forEach(link => {
                 link.addEventListener('click', function(e) {
                     e.preventDefault();
                     document.body.classList.add('fade-out');
                     setTimeout(() => {
-                        window.location.href = '/uxi';
+                        window.location.href = 'uxi.html';
                     }, 500);
                 });
             });
