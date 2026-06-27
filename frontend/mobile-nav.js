@@ -49,36 +49,40 @@
         
         const isRight = navSettings.position !== 'bottom-left';
         const positionStyles = isRight 
-            ? `bottom: 20px; right: 20px;` 
-            : `bottom: 20px; left: 20px;`;
-
+            ? `bottom: max(20px, env(safe-area-inset-bottom)) !important; right: 20px !important; left: auto !important; top: auto !important;` 
+            : `bottom: max(20px, env(safe-area-inset-bottom)) !important; left: 20px !important; right: auto !important; top: auto !important;`;
+ 
         style.innerHTML = `
             /* FAB Trigger Styles */
             .mobile-nav-fab {
-                position: fixed;
+                position: fixed !important;
                 ${positionStyles}
-                width: ${navSettings.button_size || 60}px;
-                height: ${navSettings.button_size || 60}px;
-                border-radius: 50%;
-                background: ${navSettings.bg_color || 'linear-gradient(135deg, #3b82f6, #1d4ed8)'};
-                border: ${navSettings.border_style || '1px solid rgba(255, 255, 255, 0.2)'};
-                box-shadow: ${navSettings.shadow_style || '0 8px 32px 0 rgba(31, 38, 135, 0.3)'};
-                color: #ffffff;
-                font-size: 22px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                cursor: pointer;
-                z-index: 10001;
-                outline: none;
-                backdrop-filter: blur(8px);
-                -webkit-backdrop-filter: blur(8px);
-                transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-                padding: 0;
+                width: 60px !important;
+                height: 60px !important;
+                border-radius: 50% !important;
+                background: ${navSettings.bg_color || 'linear-gradient(135deg, #3b82f6, #1d4ed8)'} !important;
+                border: ${navSettings.border_style || '1px solid rgba(255, 255, 255, 0.2)'} !important;
+                box-shadow: 0 0 15px rgba(59, 130, 246, 0.5) !important;
+                color: #ffffff !important;
+                font-size: 22px !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                cursor: pointer !important;
+                z-index: 9999 !important;
+                outline: none !important;
+                backdrop-filter: blur(8px) !important;
+                -webkit-backdrop-filter: blur(8px) !important;
+                transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                transform: none !important;
+                box-sizing: border-box !important;
+                overflow: hidden !important;
             }
-
+ 
             .mobile-nav-fab:active {
-                transform: scale(0.9);
+                transform: scale(0.9) !important;
             }
 
             /* Animations */

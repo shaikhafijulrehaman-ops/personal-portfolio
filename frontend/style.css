@@ -18,6 +18,11 @@
     --glow-hover: rgba(59, 130, 246, 0.12);
     --hover: #2563EB;
     --success: #22C55E;
+    --avatar-size: 300px;
+    --profile-size: 250px;
+    --orbit-radius: 170px;
+    --icon-size: 42px;
+    --icon-offset: -21px;
     
     /* Shadows */
     --shadow: 0 10px 30px rgba(15, 23, 42, 0.04), 0 1px 3px rgba(15, 23, 42, 0.02);
@@ -485,18 +490,23 @@ section {
     box-shadow: 0 6px 20px rgba(59, 130, 246, 0.1);
 }
 
-/* Hero Profile Image / Orbit */
-.Me {
+/* Hero Profile Image & Centered AI Orbit */
+.hero-avatar {
     flex: 1;
     position: relative;
-    width: 380px;
-    height: 380px;
+    width: 300px;
+    height: 300px;
     display: flex;
     justify-content: center;
     align-items: center;
+    margin: 0 auto;
 }
 
 .profile-image-container {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
     width: 250px;
     height: 250px;
     border-radius: 50%;
@@ -505,7 +515,7 @@ section {
     background: var(--card-bg);
     backdrop-filter: blur(10px);
     overflow: hidden;
-    z-index: 2;
+    z-index: 3;
     animation: floatProfile 6s ease-in-out infinite;
     display: flex;
     justify-content: center;
@@ -518,26 +528,36 @@ section {
     object-fit: cover;
 }
 
-@keyframes floatProfile {
-    0%, 100% { transform: translateY(-8px); }
-    50% { transform: translateY(8px); }
-}
-
-.orbit {
+/* Glowing ring rotated behind profile image */
+.glowing-ring {
     position: absolute;
-    width: 380px;
-    height: 380px;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
+    width: 115%; /* Ring Size: 115% */
+    height: 115%;
     border-radius: 50%;
-    animation: spin 22s linear infinite;
-    z-index: 1;
-    border: 1px dashed rgba(59, 130, 246, 0.15);
+    border: 2px solid rgba(70, 140, 255, 0.35);
+    box-shadow: 0 0 25px rgba(70, 140, 255, 0.35);
+    z-index: 2; /* behind the profile image */
+    animation: spin-clockwise 18s linear infinite;
+    box-sizing: border-box;
+    pointer-events: none;
 }
 
-.orbit:hover {
-    animation-play-state: paused;
+/* Orbit circle containing technology icons */
+.orbit {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    border: 1px dashed rgba(59, 130, 246, 0.15);
+    z-index: 4; /* sit outside profile image */
+    pointer-events: none;
+    animation: spin-clockwise 25s linear infinite;
 }
 
 .icon {
@@ -555,29 +575,38 @@ section {
     font-size: 18px;
     color: var(--text-muted);
     cursor: pointer;
-    transform-origin: 0 0;
+    pointer-events: auto; /* permit touch/hover */
+    transform-origin: center;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     box-shadow: 0 4px 10px rgba(15, 23, 42, 0.04);
+    margin-top: -21px; /* exact center offset */
+    margin-left: -21px;
 }
 
 .icon:hover {
     background: var(--primary);
     border-color: var(--primary);
     box-shadow: 0 8px 20px rgba(59, 130, 246, 0.25);
-    transform: scale(1.2);
+    transform: scale(1.2) !important;
 }
 
 .icon:hover i {
     color: #FFFFFF !important;
 }
 
-.html   { transform: rotate(0deg)   translate(190px) rotate(0deg); }
-.unity  { transform: rotate(51deg)  translate(190px) rotate(-51deg); }
-.java   { transform: rotate(103deg) translate(190px) rotate(-103deg); }
-.C      { transform: rotate(154deg) translate(190px) rotate(-154deg); }
-.figma  { transform: rotate(206deg) translate(190px) rotate(-206deg); }
-.js     { transform: rotate(257deg) translate(190px) rotate(-257deg); }
-.css    { transform: rotate(309deg) translate(190px) rotate(-309deg); }
+/* Counter-rotates icons to stay upright relative to screen */
+.icon i {
+    display: inline-block;
+    animation: spin-counter-clockwise 25s linear infinite;
+}
+
+.html   { transform: rotate(0deg)   translate(var(--orbit-radius)) rotate(0deg); }
+.unity  { transform: rotate(51deg)  translate(var(--orbit-radius)) rotate(-51deg); }
+.java   { transform: rotate(103deg) translate(var(--orbit-radius)) rotate(-103deg); }
+.C      { transform: rotate(154deg) translate(var(--orbit-radius)) rotate(-154deg); }
+.figma  { transform: rotate(206deg) translate(var(--orbit-radius)) rotate(-206deg); }
+.js     { transform: rotate(257deg) translate(var(--orbit-radius)) rotate(-257deg); }
+.css    { transform: rotate(309deg) translate(var(--orbit-radius)) rotate(-309deg); }
 
 .html i  { color: #e34f26; }
 .css i   { color: #1572b6; }
@@ -587,9 +616,19 @@ section {
 .figma i { color: #f24e1e; }
 .C i     { color: #3776ab; }
 
-@keyframes spin {
+@keyframes spin-clockwise {
     from { transform: translate(-50%, -50%) rotate(0deg); }
     to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+@keyframes spin-counter-clockwise {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(-360deg); }
+}
+
+@keyframes floatProfile {
+    0%, 100% { transform: translate(-50%, -53%); }
+    50% { transform: translate(-50%, -47%); }
 }
 
 /* About Section */
@@ -1437,6 +1476,13 @@ section {
 
 /* Responsive Rules (Desktop / Tablet / Mobile) */
 @media (max-width: 1024px) {
+    :root {
+        --avatar-size: 290px;
+        --profile-size: 210px;
+        --orbit-radius: 145px;
+        --icon-size: 36px;
+        --icon-offset: -18px;
+    }
     .head {
         padding: 0 40px;
     }
@@ -1576,6 +1622,13 @@ body.fade-out {
 }
 
 @media (max-width: 768px) {
+    :root {
+        --avatar-size: 250px;
+        --profile-size: 170px;
+        --orbit-radius: 125px;
+        --icon-size: 32px;
+        --icon-offset: -16px;
+    }
     /* General Responsiveness and Viewport constraints */
     html, body {
         overflow-x: hidden !important;
@@ -1676,46 +1729,11 @@ body.fade-out {
     }
 
     /* Profile Image & Orbit positioning */
-    .Me {
+    /* Profile Image & Orbit positioning overrides */
+    .hero-avatar {
         flex: none !important;
-        width: 280px !important;
-        height: 280px !important;
         margin: 24px auto 40px auto !important; /* 24px gap from pill to image, 40px gap from image to Hi, I'm */
-        display: flex !important;
-        justify-content: center !important;
-        align-items: center !important;
-        position: relative !important;
     }
-
-    .profile-image-container {
-        width: 170px !important;
-        height: 170px !important;
-        border-width: 3px !important;
-        box-shadow: 0 8px 30px rgba(59, 130, 246, 0.15) !important;
-        animation: floatProfile 5s ease-in-out infinite !important;
-        margin: 0 !important;
-    }
-
-    .orbit {
-        width: 270px !important;
-        height: 270px !important;
-        border: 1px dashed rgba(59, 130, 246, 0.2) !important;
-    }
-
-    .icon {
-        width: 32px !important;
-        height: 32px !important;
-        font-size: 14px !important;
-    }
-
-    /* Precise translation offsets to position icons outside the profile container */
-    .html   { transform: rotate(0deg)   translate(135px) rotate(0deg) !important; }
-    .unity  { transform: rotate(51deg)  translate(135px) rotate(-51deg) !important; }
-    .java   { transform: rotate(103deg) translate(135px) rotate(-103deg) !important; }
-    .C      { transform: rotate(154deg) translate(135px) rotate(-154deg) !important; }
-    .figma  { transform: rotate(206deg) translate(135px) rotate(-206deg) !important; }
-    .js     { transform: rotate(257deg) translate(135px) rotate(-257deg) !important; }
-    .css    { transform: rotate(309deg) translate(135px) rotate(-309deg) !important; }
 
     /* Text Spacing & typography scaling */
     .hi {
