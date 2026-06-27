@@ -424,30 +424,68 @@
             line-height: 1.6;
         }
 
-        /* Team Section */
+        /* Team Section Carousel Redesign */
         #team {
             background: #EEF2F7 !important;
+            padding: 80px 0 !important;
+            overflow: hidden !important;
         }
 
-        .team-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-            gap: 40px;
+        .team-carousel-container {
+            overflow: hidden;
+            position: relative;
+            width: 100%;
+            padding: 30px 0;
+            white-space: nowrap;
+        }
+
+        .team-carousel-track {
+            display: flex;
+            width: max-content;
+            animation: teamScrollRight 25s linear infinite;
+        }
+
+        /* Pause on hover (Desktop) */
+        .team-carousel-container:hover .team-carousel-track {
+            animation-play-state: paused;
+        }
+
+        /* Pause on touch (Mobile) */
+        .team-carousel-track:active {
+            animation-play-state: paused;
+        }
+
+        @keyframes teamScrollRight {
+            0% { transform: translateX(-50%); }
+            100% { transform: translateX(0); }
         }
 
         .team-card {
+            width: 350px;
+            margin: 0 12px;
             padding: 30px;
             text-align: center;
-            border-radius: 20px;
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            transition: transform 0.3s ease, border-color 0.3s ease;
+            border-radius: 24px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.05);
+            transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+            flex-shrink: 0;
+            box-sizing: border-box;
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            vertical-align: top;
+            white-space: normal;
         }
 
         .team-card:hover {
-            border-color: var(--primary);
-            transform: translateY(-5px);
-            box-shadow: var(--shadow-hover);
+            transform: translateY(-8px);
+            border-color: rgba(59, 130, 246, 0.35);
+            box-shadow: 0 12px 30px rgba(59, 130, 246, 0.18);
+            background: rgba(255, 255, 255, 0.08);
         }
 
         .team-avatar {
@@ -456,8 +494,8 @@
             border-radius: 50%;
             object-fit: cover;
             margin: 0 auto 20px auto;
-            border: 2px solid var(--primary);
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+            border: 3px solid rgba(59, 130, 246, 0.3);
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.15);
         }
 
         .team-card h3 {
@@ -465,6 +503,7 @@
             font-size: 20px;
             color: var(--text);
             margin-bottom: 6px;
+            margin-top: 0;
         }
 
         .team-card h4 {
@@ -474,6 +513,7 @@
             letter-spacing: 1px;
             margin-bottom: 15px;
             font-weight: 600;
+            margin-top: 0;
         }
 
         .team-card p {
@@ -482,6 +522,14 @@
             line-height: 1.6;
             margin-bottom: 15px;
             min-height: 68px;
+            margin-top: 0;
+        }
+
+        .team-focus-area {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+            font-style: italic;
         }
 
         .team-skills {
@@ -494,25 +542,57 @@
 
         .team-skills span {
             font-size: 10px;
-            padding: 3px 8px;
+            padding: 4px 10px;
             border-radius: 12px;
-            background: var(--bg-secondary);
-            border: 1px solid var(--border);
-            color: var(--text-muted);
+            background: rgba(59, 130, 246, 0.08);
+            border: 1px solid rgba(59, 130, 246, 0.15);
+            color: var(--primary);
+            font-weight: 500;
+        }
+
+        .team-socials {
+            margin-top: 15px;
+            display: flex;
+            justify-content: center;
+            width: 100%;
         }
 
         .team-socials a {
-            color: var(--text-light);
+            color: #ffffff;
             font-size: 14px;
             text-decoration: none;
-            transition: color 0.3s;
+            transition: all 0.3s ease;
             display: inline-flex;
             align-items: center;
-            gap: 6px;
+            justify-content: center;
+            gap: 8px;
+            padding: 10px 20px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-gradient) 100%);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+            font-weight: 600;
         }
 
         .team-socials a:hover {
-            color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(59, 130, 246, 0.35);
+            color: #ffffff !important;
+        }
+
+        /* Responsive overrides */
+        @media (max-width: 1024px) {
+            .team-card {
+                width: 320px;
+                margin: 0 10px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .team-card {
+                width: 260px;
+                margin: 0 8px;
+                padding: 24px;
+            }
         }
 
         /* Projects Section */
@@ -919,10 +999,12 @@
 
     <!-- Team Section -->
     <section id="team" style="background: rgba(7, 17, 31, 0.2);">
-        <div class="container">
+        <div class="container" style="max-width: 100%; padding: 0;">
             <h2 class="section-title" data-aos="fade-up">Meet <span>Our Team</span></h2>
-            <div class="team-grid" id="team-cards-grid">
-                <!-- Dynamically populated -->
+            <div class="team-carousel-container" data-aos="fade-up">
+                <div class="team-carousel-track" id="team-cards-grid">
+                    <!-- Dynamically populated -->
+                </div>
             </div>
         </div>
     </section>
@@ -1096,16 +1178,17 @@
                     const teamGrid = document.getElementById('team-cards-grid');
                     teamGrid.innerHTML = '';
 
-                    team.forEach((member, idx) => {
+                    // Duplicate cards internally to create a seamless infinite loop
+                    const doubleTeam = [...team, ...team];
+
+                    doubleTeam.forEach((member, idx) => {
                         const card = document.createElement('div');
                         card.className = 'team-card glass-card';
-                        card.setAttribute('data-aos', 'fade-up');
-                        card.setAttribute('data-aos-delay', idx * 100);
                         card.setAttribute('data-tilt', '');
 
                         const skillsHtml = member.skills ? member.skills.map(s => `<span>${s}</span>`).join('') : '';
                         const linkedInHtml = member.linkedin_link && member.linkedin_link !== '#' 
-                            ? `<div class="team-socials" style="margin-top: 15px;">
+                            ? `<div class="team-socials">
                                 <a href="${member.linkedin_link}" target="_blank" aria-label="LinkedIn"><i class="fa-brands fa-linkedin"></i> LinkedIn</a>
                                </div>`
                             : '';
@@ -1115,7 +1198,7 @@
                             <h3>${member.name}</h3>
                             <h4>${member.role}</h4>
                             <p>${member.bio || ''}</p>
-                            <div style="font-size:12px;color:var(--text-muted);margin-bottom:12px;font-style:italic;"><strong>Focus:</strong> ${member.responsibilities || ''}</div>
+                            <div class="team-focus-area"><strong>Focus:</strong> ${member.responsibilities || ''}</div>
                             <div class="team-skills">${skillsHtml}</div>
                             ${linkedInHtml}
                         `;

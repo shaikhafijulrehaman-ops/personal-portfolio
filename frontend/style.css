@@ -1616,6 +1616,99 @@ body.fade-out {
     transform: translateY(-2px) !important;
 }
 
+/* UXI CTA Card Styles */
+.uxi-cta-container {
+    max-width: 800px;
+    margin: 0 auto 40px auto;
+    padding: 0 15px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.uxi-cta-card {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 30px;
+    border-radius: 24px;
+    border: 1px solid rgba(255,255,255,0.08);
+    background: rgba(255,255,255,0.02);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+    transition: transform 0.3s ease, border-color 0.3s ease;
+    gap: 20px;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+.uxi-cta-card:hover {
+    border-color: rgba(59, 130, 246, 0.2);
+    transform: translateY(-2px);
+}
+
+.uxi-cta-text {
+    flex: 1;
+    text-align: left;
+}
+
+.uxi-cta-text h3 {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 20px;
+    color: #fff;
+    margin-bottom: 8px;
+    letter-spacing: 1px;
+    margin-top: 0;
+}
+
+.uxi-cta-text p {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin: 0;
+    line-height: 1.5;
+}
+
+.uxi-cta-action {
+    display: flex;
+    flex-shrink: 0;
+}
+
+.btn-explore-uxi {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 24px;
+    border-radius: 16px;
+    text-decoration: none;
+    font-weight: 600;
+    font-family: 'Orbitron', sans-serif;
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-gradient) 100%);
+    color: #fff;
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    white-space: nowrap;
+    box-sizing: border-box;
+}
+
+.btn-explore-uxi:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.45);
+}
+
+/* Tablet Viewport (1024px and below) */
+@media (max-width: 1024px) {
+    .uxi-cta-card {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 20px !important;
+    }
+    .uxi-cta-action {
+        align-self: flex-start !important;
+    }
+}
+
 /* Mobile Compact Navigation styles (768px and below) */
 .mobile-compact-nav {
     display: none;
@@ -1972,5 +2065,32 @@ body.fade-out {
 
     .contact-form {
         padding: 20px !important;
+    }
+
+    /* Mobile UXI CTA Card overrides */
+    .uxi-cta-card {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 20px !important;
+        padding: 24px !important;
+        border-radius: 24px !important;
+        overflow: hidden !important;
+    }
+    
+    .uxi-cta-text {
+        width: 100% !important;
+    }
+    
+    .uxi-cta-action {
+        width: 100% !important;
+        align-self: flex-start !important;
+    }
+    
+    .btn-explore-uxi {
+        width: 100% !important;
+        max-width: 220px !important;
+        margin-top: 20px !important;
+        border-radius: 16px !important;
+        align-self: flex-start !important;
     }
 }
