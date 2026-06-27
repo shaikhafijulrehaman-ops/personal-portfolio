@@ -45,7 +45,7 @@
             <li data-module="media"><a href="#media"><i class="fa-solid fa-images"></i> Media Manager</a></li>
             <li data-module="resume"><a href="#resume"><i class="fa-solid fa-file-pdf"></i> Resume Settings</a></li>
             <li data-module="uxi"><a href="#uxi"><i class="fa-solid fa-rocket"></i> UXI Startup</a></li>
-            <li data-module="fab"><a href="#fab"><i class="fa-solid fa-mobile-screen-button"></i> Mobile FAB</a></li>
+            <li data-module="mobilenav"><a href="#mobilenav"><i class="fa-solid fa-compass"></i> Mobile Navigation</a></li>
             <li data-module="settings"><a href="#settings"><i class="fa-solid fa-sliders"></i> Website Settings</a></li>
         </ul>
         <div class="sidebar-footer">
@@ -722,48 +722,61 @@
         <!-- ========================================================
              MODULE: Mobile Floating Action Button (FAB) Settings
              ======================================================== -->
-        <section id="module-fab" class="dashboard-module">
+        <section id="module-mobilenav" class="dashboard-module">
             <div class="admin-card">
-                <h3 style="font-family: 'Orbitron', sans-serif; margin-bottom: 20px;">Mobile FAB Configuration</h3>
-                <form id="fab-settings-form">
+                <h3 style="font-family: 'Orbitron', sans-serif; margin-bottom: 20px;">Mobile Navigation Configuration</h3>
+                <form id="mobilenav-settings-form">
                     <div style="display: flex; flex-direction: column; gap: 30px;">
                         
-                        <!-- Toggle Switch -->
-                        <div class="form-group" style="display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.05); padding: 15px 20px; border-radius: 12px;">
-                            <div>
-                                <label style="font-weight: 600; margin-bottom: 4px; display: block;">Enable Mobile FAB</label>
-                                <span style="font-size: 12px; color: var(--text-muted);">Toggle the Floating Action Button visibility on mobile devices.</span>
+                        <!-- Enable/Disable Config -->
+                        <div class="form-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px;">
+                            <div class="form-group" style="display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.05); padding: 15px 20px; border-radius: 12px;">
+                                <div>
+                                    <label style="font-weight: 600; margin-bottom: 4px; display: block;">Enable Mobile Navigation</label>
+                                    <span style="font-size: 11px; color: var(--text-muted);">Redesign header navbar below 768px.</span>
+                                </div>
+                                <label class="switch">
+                                    <input type="checkbox" id="mobilenav-enabled" checked>
+                                    <span class="slider round"></span>
+                                </label>
                             </div>
-                            <label class="switch">
-                                <input type="checkbox" id="fab-enabled" checked>
-                                <span class="slider round"></span>
-                            </label>
+
+                            <div class="form-group" style="display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.05); padding: 15px 20px; border-radius: 12px;">
+                                <div>
+                                    <label style="font-weight: 600; margin-bottom: 4px; display: block;">Enable Floating Button (FAB)</label>
+                                    <span style="font-size: 11px; color: var(--text-muted);">Render the navigation FAB on mobile.</span>
+                                </div>
+                                <label class="switch">
+                                    <input type="checkbox" id="mobilenav-fab-enabled" checked>
+                                    <span class="slider round"></span>
+                                </label>
+                            </div>
                         </div>
 
                         <div class="form-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
                             <!-- Icon/Image Config -->
                             <div class="form-group">
                                 <label style="font-weight: 600; margin-bottom: 8px; display: block;">FAB Icon Class</label>
-                                <input type="text" id="fab-icon-class" class="form-control" placeholder="fa-solid fa-bars" value="fa-solid fa-bars">
-                                <span style="font-size: 11px; color: var(--text-muted);">FontAwesome icon class (e.g. <code>fa-solid fa-bars</code>). Ignored if custom image is uploaded.</span>
+                                <input type="text" id="mobilenav-icon-class" class="form-control" placeholder="fa-solid fa-compass" value="fa-solid fa-compass">
+                                <span style="font-size: 11px; color: var(--text-muted);">FontAwesome icon class. Ignored if custom image is uploaded.</span>
                             </div>
 
                             <div class="form-group">
                                 <label style="font-weight: 600; margin-bottom: 8px; display: block;">Custom FAB Image</label>
-                                <div class="image-selector-widget" data-target="fab-custom-image">
-                                    <div class="selector-preview-container" id="fab-custom-image-preview"></div>
+                                <div class="image-selector-widget" data-target="mobilenav-custom-image">
+                                    <div class="selector-preview-container" id="mobilenav-custom-image-preview"></div>
                                     <div style="display: flex; flex-direction: column; gap: 8px;">
                                         <div style="display: flex; gap: 8px;">
-                                            <button type="button" class="btn-select" onclick="openMediaPicker('fab-custom-image')"><i class="fa-solid fa-photo-film"></i> Select Image</button>
-                                            <button type="button" class="btn-remove" onclick="removeSelectedImage('fab-custom-image')"><i class="fa-solid fa-trash-can"></i> Remove</button>
+                                            <button type="button" class="btn-select" onclick="openMediaPicker('mobilenav-custom-image')"><i class="fa-solid fa-photo-film"></i> Select Image</button>
+                                            <button type="button" class="btn-remove" onclick="removeSelectedImage('mobilenav-custom-image')"><i class="fa-solid fa-trash-can"></i> Remove</button>
                                         </div>
                                         <div class="direct-upload-box" style="display: flex; align-items: center; gap: 8px; margin-top: 5px;">
-                                            <input type="file" id="upload-fab-custom-image" accept="image/*" style="display: none;" onchange="handleDirectFaviconUpload(this, 'fab-custom-image')">
-                                            <button type="button" class="btn-select" onclick="document.getElementById('upload-fab-custom-image').click()" style="background: rgba(16, 185, 129, 0.2); border-color: rgba(16, 185, 129, 0.4);"><i class="fa-solid fa-upload"></i> Upload Image</button>
-                                            <div class="selector-info" id="fab-custom-image-info">No image selected</div>
+                                            <input type="file" id="upload-mobilenav-custom-image" accept="image/*" style="display: none;" onchange="handleDirectFaviconUpload(this, 'mobilenav-custom-image')">
+                                            <button type="button" class="btn-select" onclick="document.getElementById('upload-mobilenav-custom-image').click()" style="background: rgba(16, 185, 129, 0.2); border-color: rgba(16, 185, 129, 0.4);"><i class="fa-solid fa-upload"></i> Upload Image</button>
+                                            <div class="selector-info" id="mobilenav-custom-image-info">No image selected</div>
                                         </div>
                                     </div>
-                                    <input type="hidden" id="fab-custom-image">
+                                    <input type="hidden" id="mobilenav-custom-image">
                                 </div>
                             </div>
                         </div>
@@ -772,51 +785,50 @@
                             <!-- Style Config -->
                             <div class="form-group">
                                 <label style="font-weight: 600; margin-bottom: 8px; display: block;">Button Size (px)</label>
-                                <input type="number" id="fab-size" class="form-control" min="40" max="100" value="60">
+                                <input type="number" id="mobilenav-size" class="form-control" min="40" max="100" value="60">
                             </div>
 
                             <div class="form-group">
-                                <label style="font-weight: 600; margin-bottom: 8px; display: block;">Border Radius (%)</label>
-                                <input type="number" id="fab-border-radius" class="form-control" min="0" max="50" value="50">
+                                <label style="font-weight: 600; margin-bottom: 8px; display: block;">Position</label>
+                                <select id="mobilenav-position" class="form-control">
+                                    <option value="bottom-right">Bottom Right</option>
+                                    <option value="bottom-left">Bottom Left</option>
+                                </select>
                             </div>
 
                             <div class="form-group">
-                                <label style="font-weight: 600; margin-bottom: 8px; display: block;">Background Color</label>
-                                <div style="display: flex; gap: 10px;">
-                                    <input type="color" id="fab-bg-color-picker" class="form-control" style="width: 50px; height: 42px; padding: 2px;" value="#2563eb" oninput="document.getElementById('fab-bg-color').value = this.value">
-                                    <input type="text" id="fab-bg-color" class="form-control" placeholder="#2563eb" value="#2563eb" oninput="document.getElementById('fab-bg-color-picker').value = this.value">
-                                </div>
+                                <label style="font-weight: 600; margin-bottom: 8px; display: block;">Background Color/Gradient</label>
+                                <input type="text" id="mobilenav-bg-color" class="form-control" placeholder="linear-gradient(135deg, #3b82f6, #1d4ed8)" value="linear-gradient(135deg, #3b82f6, #1d4ed8)">
                             </div>
                         </div>
 
                         <div class="form-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px;">
-                            <div class="form-group" style="display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.02); padding: 10px 15px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);">
-                                <div>
-                                    <label style="font-weight: 600; display: block;">Glow Effect</label>
-                                    <span style="font-size: 11px; color: var(--text-muted);">Enable soft outer glow.</span>
-                                </div>
-                                <label class="switch">
-                                    <input type="checkbox" id="fab-glow" checked>
-                                    <span class="slider round"></span>
-                                </label>
+                            <div class="form-group">
+                                <label style="font-weight: 600; margin-bottom: 8px; display: block;">Border Style</label>
+                                <input type="text" id="mobilenav-border" class="form-control" placeholder="1px solid rgba(255, 255, 255, 0.2)" value="1px solid rgba(255, 255, 255, 0.2)">
+                            </div>
+
+                            <div class="form-group">
+                                <label style="font-weight: 600; margin-bottom: 8px; display: block;">Shadow Style</label>
+                                <input type="text" id="mobilenav-shadow" class="form-control" placeholder="0 8px 32px 0 rgba(31, 38, 135, 0.3)" value="0 8px 32px 0 rgba(31, 38, 135, 0.3)">
                             </div>
 
                             <div class="form-group">
                                 <label style="font-weight: 600; margin-bottom: 8px; display: block;">Animation Type</label>
-                                <select id="fab-animation" class="form-control">
+                                <select id="mobilenav-animation" class="form-control">
                                     <option value="none">None</option>
-                                    <option value="pulse">Pulse (Circular)</option>
+                                    <option value="pulse">Pulse (Circular Glow)</option>
                                 </select>
                             </div>
                         </div>
 
                         <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 20px 0;">
 
-                        <!-- FAB Menu Items Manager -->
+                        <!-- Mobile Nav Menu Items Manager -->
                         <div>
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                                <h4 style="font-family: 'Orbitron', sans-serif;">FAB Menu Items</h4>
-                                <button type="button" class="btn-primary" id="btn-add-fab-item"><i class="fa-solid fa-plus"></i> Add Item</button>
+                                <h4 style="font-family: 'Orbitron', sans-serif;">Mobile Menu Items</h4>
+                                <button type="button" class="btn-primary" id="btn-add-mobilenav-item"><i class="fa-solid fa-plus"></i> Add Item</button>
                             </div>
 
                             <div class="table-responsive">
@@ -825,12 +837,15 @@
                                         <tr>
                                             <th style="width: 40px;"></th>
                                             <th>Label</th>
+                                            <th>Description</th>
                                             <th>Icon Class</th>
                                             <th>URL</th>
+                                            <th>Target Type</th>
+                                            <th>Enabled</th>
                                             <th style="width: 100px;">Actions</th>
                                         </tr>
                                     </thead>
-                                    <tbody id="fab-items-table-body">
+                                    <tbody id="mobilenav-items-table-body">
                                         <!-- Dynamically loaded menu items -->
                                     </tbody>
                                 </table>
@@ -838,7 +853,7 @@
                         </div>
 
                         <div style="display: flex; justify-content: flex-end; margin-top: 20px;">
-                            <button type="submit" class="btn-primary" id="btn-save-fab-settings"><i class="fa-solid fa-save"></i> Save FAB Configuration</button>
+                            <button type="submit" class="btn-primary" id="btn-save-mobilenav-settings"><i class="fa-solid fa-save"></i> Save Mobile Navigation Settings</button>
                         </div>
                     </div>
                 </form>
@@ -1163,31 +1178,46 @@
     </div>
 
     <!-- ========================================================
-         MODAL: Mobile FAB Menu Item Edit/Add
+         MODAL: Mobile Navigation Menu Item Edit/Add
          ======================================================== -->
-    <div class="modal-overlay" id="fab-item-modal">
+    <div class="modal-overlay" id="mobilenav-item-modal">
         <div class="admin-card modal-content" style="max-width: 500px;">
             <div class="modal-header">
-                <h3 id="fab-item-modal-title">Add FAB Menu Item</h3>
-                <button type="button" class="btn-icon" onclick="closeFABItemModal()"><i class="fa-solid fa-xmark"></i></button>
+                <h3 id="mobilenav-item-modal-title">Add Navigation Menu Item</h3>
+                <button type="button" class="btn-icon" onclick="closeMobileNavItemModal()"><i class="fa-solid fa-xmark"></i></button>
             </div>
-            <form id="fab-item-form">
-                <input type="hidden" id="fab-item-id">
+            <form id="mobilenav-item-form">
+                <input type="hidden" id="mobilenav-item-id">
                 <div style="display: flex; flex-direction: column; gap: 20px;">
                     <div class="form-group">
-                        <label for="fab-item-label">Label / Name</label>
-                        <input type="text" id="fab-item-label" required placeholder="e.g. GitHub">
+                        <label for="mobilenav-item-label">Label / Name</label>
+                        <input type="text" id="mobilenav-item-label" required placeholder="e.g. Home">
                     </div>
                     <div class="form-group">
-                        <label for="fab-item-icon">Icon Class (FontAwesome)</label>
-                        <input type="text" id="fab-item-icon" required placeholder="e.g. fa-brands fa-github">
+                        <label for="mobilenav-item-desc">Description</label>
+                        <input type="text" id="mobilenav-item-desc" placeholder="e.g. Return to Hero Section">
                     </div>
                     <div class="form-group">
-                        <label for="fab-item-url">Target URL / Action</label>
-                        <input type="text" id="fab-item-url" required placeholder="e.g. https://github.com/username">
+                        <label for="mobilenav-item-icon">Icon Class (FontAwesome)</label>
+                        <input type="text" id="mobilenav-item-icon" required placeholder="e.g. fa-solid fa-house">
+                    </div>
+                    <div class="form-group">
+                        <label for="mobilenav-item-url">Target URL / Section</label>
+                        <input type="text" id="mobilenav-item-url" required placeholder="e.g. #home">
+                    </div>
+                    <div class="form-group">
+                        <label for="mobilenav-item-target">Target Type</label>
+                        <select id="mobilenav-item-target" class="form-control">
+                            <option value="scroll">Scroll to Section</option>
+                            <option value="link">External Link</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="display: flex; align-items: center; gap: 10px;">
+                        <input type="checkbox" id="mobilenav-item-enabled" checked style="width: auto;">
+                        <label for="mobilenav-item-enabled" style="margin-bottom: 0;">Enabled</label>
                     </div>
                     <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px;">
-                        <button type="button" class="btn-secondary" onclick="closeFABItemModal()">Cancel</button>
+                        <button type="button" class="btn-secondary" onclick="closeMobileNavItemModal()">Cancel</button>
                         <button type="submit" class="btn-primary">Save Item</button>
                     </div>
                 </div>
@@ -1631,7 +1661,7 @@
                     loadMediaGrid();
                     loadUXISettings();
                     loadWebsiteSettings();
-                    loadFABSettings();
+                    loadMobileNavSettings();
                 }
             });
 
@@ -1654,6 +1684,7 @@
                 media: { title: "Media Manager", subtitle: "Manage your portfolio graphics assets. Upload files directly." },
                 resume: { title: "Resume Settings", subtitle: "Upload or replace your resume PDF file for download actions." },
                 uxi: { title: "UXI Startup Settings", subtitle: "Configure General Startup Info, Team Members, and UXI Projects." },
+                mobilenav: { title: "Mobile Navigation Settings", subtitle: "Configure dynamic compact mobile headers and floating nav buttons." },
                 settings: { title: "Website Settings", subtitle: "Configure dynamic favicons for Portfolio, UXI, and Admin Dashboard." }
             };
 
@@ -1958,170 +1989,184 @@
                 }
             }
 
-            // Mobile FAB settings controllers
-            let localFABSettings = {
+            // Mobile Navigation settings controllers
+            let localMobileNavSettings = {
                 is_enabled: true,
+                is_fab_enabled: true,
                 custom_image_url: '',
-                icon_class: 'fa-solid fa-bars',
+                icon_class: 'fa-solid fa-compass',
                 button_size: 60,
                 position: 'bottom-right',
-                bg_color: '#2563eb',
-                border_radius: 50,
-                glow_effect: true,
+                bg_color: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
+                border_style: '1px solid rgba(255, 255, 255, 0.2)',
+                shadow_style: '0 8px 32px 0 rgba(31, 38, 135, 0.3)',
                 animation_type: 'pulse',
                 menu_items: []
             };
 
-            function createFABItemRow(item, index) {
+            function createMobileNavItemRow(item, index) {
                 const tr = document.createElement('tr');
                 tr.setAttribute('data-index', index);
                 tr.innerHTML = `
                     <td><i class="fa-solid fa-grip-vertical drag-handle"></i></td>
                     <td><strong>${item.label}</strong></td>
+                    <td><span style="font-size: 11px; color: var(--text-muted);">${item.description || ''}</span></td>
                     <td><code>${item.icon_class}</code></td>
                     <td><code>${item.url}</code></td>
+                    <td><span class="badge-status badge-published">${item.target_type === 'scroll' ? 'Scroll' : 'Link'}</span></td>
+                    <td>${item.is_enabled ? '<span class="badge-status badge-published">Yes</span>' : '<span class="badge-status badge-draft">No</span>'}</td>
                     <td class="actions-cell">
-                        <button type="button" class="btn-icon" onclick="editFABItem(${index})"><i class="fa-solid fa-pen"></i></button>
-                        <button type="button" class="btn-icon delete" onclick="deleteFABItem(${index})"><i class="fa-solid fa-trash"></i></button>
+                        <button type="button" class="btn-icon" onclick="editMobileNavItem(${index})"><i class="fa-solid fa-pen"></i></button>
+                        <button type="button" class="btn-icon delete" onclick="deleteMobileNavItem(${index})"><i class="fa-solid fa-trash"></i></button>
                     </td>
                 `;
                 return tr;
             }
 
-            function renderFABMenuItems() {
-                const tbody = document.getElementById('fab-items-table-body');
+            function renderMobileNavMenuItems() {
+                const tbody = document.getElementById('mobilenav-items-table-body');
                 tbody.innerHTML = '';
-                (localFABSettings.menu_items || []).forEach((item, index) => {
-                    tbody.appendChild(createFABItemRow(item, index));
+                (localMobileNavSettings.menu_items || []).forEach((item, index) => {
+                    tbody.appendChild(createMobileNavItemRow(item, index));
                 });
             }
 
-            async function loadFABSettings() {
+            async function loadMobileNavSettings() {
                 try {
-                    const data = await fetch('/api/settings/fab').then(res => res.json());
+                    const data = await fetch('/api/settings/mobile-nav').then(res => res.json());
                     if (data) {
-                        localFABSettings = data;
-                        document.getElementById('fab-enabled').checked = !!data.is_enabled;
-                        document.getElementById('fab-icon-class').value = data.icon_class || 'fa-solid fa-bars';
-                        document.getElementById('fab-custom-image').value = data.custom_image_url || '';
-                        updateSelectorPreview('fab-custom-image', data.custom_image_url || '');
+                        localMobileNavSettings = data;
+                        document.getElementById('mobilenav-enabled').checked = !!data.is_enabled;
+                        document.getElementById('mobilenav-fab-enabled').checked = !!data.is_fab_enabled;
+                        document.getElementById('mobilenav-icon-class').value = data.icon_class || 'fa-solid fa-compass';
+                        document.getElementById('mobilenav-custom-image').value = data.custom_image_url || '';
+                        updateSelectorPreview('mobilenav-custom-image', data.custom_image_url || '');
                         
-                        document.getElementById('fab-size').value = data.button_size || 60;
-                        document.getElementById('fab-border-radius').value = data.border_radius !== undefined ? data.border_radius : 50;
-                        document.getElementById('fab-bg-color').value = data.bg_color || '#2563eb';
-                        document.getElementById('fab-bg-color-picker').value = data.bg_color || '#2563eb';
+                        document.getElementById('mobilenav-size').value = data.button_size || 60;
+                        document.getElementById('mobilenav-position').value = data.position || 'bottom-right';
+                        document.getElementById('mobilenav-bg-color').value = data.bg_color || 'linear-gradient(135deg, #3b82f6, #1d4ed8)';
                         
-                        document.getElementById('fab-glow').checked = data.glow_effect !== false;
-                        document.getElementById('fab-animation').value = data.animation_type || 'pulse';
+                        document.getElementById('mobilenav-border').value = data.border_style || '1px solid rgba(255, 255, 255, 0.2)';
+                        document.getElementById('mobilenav-shadow').value = data.shadow_style || '0 8px 32px 0 rgba(31, 38, 135, 0.3)';
+                        document.getElementById('mobilenav-animation').value = data.animation_type || 'pulse';
 
-                        renderFABMenuItems();
+                        renderMobileNavMenuItems();
                     }
                 } catch (e) {
-                    console.error("Failed to load Mobile FAB settings:", e);
+                    console.error("Failed to load Mobile Navigation settings:", e);
                 }
             }
-            window.loadFABSettings = loadFABSettings;
+            window.loadMobileNavSettings = loadMobileNavSettings;
 
             // Modal action functions
-            const fabItemModal = document.getElementById('fab-item-modal');
-            const fabItemForm = document.getElementById('fab-item-form');
+            const mobileNavItemModal = document.getElementById('mobilenav-item-modal');
+            const mobileNavItemForm = document.getElementById('mobilenav-item-form');
 
-            window.openFABItemModal = (index = null) => {
+            window.openMobileNavItemModal = (index = null) => {
                 if (index !== null) {
-                    const item = localFABSettings.menu_items[index];
-                    document.getElementById('fab-item-id').value = index;
-                    document.getElementById('fab-item-label').value = item.label;
-                    document.getElementById('fab-item-icon').value = item.icon_class;
-                    document.getElementById('fab-item-url').value = item.url;
-                    document.getElementById('fab-item-modal-title').textContent = "Edit FAB Menu Item";
+                    const item = localMobileNavSettings.menu_items[index];
+                    document.getElementById('mobilenav-item-id').value = index;
+                    document.getElementById('mobilenav-item-label').value = item.label;
+                    document.getElementById('mobilenav-item-desc').value = item.description || '';
+                    document.getElementById('mobilenav-item-icon').value = item.icon_class;
+                    document.getElementById('mobilenav-item-url').value = item.url;
+                    document.getElementById('mobilenav-item-target').value = item.target_type || 'scroll';
+                    document.getElementById('mobilenav-item-enabled').checked = item.is_enabled !== false;
+                    document.getElementById('mobilenav-item-modal-title').textContent = "Edit Mobile Navigation Item";
                 } else {
-                    document.getElementById('fab-item-id').value = '';
-                    document.getElementById('fab-item-label').value = '';
-                    document.getElementById('fab-item-icon').value = '';
-                    document.getElementById('fab-item-url').value = '';
-                    document.getElementById('fab-item-modal-title').textContent = "Add FAB Menu Item";
+                    document.getElementById('mobilenav-item-id').value = '';
+                    document.getElementById('mobilenav-item-label').value = '';
+                    document.getElementById('mobilenav-item-desc').value = '';
+                    document.getElementById('mobilenav-item-icon').value = '';
+                    document.getElementById('mobilenav-item-url').value = '';
+                    document.getElementById('mobilenav-item-target').value = 'scroll';
+                    document.getElementById('mobilenav-item-enabled').checked = true;
+                    document.getElementById('mobilenav-item-modal-title').textContent = "Add Mobile Navigation Item";
                 }
-                fabItemModal.classList.add('active');
+                mobileNavItemModal.classList.add('active');
             };
 
-            window.closeFABItemModal = () => {
-                fabItemModal.classList.remove('active');
+            window.closeMobileNavItemModal = () => {
+                mobileNavItemModal.classList.remove('active');
             };
 
-            document.getElementById('btn-add-fab-item').addEventListener('click', () => {
-                openFABItemModal();
+            document.getElementById('btn-add-mobilenav-item').addEventListener('click', () => {
+                openMobileNavItemModal();
             });
 
-            fabItemForm.addEventListener('submit', (e) => {
+            mobileNavItemForm.addEventListener('submit', (e) => {
                 e.preventDefault();
-                const index = document.getElementById('fab-item-id').value;
-                const label = document.getElementById('fab-item-label').value.trim();
-                const icon_class = document.getElementById('fab-item-icon').value.trim();
-                const url = document.getElementById('fab-item-url').value.trim();
+                const index = document.getElementById('mobilenav-item-id').value;
+                const label = document.getElementById('mobilenav-item-label').value.trim();
+                const description = document.getElementById('mobilenav-item-desc').value.trim();
+                const icon_class = document.getElementById('mobilenav-item-icon').value.trim();
+                const url = document.getElementById('mobilenav-item-url').value.trim();
+                const target_type = document.getElementById('mobilenav-item-target').value;
+                const is_enabled = document.getElementById('mobilenav-item-enabled').checked;
 
-                const item = { label, icon_class, url };
+                const item = { label, description, icon_class, url, target_type, is_enabled };
 
                 if (index !== '') {
-                    // Edit existing
-                    localFABSettings.menu_items[parseInt(index)] = item;
+                    localMobileNavSettings.menu_items[parseInt(index)] = item;
                 } else {
-                    // Add new
-                    if (!localFABSettings.menu_items) localFABSettings.menu_items = [];
-                    localFABSettings.menu_items.push(item);
+                    if (!localMobileNavSettings.menu_items) localMobileNavSettings.menu_items = [];
+                    localMobileNavSettings.menu_items.push(item);
                 }
 
-                renderFABMenuItems();
-                closeFABItemModal();
-                showToast("FAB menu item updated locally. Save configuration to apply.");
+                renderMobileNavMenuItems();
+                closeMobileNavItemModal();
+                showToast("Navigation item updated locally. Save configuration to apply.");
             });
 
-            window.editFABItem = (index) => {
-                openFABItemModal(index);
+            window.editMobileNavItem = (index) => {
+                openMobileNavItemModal(index);
             };
 
-            window.deleteFABItem = (index) => {
+            window.deleteMobileNavItem = (index) => {
                 ConfirmationModal.show({
-                    title: "Delete FAB Item?",
-                    message: "Are you sure you want to delete this menu item?",
+                    title: "Delete Navigation Item?",
+                    message: "Are you sure you want to delete this navigation item?",
                     confirmText: "Delete",
                     cancelText: "Cancel",
                     onConfirm: () => {
-                        localFABSettings.menu_items.splice(index, 1);
-                        renderFABMenuItems();
-                        showToast("FAB menu item deleted locally. Save configuration to apply.");
+                        localMobileNavSettings.menu_items.splice(index, 1);
+                        renderMobileNavMenuItems();
+                        showToast("Navigation item deleted locally. Save configuration to apply.");
                     }
                 });
             };
 
-            document.getElementById('fab-settings-form').addEventListener('submit', async (e) => {
+            document.getElementById('mobilenav-settings-form').addEventListener('submit', async (e) => {
                 e.preventDefault();
-                const submitBtn = document.getElementById('btn-save-fab-settings');
+                const submitBtn = document.getElementById('btn-save-mobilenav-settings');
                 const originalBtnText = submitBtn.innerHTML;
                 submitBtn.disabled = true;
                 submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
 
                 // Sync form inputs to local settings object
-                localFABSettings.is_enabled = document.getElementById('fab-enabled').checked;
-                localFABSettings.icon_class = document.getElementById('fab-icon-class').value.trim();
-                localFABSettings.custom_image_url = document.getElementById('fab-custom-image').value;
-                localFABSettings.button_size = parseInt(document.getElementById('fab-size').value) || 60;
-                localFABSettings.border_radius = parseInt(document.getElementById('fab-border-radius').value) || 50;
-                localFABSettings.bg_color = document.getElementById('fab-bg-color').value.trim();
-                localFABSettings.glow_effect = document.getElementById('fab-glow').checked;
-                localFABSettings.animation_type = document.getElementById('fab-animation').value;
+                localMobileNavSettings.is_enabled = document.getElementById('mobilenav-enabled').checked;
+                localMobileNavSettings.is_fab_enabled = document.getElementById('mobilenav-fab-enabled').checked;
+                localMobileNavSettings.icon_class = document.getElementById('mobilenav-icon-class').value.trim();
+                localMobileNavSettings.custom_image_url = document.getElementById('mobilenav-custom-image').value;
+                localMobileNavSettings.button_size = parseInt(document.getElementById('mobilenav-size').value) || 60;
+                localMobileNavSettings.position = document.getElementById('mobilenav-position').value;
+                localMobileNavSettings.bg_color = document.getElementById('mobilenav-bg-color').value.trim();
+                localMobileNavSettings.border_style = document.getElementById('mobilenav-border').value.trim();
+                localMobileNavSettings.shadow_style = document.getElementById('mobilenav-shadow').value.trim();
+                localMobileNavSettings.animation_type = document.getElementById('mobilenav-animation').value;
 
                 try {
-                    const res = await fetch('/api/settings/fab', {
+                    const res = await fetch('/api/settings/mobile-nav', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
                             'Authorization': `Bearer ${token}`
                         },
-                        body: JSON.stringify(localFABSettings)
+                        body: JSON.stringify(localMobileNavSettings)
                     });
 
-                    if (!res.ok) throw new Error("Failed to save FAB configuration.");
-                    showToast("Mobile FAB Configuration saved successfully!");
+                    if (!res.ok) throw new Error("Failed to save Mobile Navigation settings.");
+                    showToast("Mobile Navigation settings saved successfully!");
                 } catch (err) {
                     showToast(err.message, "error");
                 } finally {
@@ -2130,20 +2175,20 @@
                 }
             });
 
-            // Initialize Sortable on FAB items table
-            const fabItemsTable = document.getElementById('fab-items-table-body');
-            Sortable.create(fabItemsTable, {
+            // Initialize Sortable on Mobile Navigation items table
+            const mobilenavItemsTable = document.getElementById('mobilenav-items-table-body');
+            Sortable.create(mobilenavItemsTable, {
                 handle: '.drag-handle',
                 animation: 150,
                 onEnd: () => {
-                    const rows = fabItemsTable.querySelectorAll('tr');
+                    const rows = mobilenavItemsTable.querySelectorAll('tr');
                     const newItems = [];
                     rows.forEach(row => {
                         const oldIdx = parseInt(row.getAttribute('data-index'));
-                        newItems.push(localFABSettings.menu_items[oldIdx]);
+                        newItems.push(localMobileNavSettings.menu_items[oldIdx]);
                     });
-                    localFABSettings.menu_items = newItems;
-                    renderFABMenuItems();
+                    localMobileNavSettings.menu_items = newItems;
+                    renderMobileNavMenuItems();
                 }
             });
 

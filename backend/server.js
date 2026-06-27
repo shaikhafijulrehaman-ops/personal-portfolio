@@ -274,6 +274,30 @@ const MobileFABSettingsSchema = new mongoose.Schema({
 });
 const MobileFABSettings = mongoose.model('MobileFABSettings', MobileFABSettingsSchema);
 
+const MobileNavigationItemSchema = new mongoose.Schema({
+    label: { type: String, required: true },
+    description: { type: String, default: '' },
+    icon_class: { type: String, required: true },
+    url: { type: String, required: true },
+    target_type: { type: String, default: 'scroll' }, // scroll or link
+    is_enabled: { type: Boolean, default: true }
+});
+
+const MobileNavigationSettingsSchema = new mongoose.Schema({
+    is_enabled: { type: Boolean, default: true },
+    is_fab_enabled: { type: Boolean, default: true },
+    custom_image_url: { type: String, default: '' },
+    icon_class: { type: String, default: 'fa-solid fa-compass' },
+    button_size: { type: Number, default: 60 },
+    position: { type: String, default: 'bottom-right' }, // bottom-right or bottom-left
+    bg_color: { type: String, default: 'linear-gradient(135deg, #3b82f6, #1d4ed8)' },
+    border_style: { type: String, default: '1px solid rgba(255, 255, 255, 0.2)' },
+    shadow_style: { type: String, default: '0 8px 32px 0 rgba(31, 38, 135, 0.3)' },
+    animation_type: { type: String, default: 'pulse' },
+    menu_items: { type: [MobileNavigationItemSchema], default: [] }
+});
+const MobileNavigationSettings = mongoose.model('MobileNavigationSettings', MobileNavigationSettingsSchema);
+
 // ==========================================
 // Authentication Middleware
 // ==========================================
@@ -752,6 +776,122 @@ app.post('/api/settings/fab', authenticateToken, async (req, res) => {
     }
 
     res.json(fab);
+});
+
+// Mobile Navigation Settings Section
+app.get('/api/settings/mobile-nav', async (req, res) => {
+    let navData = null;
+    if (supabase) {
+        try {
+            const { data, error } = await supabase
+                .from('mobile_navigation_settings')
+                .select('*')
+                .limit(1)
+                .maybeSingle();
+            if (!error && data) {
+                navData = {
+                    _id: data.id,
+                    is_enabled: data.is_enabled,
+                    is_fab_enabled: data.is_fab_enabled,
+                    custom_image_url: data.custom_image_url || '',
+                    icon_class: data.icon_class || 'fa-solid fa-compass',
+                    button_size: data.button_size !== undefined ? data.button_size : 60,
+                    position: data.position || 'bottom-right',
+                    bg_color: data.bg_color || 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
+                    border_style: data.border_style || '1px solid rgba(255, 255, 255, 0.2)',
+                    shadow_style: data.shadow_style || '0 8px 32px 0 rgba(31, 38, 135, 0.3)',
+                    animation_type: data.animation_type || 'pulse',
+                    menu_items: typeof data.menu_items === 'string' ? JSON.parse(data.menu_items) : (data.menu_items || [])
+                };
+            }
+        } catch (e) {
+            console.error("Failed to load Mobile Navigation settings from Supabase:", e.message);
+        }
+    }
+
+    if (!navData) {
+        // Fallback to MongoDB
+        let nav = await MobileNavigationSettings.findOne();
+        if (!nav) {
+            nav = new MobileNavigationSettings({
+                is_enabled: true,
+                is_fab_enabled: true,
+                custom_image_url: '',
+                icon_class: 'fa-solid fa-compass',
+                button_size: 60,
+                position: 'bottom-right',
+                bg_color: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
+                border_style: '1px solid rgba(255, 255, 255, 0.2)',
+                shadow_style: '0 8px 32px 0 rgba(31, 38, 135, 0.3)',
+                animation_type: 'pulse',
+                menu_items: [
+                    { label: "Home", description: "Return to Hero Section", icon_class: "fa-solid fa-house", url: "#home", target_type: "scroll", is_enabled: true },
+                    { label: "About", description: "Learn more about me", icon_class: "fa-solid fa-user", url: "#about", target_type: "scroll", is_enabled: true },
+                    { label: "Skills", description: "Technologies I use", icon_class: "fa-solid fa-list-check", url: "#skills", target_type: "scroll", is_enabled: true },
+                    { label: "Projects", description: "View completed projects", icon_class: "fa-solid fa-briefcase", url: "#projects", target_type: "scroll", is_enabled: true },
+                    { label: "Timeline", description: "Journey & Experience", icon_class: "fa-solid fa-timeline", url: "#experience", target_type: "scroll", is_enabled: true },
+                    { label: "Certifications", description: "Professional certifications", icon_class: "fa-solid fa-award", url: "#certifications", target_type: "scroll", is_enabled: true },
+                    { label: "GitHub", description: "Open GitHub Profile", icon_class: "fa-brands fa-github", url: "https://github.com/shaikhafijulrehaman-ops", target_type: "link", is_enabled: true },
+                    { label: "Contact", description: "Get in touch", icon_class: "fa-solid fa-envelope", url: "#contact", target_type: "scroll", is_enabled: true }
+                ]
+            });
+            await nav.save();
+        }
+        navData = nav;
+    }
+    res.json(navData);
+});
+
+app.post('/api/settings/mobile-nav', authenticateToken, async (req, res) => {
+    const {
+        is_enabled, is_fab_enabled, custom_image_url, icon_class, button_size,
+        position, bg_color, border_style, shadow_style, animation_type,
+        menu_items
+    } = req.body;
+
+    let nav = await MobileNavigationSettings.findOne();
+    if (!nav) nav = new MobileNavigationSettings();
+
+    nav.is_enabled = is_enabled !== undefined ? !!is_enabled : true;
+    nav.is_fab_enabled = is_fab_enabled !== undefined ? !!is_fab_enabled : true;
+    nav.custom_image_url = custom_image_url || '';
+    nav.icon_class = icon_class || 'fa-solid fa-compass';
+    nav.button_size = button_size !== undefined ? Number(button_size) : 60;
+    nav.position = position || 'bottom-right';
+    nav.bg_color = bg_color || 'linear-gradient(135deg, #3b82f6, #1d4ed8)';
+    nav.border_style = border_style || '1px solid rgba(255, 255, 255, 0.2)';
+    nav.shadow_style = shadow_style || '0 8px 32px 0 rgba(31, 38, 135, 0.3)';
+    nav.animation_type = animation_type || 'pulse';
+    nav.menu_items = menu_items || [];
+    await nav.save();
+
+    if (supabase) {
+        try {
+            const { data: existing } = await supabase.from('mobile_navigation_settings').select('id').limit(1);
+            const record = {
+                is_enabled: is_enabled !== undefined ? !!is_enabled : true,
+                is_fab_enabled: is_fab_enabled !== undefined ? !!is_fab_enabled : true,
+                custom_image_url: custom_image_url || '',
+                icon_class: icon_class || 'fa-solid fa-compass',
+                button_size: button_size !== undefined ? Number(button_size) : 60,
+                position: position || 'bottom-right',
+                bg_color: bg_color || 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
+                border_style: border_style || '1px solid rgba(255, 255, 255, 0.2)',
+                shadow_style: shadow_style || '0 8px 32px 0 rgba(31, 38, 135, 0.3)',
+                animation_type: animation_type || 'pulse',
+                menu_items: menu_items || []
+            };
+            if (existing && existing.length > 0) {
+                record.id = existing[0].id;
+            }
+            const { error } = await supabase.from('mobile_navigation_settings').upsert(record);
+            if (error) console.error("Supabase upsert mobile_navigation_settings error:", error);
+        } catch (e) {
+            console.error("Failed to sync Mobile Navigation settings to Supabase:", e.message);
+        }
+    }
+
+    res.json(nav);
 });
 
 app.post('/api/settings/upload', authenticateToken, upload.single('file'), async (req, res) => {
