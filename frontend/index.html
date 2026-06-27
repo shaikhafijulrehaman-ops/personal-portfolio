@@ -762,6 +762,57 @@
                     
                     window.allProjectsList = allProjects;
 
+                    function initMobileProjectCarousel() {
+                        if (window.innerWidth > 768) return;
+
+                        const grids = [
+                            document.getElementById('completed-projects-grid'),
+                            document.getElementById('upcoming-projects-grid')
+                        ];
+
+                        // Clear any existing active scrolling loops to avoid duplicates on re-render
+                        if (window.activeMobileCarouselLoops) {
+                            window.activeMobileCarouselLoops.forEach(cancelAnimationFrame);
+                        }
+                        window.activeMobileCarouselLoops = [];
+
+                        grids.forEach((grid) => {
+                            if (!grid) return;
+
+                            let isPaused = false;
+                            
+                            // Remove existing listeners to prevent duplicates
+                            const pause = () => { isPaused = true; };
+                            const resume = () => { isPaused = false; };
+
+                            grid.removeEventListener('mouseenter', pause);
+                            grid.removeEventListener('mouseleave', resume);
+                            grid.removeEventListener('touchstart', pause);
+                            grid.removeEventListener('touchend', resume);
+
+                            grid.addEventListener('mouseenter', pause);
+                            grid.addEventListener('mouseleave', resume);
+                            grid.addEventListener('touchstart', pause);
+                            grid.addEventListener('touchend', resume);
+
+                            function autoScroll() {
+                                if (!isPaused && grid.scrollWidth > grid.clientWidth) {
+                                    grid.scrollLeft += 0.8; // Smooth 60fps scrolling
+                                    if (grid.scrollLeft >= grid.scrollWidth - grid.clientWidth - 1) {
+                                        grid.scrollLeft = 0;
+                                    }
+                                }
+                                const loopId = requestAnimationFrame(autoScroll);
+                                window.activeMobileCarouselLoops.push(loopId);
+                            }
+                            
+                            // Run scroll loop
+                            const loopId = requestAnimationFrame(autoScroll);
+                            window.activeMobileCarouselLoops.push(loopId);
+                        });
+                    }
+                    window.initMobileProjectCarousel = initMobileProjectCarousel;
+
                     window.renderProjects = (filter = 'all') => {
                         const completedGrid = document.getElementById('completed-projects-grid');
                         const upcomingGrid = document.getElementById('upcoming-projects-grid');
@@ -890,6 +941,8 @@
                             "max-glare": 0.15,
                             scale: 1.02
                         });
+                        
+                        initMobileProjectCarousel();
                     };
 
                     window.filterProjects = (filterType, buttonEl) => {

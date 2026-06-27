@@ -117,15 +117,15 @@
                 width: 100%;
                 height: 100%;
                 background: rgba(15, 23, 42, 0.45);
-                backdrop-filter: blur(15px);
-                -webkit-backdrop-filter: blur(15px);
+                backdrop-filter: blur(20px);
+                -webkit-backdrop-filter: blur(20px);
                 z-index: 10000;
                 display: flex;
                 align-items: center;
                 justify-content: center;
                 opacity: 0;
                 visibility: hidden;
-                transition: all 0.35s ease-in-out;
+                transition: opacity 0.4s ease-in-out, visibility 0.4s ease-in-out;
             }
 
             .mobile-nav-overlay.active {
@@ -135,55 +135,63 @@
 
             /* Menu Card styling */
             .mobile-nav-menu-card {
-                background: rgba(255, 255, 255, 0.95);
-                border-radius: 24px;
-                border: 1px solid rgba(255, 255, 255, 0.2);
-                box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12);
-                padding: 20px;
+                background: transparent !important;
+                border: none !important;
+                box-shadow: none !important;
+                padding: 0 !important;
                 display: flex;
                 flex-direction: column;
-                gap: 14px;
+                gap: 16px;
                 width: 90%;
-                max-width: 330px;
-                max-height: 80vh;
+                max-width: 320px;
+                max-height: 85vh;
                 overflow-y: auto;
-                transform: scale(0.8) translateY(20px);
-                transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
                 box-sizing: border-box;
             }
 
-            .mobile-nav-overlay.active .mobile-nav-menu-card {
-                transform: scale(1) translateY(0);
-            }
-
-            /* Menu items stack */
+            /* Menu items stack with slide & fade entry */
             .mobile-nav-menu-item {
                 display: flex;
                 align-items: center;
                 gap: 14px;
                 text-decoration: none;
-                padding: 10px;
-                border-radius: 16px;
-                transition: all 0.3s ease;
+                padding: 14px 18px;
+                border-radius: 20px;
+                background: rgba(255, 255, 255, 0.12); /* iOS Glass effect */
+                border: 1px solid rgba(255, 255, 255, 0.15);
+                backdrop-filter: blur(10px);
+                -webkit-backdrop-filter: blur(10px);
+                box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
+                transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
                 box-sizing: border-box;
+                opacity: 0;
+                transform: translateY(24px);
             }
 
-            .mobile-nav-menu-item:active {
-                background: rgba(37, 99, 235, 0.08); /* Blue hover */
+            .mobile-nav-overlay.active .mobile-nav-menu-item {
+                opacity: 1;
+                transform: translateY(0);
+            }
+
+            .mobile-nav-menu-item:active,
+            .mobile-nav-menu-item:hover {
+                background: rgba(255, 255, 255, 0.22) !important;
+                border-color: rgba(255, 255, 255, 0.35) !important;
+                transform: translateY(-2px) scale(1.02) !important;
             }
 
             .mobile-nav-item-icon-container {
-                width: 42px;
-                height: 42px;
+                width: 40px;
+                height: 40px;
                 border-radius: 50%;
-                background: #2563eb;
+                background: rgba(255, 255, 255, 0.2);
                 color: #ffffff;
+                border: 1px solid rgba(255, 255, 255, 0.2);
                 display: flex;
                 align-items: center;
                 justify-content: center;
                 font-size: 16px;
                 flex-shrink: 0;
-                box-shadow: 0 4px 10px rgba(37, 99, 235, 0.2);
             }
 
             .mobile-nav-item-text {
@@ -195,12 +203,12 @@
             .mobile-nav-item-title {
                 font-size: 15px;
                 font-weight: 600;
-                color: #0f172a;
+                color: #ffffff;
             }
 
             .mobile-nav-item-desc {
                 font-size: 11px;
-                color: #64748b;
+                color: rgba(255, 255, 255, 0.7);
                 margin-top: 2px;
             }
         `;
@@ -225,10 +233,11 @@
 
         // Add each enabled navigation item
         const activeItems = (navSettings.menu_items || []).filter(item => item.is_enabled);
-        activeItems.forEach(item => {
+        activeItems.forEach((item, index) => {
             const a = document.createElement('a');
             a.className = 'mobile-nav-menu-item';
             a.href = item.url;
+            a.style.transitionDelay = `${index * 0.04}s`; // iOS Staggered animations
             
             if (item.target_type === 'link') {
                 a.target = '_blank';
