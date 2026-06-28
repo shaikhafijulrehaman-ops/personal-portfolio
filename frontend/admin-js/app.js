@@ -133,12 +133,12 @@ if (!token) {
 
     // Load initial tab instantly
     const initialTab = handleHashRoute();
-    triggerLazyLoad(initialTab);
+    triggerLazyLoad(initialTab, true);
 
     // Browser navigation Back/Forward hash change sync
     window.addEventListener('hashchange', () => {
         const activeTab = handleHashRoute();
-        triggerLazyLoad(activeTab);
+        triggerLazyLoad(activeTab, activeTab === 'dashboard');
     });
 
     // Sidebar navigation click switcher

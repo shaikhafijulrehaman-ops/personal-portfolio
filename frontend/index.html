@@ -919,7 +919,7 @@
 
                                 card.innerHTML = `
                                     <div class="project-image">
-                                        <img src="${p.image_url || 'images/Pro1.png'}" alt="${p.name}">
+                                        <img src="${p.image_url || 'images/Pro1.png'}" alt="${p.name}" onerror="this.onerror=null; this.src='images/Pro1.png';">
                                         ${featuredBadge}
                                     </div>
                                     <div class="project-content">
@@ -979,7 +979,7 @@
 
                                 card.innerHTML = `
                                     <div class="upcoming-image" style="position: relative; overflow: hidden; border-radius: 8px; height: 200px;">
-                                        <img src="${p.image_url || 'images/cert_placeholder.png'}" alt="${p.name}" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.65; transition: transform 0.5s ease;">
+                                        <img src="${p.image_url || 'images/cert_placeholder.png'}" alt="${p.name}" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.65; transition: transform 0.5s ease;" onerror="this.onerror=null; this.src='images/cert_placeholder.png';">
                                         <div class="upcoming-badges-container" style="position: absolute; top: 15px; left: 15px; display: flex; gap: 8px; flex-wrap: wrap;">
                                             ${comingSoonBadge}
                                             ${stageBadge}
@@ -1071,7 +1071,7 @@
                             card.className = 'cert-card glass-card';
                             card.innerHTML = `
                                 <div class="cert-img">
-                                    <img src="${c.image_url || 'images/cert_placeholder.png'}" alt="${c.title}">
+                                    <img src="${c.image_url || 'images/cert_placeholder.png'}" alt="${c.title}" onerror="this.onerror=null; this.src='images/cert_placeholder.png';">
                                 </div>
                                 <h3>${c.title}</h3>
                                 <div class="cert-org">${c.organization}</div>

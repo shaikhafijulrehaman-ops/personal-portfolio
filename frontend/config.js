@@ -9,12 +9,19 @@ const originalFetch = window.fetch;
 window.fetch = async function (resource, options) {
   let url = resource;
   if (typeof url === 'string') {
-    if (url.startsWith('/api/') || url.startsWith('/uploads/')) {
+    if (url.startsWith('/api/') || url.startsWith('/uploads/') || url.startsWith('uploads/')) {
+      if (url.startsWith('uploads/')) {
+        url = '/' + url;
+      }
       url = API_BASE_URL + url;
     }
   } else if (url instanceof URL) {
-    if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/uploads/')) {
-      url.href = API_BASE_URL + url.pathname + url.search;
+    if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/uploads/') || url.pathname.startsWith('uploads/')) {
+      let path = url.pathname;
+      if (path.startsWith('uploads/')) {
+        path = '/' + path;
+      }
+      url.href = API_BASE_URL + path + url.search;
     }
   }
 
@@ -34,8 +41,9 @@ window.fetch = async function (resource, options) {
 function transformUploadPaths(obj) {
   if (!obj) return obj;
   if (typeof obj === 'string') {
-    if (obj.startsWith('/uploads/')) {
-      return API_BASE_URL + obj;
+    if (obj.startsWith('/uploads/') || obj.startsWith('uploads/')) {
+      const path = obj.startsWith('uploads/') ? '/' + obj : obj;
+      return API_BASE_URL + path;
     }
     return obj;
   }

@@ -697,6 +697,15 @@ app.get('/api/skills', async (req, res) => {
     const skills = await Skill.find().sort('display_order');
     res.json(skills);
 });
+app.get('/api/skills/:id', async (req, res) => {
+    try {
+        const skill = await Skill.findById(req.params.id);
+        if (!skill) return res.status(404).json({ error: 'Skill not found' });
+        res.json(skill);
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
 app.post('/api/skills', authenticateToken, async (req, res) => {
     const { name, category, icon_class, color, is_visible } = req.body;
     const order = await Skill.countDocuments();
@@ -732,6 +741,15 @@ app.delete('/api/skills/:id', authenticateToken, async (req, res) => {
 app.get('/api/projects', async (req, res) => {
     const projects = await Project.find().sort('display_order');
     res.json(projects);
+});
+app.get('/api/projects/:id', async (req, res) => {
+    try {
+        const proj = await Project.findById(req.params.id);
+        if (!proj) return res.status(404).json({ error: 'Project not found' });
+        res.json(proj);
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
 });
 app.post('/api/projects', authenticateToken, async (req, res) => {
     const { name, short_desc, long_desc, technologies, category, github_link, live_link, image_url, is_featured, status, completion_date, dev_stage, expected_release, coming_soon, progress_percent, expected_features } = req.body;
@@ -774,6 +792,15 @@ app.get('/api/timeline', async (req, res) => {
     const timeline = await Timeline.find().sort('display_order');
     res.json(timeline);
 });
+app.get('/api/timeline/:id', async (req, res) => {
+    try {
+        const item = await Timeline.findById(req.params.id);
+        if (!item) return res.status(404).json({ error: 'Timeline entry not found' });
+        res.json(item);
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
 app.post('/api/timeline', authenticateToken, async (req, res) => {
     const { title, company, description, start_date, end_date, badge, logo_url } = req.body;
     const order = await Timeline.countDocuments();
@@ -810,6 +837,15 @@ app.put('/api/timeline/reorder', authenticateToken, async (req, res) => {
 app.get('/api/certificates', async (req, res) => {
     const certs = await Certificate.find().sort('display_order');
     res.json(certs);
+});
+app.get('/api/certificates/:id', async (req, res) => {
+    try {
+        const cert = await Certificate.findById(req.params.id);
+        if (!cert) return res.status(404).json({ error: 'Certificate not found' });
+        res.json(cert);
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
 });
 app.post('/api/certificates', authenticateToken, async (req, res) => {
     const { title, organization, issue_date, credential_link, image_url, is_visible } = req.body;
@@ -1134,6 +1170,99 @@ app.post('/api/settings/mobile-nav', authenticateToken, async (req, res) => {
     }
 
     res.json(nav);
+});
+
+// Mobile FAB/Navigation menu items CRUD
+app.get('/api/mobilenav/fab', async (req, res) => {
+    try {
+        let nav = await MobileNavigationSettings.findOne();
+        if (!nav) {
+            nav = new MobileNavigationSettings();
+            await nav.save();
+        }
+        res.json(nav.menu_items || []);
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+app.get('/api/mobilenav/fab/:id', async (req, res) => {
+    try {
+        let nav = await MobileNavigationSettings.findOne();
+        if (!nav) return res.status(404).json({ error: 'Navigation settings not found' });
+        const item = nav.menu_items.id(req.params.id);
+        if (!item) return res.status(404).json({ error: 'Navigation item not found' });
+        res.json(item);
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+app.post('/api/mobilenav/fab', authenticateToken, async (req, res) => {
+    try {
+        const { label, description, icon_class, url, target_type, is_active } = req.body;
+        let nav = await MobileNavigationSettings.findOne();
+        if (!nav) nav = new MobileNavigationSettings();
+        const newItem = { label, description, icon_class, url, target_type, is_active: is_active !== undefined ? !!is_active : true };
+        nav.menu_items.push(newItem);
+        await nav.save();
+        res.json(nav.menu_items[nav.menu_items.length - 1]);
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+app.put('/api/mobilenav/fab/:id', authenticateToken, async (req, res) => {
+    try {
+        const { label, description, icon_class, url, target_type, is_active } = req.body;
+        let nav = await MobileNavigationSettings.findOne();
+        if (!nav) return res.status(404).json({ error: 'Navigation settings not found' });
+        const item = nav.menu_items.id(req.params.id);
+        if (!item) return res.status(404).json({ error: 'Navigation item not found' });
+        
+        item.label = label || item.label;
+        item.description = description !== undefined ? description : item.description;
+        item.icon_class = icon_class || item.icon_class;
+        item.url = url || item.url;
+        item.target_type = target_type || item.target_type;
+        item.is_active = is_active !== undefined ? !!is_active : item.is_active;
+        
+        await nav.save();
+        res.json(item);
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+app.delete('/api/mobilenav/fab/:id', authenticateToken, async (req, res) => {
+    try {
+        let nav = await MobileNavigationSettings.findOne();
+        if (!nav) return res.status(404).json({ error: 'Navigation settings not found' });
+        nav.menu_items.pull(req.params.id);
+        await nav.save();
+        res.json({ success: true });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+app.put('/api/mobilenav/fab/reorder', authenticateToken, async (req, res) => {
+    try {
+        const { orders } = req.body;
+        let nav = await MobileNavigationSettings.findOne();
+        if (!nav) return res.status(404).json({ error: 'Navigation settings not found' });
+        
+        const reordered = [];
+        orders.forEach(id => {
+            const item = nav.menu_items.id(id);
+            if (item) reordered.push(item);
+        });
+        nav.menu_items = reordered;
+        await nav.save();
+        res.json({ success: true });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
 });
 
 app.post('/api/settings/upload', authenticateToken, upload.single('file'), async (req, res) => {
@@ -1913,6 +2042,42 @@ app.put('/api/uxi/team/reorder', authenticateToken, async (req, res) => {
     }
 });
 
+app.get('/api/uxi/team/:id', async (req, res) => {
+    try {
+        if (supabase) {
+            const { data, error } = await supabase
+                .from('uxi_team')
+                .select('*')
+                .eq('id', req.params.id)
+                .single();
+            if (!error && data) {
+                return res.json({
+                    _id: data.id,
+                    id: data.id,
+                    name: data.name,
+                    role: data.role,
+                    bio: data.description,
+                    responsibilities: data.responsibilities,
+                    skills: data.skills || [],
+                    linkedin_link: data.linkedin,
+                    github_link: data.github,
+                    photo_url: data.photo_url,
+                    display_order: data.display_order
+                });
+            }
+        }
+    } catch (e) {
+        console.warn("Falling back to MongoDB for /api/uxi/team/:id due to:", e.message);
+    }
+    try {
+        const member = await UXITeam.findById(req.params.id);
+        if (!member) return res.status(404).json({ error: 'Team member not found' });
+        res.json(member);
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
 app.put('/api/uxi/team/:id', authenticateToken, async (req, res) => {
     const { name, role, bio, responsibilities, skills, linkedin_link, github_link, photo_url } = req.body;
     const { id } = req.params;
@@ -2109,6 +2274,47 @@ app.put('/api/uxi/projects/reorder', authenticateToken, async (req, res) => {
         );
         await Promise.all(promises);
         res.json({ success: true });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+app.get('/api/uxi/projects/:id', async (req, res) => {
+    try {
+        if (supabase) {
+            const { data, error } = await supabase
+                .from('uxi_projects')
+                .select('*')
+                .eq('id', req.params.id)
+                .single();
+            if (!error && data) {
+                return res.json({
+                    _id: data.id,
+                    id: data.id,
+                    name: data.name,
+                    status: data.status,
+                    description: data.description,
+                    technologies: data.technologies || [],
+                    image_url: data.image_url,
+                    github_link: data.github_link,
+                    live_link: data.live_link,
+                    completion_date: data.completion_date,
+                    dev_stage: data.dev_stage,
+                    expected_release: data.expected_release,
+                    progress_percent: data.progress_percent,
+                    coming_soon: data.coming_soon,
+                    expected_features: data.expected_features || [],
+                    display_order: data.display_order
+                });
+            }
+        }
+    } catch (e) {
+        console.warn("Falling back to MongoDB for /api/uxi/projects/:id due to:", e.message);
+    }
+    try {
+        const proj = await UXIProject.findById(req.params.id);
+        if (!proj) return res.status(404).json({ error: 'UXI project not found' });
+        res.json(proj);
     } catch (e) {
         res.status(500).json({ error: e.message });
     }

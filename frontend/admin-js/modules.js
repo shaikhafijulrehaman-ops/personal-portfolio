@@ -39,6 +39,16 @@ export function confirmAction(title, message, onConfirm) {
 }
 window.confirmAction = confirmAction;
 
+export function toggleBodyScrollLock() {
+    const activeOverlays = document.querySelectorAll('.modal-overlay.active');
+    if (activeOverlays.length > 0) {
+        document.body.classList.add('modal-open');
+    } else {
+        document.body.classList.remove('modal-open');
+    }
+}
+window.toggleBodyScrollLock = toggleBodyScrollLock;
+
 // ==========================================
 // Selector Widget Preview Utilities
 // ==========================================
@@ -91,9 +101,11 @@ window.openSkillModal = () => {
     document.getElementById('skill-id').value = "";
     document.getElementById('skill-form').reset();
     document.getElementById('skill-modal').classList.add('active');
+    toggleBodyScrollLock();
 };
 window.closeSkillModal = () => {
     document.getElementById('skill-modal').classList.remove('active');
+    toggleBodyScrollLock();
 };
 
 window.openProjectModal = () => {
@@ -102,9 +114,11 @@ window.openProjectModal = () => {
     document.getElementById('project-form').reset();
     updateSelectorPreview('project-image', '');
     document.getElementById('project-modal').classList.add('active');
+    toggleBodyScrollLock();
 };
 window.closeProjectModal = () => {
     document.getElementById('project-modal').classList.remove('active');
+    toggleBodyScrollLock();
 };
 
 window.openTimelineModal = () => {
@@ -113,9 +127,11 @@ window.openTimelineModal = () => {
     document.getElementById('timeline-form').reset();
     updateSelectorPreview('timeline-logo', '');
     document.getElementById('timeline-modal').classList.add('active');
+    toggleBodyScrollLock();
 };
 window.closeTimelineModal = () => {
     document.getElementById('timeline-modal').classList.remove('active');
+    toggleBodyScrollLock();
 };
 
 window.openCertModal = () => {
@@ -124,9 +140,11 @@ window.openCertModal = () => {
     document.getElementById('cert-form').reset();
     updateSelectorPreview('cert-image', '');
     document.getElementById('cert-modal').classList.add('active');
+    toggleBodyScrollLock();
 };
 window.closeCertModal = () => {
     document.getElementById('cert-modal').classList.remove('active');
+    toggleBodyScrollLock();
 };
 
 window.openUXITeamModal = () => {
@@ -135,9 +153,11 @@ window.openUXITeamModal = () => {
     document.getElementById('uxi-team-form').reset();
     updateSelectorPreview('uxi-team-photo', '');
     document.getElementById('uxi-team-modal').classList.add('active');
+    toggleBodyScrollLock();
 };
 window.closeUXITeamModal = () => {
     document.getElementById('uxi-team-modal').classList.remove('active');
+    toggleBodyScrollLock();
 };
 
 window.openUXIProjectModal = () => {
@@ -146,9 +166,11 @@ window.openUXIProjectModal = () => {
     document.getElementById('uxi-project-form').reset();
     updateSelectorPreview('uxi-project-image', '');
     document.getElementById('uxi-project-modal').classList.add('active');
+    toggleBodyScrollLock();
 };
 window.closeUXIProjectModal = () => {
     document.getElementById('uxi-project-modal').classList.remove('active');
+    toggleBodyScrollLock();
 };
 
 // ==========================================
@@ -168,6 +190,7 @@ window.editSkill = async (id) => {
             document.getElementById('skill-color').value = skill.color || '#3b82f6';
             document.getElementById('skill-visible').checked = !!skill.is_visible;
             document.getElementById('skill-modal').classList.add('active');
+            toggleBodyScrollLock();
         }
     } catch (e) {
         showToast("Failed to fetch skill details", "error");
@@ -225,6 +248,7 @@ window.editProject = async (id) => {
             
             document.getElementById('project-modal-title').textContent = "Edit Project";
             document.getElementById('project-modal').classList.add('active');
+            toggleBodyScrollLock();
         }
     } catch (e) {
         showToast("Failed to fetch project details", "error");
@@ -272,6 +296,7 @@ window.editTimeline = async (id) => {
             
             document.getElementById('timeline-modal-title').textContent = "Edit Timeline Entry";
             document.getElementById('timeline-modal').classList.add('active');
+            toggleBodyScrollLock();
         }
     } catch (e) {
         showToast("Failed to fetch timeline details", "error");
@@ -320,6 +345,7 @@ window.editCertificate = async (id) => {
             
             document.getElementById('cert-modal-title').textContent = "Edit Certification";
             document.getElementById('cert-modal').classList.add('active');
+            toggleBodyScrollLock();
         }
     } catch (e) {
         showToast("Failed to fetch certificate details", "error");
@@ -369,6 +395,7 @@ window.editTeamMember = async (id) => {
             
             document.getElementById('uxi-team-modal-title').textContent = "Edit UXI Team Member";
             document.getElementById('uxi-team-modal').classList.add('active');
+            toggleBodyScrollLock();
         }
     } catch (e) {
         showToast("Failed to fetch team member details", "error");
@@ -404,6 +431,7 @@ window.editUXIProject = async (id) => {
             
             document.getElementById('uxi-project-modal-title').textContent = "Edit UXI Project";
             document.getElementById('uxi-project-modal').classList.add('active');
+            toggleBodyScrollLock();
         }
     } catch (e) {
         showToast("Failed to fetch UXI project details", "error");
@@ -423,9 +451,11 @@ window.openMobileNavItemModal = () => {
     document.getElementById('mobilenav-item-id').value = "";
     document.getElementById('mobilenav-item-form').reset();
     document.getElementById('mobilenav-item-modal').classList.add('active');
+    toggleBodyScrollLock();
 };
 window.closeMobileNavItemModal = () => {
     document.getElementById('mobilenav-item-modal').classList.remove('active');
+    toggleBodyScrollLock();
 };
 window.openMobileFABMenuItemModal = () => {
     window.openMobileNavItemModal();
@@ -444,6 +474,7 @@ window.editMobileFABMenuItem = async (id) => {
             
             document.getElementById('mobilenav-item-modal-title').textContent = "Edit Navigation Menu Item";
             document.getElementById('mobilenav-item-modal').classList.add('active');
+            toggleBodyScrollLock();
         }
     } catch (e) {
         showToast("Failed to fetch menu item details", "error");
@@ -1445,6 +1476,19 @@ if (projForm) {
         const technologies = techStr.split(',').map(s => s.trim()).filter(s => s.length > 0);
         const expected_features = expected_features_str.split(',').map(s => s.trim()).filter(s => s.length > 0);
         
+        if (!name) {
+            showToast("Project Name is required.", "error");
+            return;
+        }
+        if (!short_desc) {
+            showToast("Short Description is required.", "error");
+            return;
+        }
+        if (!image_url) {
+            showToast("Project Image is required.", "error");
+            return;
+        }
+
         const method = id ? 'PUT' : 'POST';
         const url = id ? `/api/projects/${id}` : '/api/projects';
         
@@ -1509,6 +1553,19 @@ if (certForm) {
         const credential_link = document.getElementById('cert-link').value.trim();
         const image_url = document.getElementById('cert-image').value;
         
+        if (!title) {
+            showToast("Certificate Title is required.", "error");
+            return;
+        }
+        if (!organization) {
+            showToast("Organization is required.", "error");
+            return;
+        }
+        if (!image_url) {
+            showToast("Certificate Image is required.", "error");
+            return;
+        }
+
         const method = id ? 'PUT' : 'POST';
         const url = id ? `/api/certificates/${id}` : '/api/certificates';
         
