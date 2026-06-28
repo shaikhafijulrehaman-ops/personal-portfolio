@@ -66,10 +66,19 @@ const upload = multer({ storage });
 // ==========================================
 
 const UserSchema = new mongoose.Schema({
-    email: { type: String, required: true, unique: true },
-    password: { type: String, required: true }
+    username: { type: String, required: true, unique: true },
+    password: { type: String, required: true },
+    recovery_email: { type: String, default: 'shaikhafizulrehaman@gmail.com' },
+    session_timeout: { type: Number, default: 30 },
+    token_version: { type: Number, default: 0 }
 });
 const User = mongoose.model('User', UserSchema);
+
+const BackupSchema = new mongoose.Schema({
+    timestamp: { type: Date, default: Date.now },
+    data: { type: mongoose.Schema.Types.Mixed, required: true }
+});
+const Backup = mongoose.model('Backup', BackupSchema);
 
 const HeroSchema = new mongoose.Schema({
     name: { type: String, default: 'Shaik Hafijulrehaman' },
@@ -309,6 +318,24 @@ const BackgroundSettingsSchema = new mongoose.Schema({
 });
 const BackgroundSettings = mongoose.model('BackgroundSettings', BackgroundSettingsSchema);
 
+const ActivityLogSchema = new mongoose.Schema({
+    timestamp: { type: Date, default: Date.now },
+    action: { type: String, required: true },
+    details: { type: String, required: true },
+    ip_address: { type: String }
+});
+const ActivityLog = mongoose.model('ActivityLog', ActivityLogSchema);
+
+async function logActivity(action, details, req) {
+    try {
+        const ip = req ? (req.headers['x-forwarded-for'] || req.socket.remoteAddress) : 'System';
+        const log = new ActivityLog({ action, details, ip_address: ip });
+        await log.save();
+    } catch (e) {
+        console.error("Activity logging failed:", e);
+    }
+}
+
 // ==========================================
 // Authentication Middleware
 // ==========================================
@@ -318,10 +345,19 @@ function authenticateToken(req, res, next) {
     const token = authHeader && authHeader.split(' ')[1];
     if (!token) return res.status(401).json({ error: 'Access token missing' });
 
-    jwt.verify(token, JWT_SECRET, (err, user) => {
+    jwt.verify(token, JWT_SECRET, async (err, payload) => {
         if (err) return res.status(403).json({ error: 'Token invalid or expired' });
-        req.user = user;
-        next();
+        
+        try {
+            const user = await User.findById(payload.id);
+            if (!user || user.token_version !== payload.token_version) {
+                return res.status(403).json({ error: 'Session invalidated or user not found' });
+            }
+            req.user = user;
+            next();
+        } catch (dbErr) {
+            res.status(500).json({ error: 'Database error verifying token' });
+        }
     });
 }
 
@@ -330,15 +366,16 @@ function authenticateToken(req, res, next) {
 // ==========================================
 
 app.post('/api/auth/login', async (req, res) => {
-    const { email, password } = req.body;
+    const { username, password } = req.body;
     try {
-        const user = await User.findOne({ email });
+        const user = await User.findOne({ username });
         if (!user) return res.status(400).json({ error: 'User does not exist.' });
 
         const validPassword = await bcrypt.compare(password, user.password);
         if (!validPassword) return res.status(400).json({ error: 'Incorrect password.' });
 
-        const token = jwt.sign({ id: user._id, email: user.email }, JWT_SECRET, { expiresIn: '24h' });
+        const token = jwt.sign({ id: user._id, username: user.username, token_version: user.token_version }, JWT_SECRET, { expiresIn: '24h' });
+        await logActivity('Login', `Administrator logged in: ${user.username}`, req);
         res.json({ token });
     } catch (e) {
         res.status(500).json({ error: e.message });
@@ -346,7 +383,175 @@ app.post('/api/auth/login', async (req, res) => {
 });
 
 app.get('/api/auth/me', authenticateToken, (req, res) => {
-    res.json({ email: req.user.email });
+    res.json({ 
+        username: req.user.username,
+        recovery_email: req.user.recovery_email,
+        session_timeout: req.user.session_timeout || 30
+    });
+});
+
+// ==========================================
+// Admin Panel Settings, Backups, and Exports
+// ==========================================
+
+app.get('/api/admin/settings', authenticateToken, (req, res) => {
+    res.json({
+        username: req.user.username,
+        recovery_email: req.user.recovery_email,
+        session_timeout: req.user.session_timeout || 30
+    });
+});
+
+app.get('/api/admin/activity', authenticateToken, async (req, res) => {
+    try {
+        const logs = await ActivityLog.find({}).sort({ timestamp: -1 }).limit(150);
+        res.json(logs);
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+app.post('/api/admin/settings', authenticateToken, async (req, res) => {
+    const { username, password, recovery_email, session_timeout } = req.body;
+    try {
+        const user = req.user;
+        if (username) {
+            if (username !== user.username) {
+                const exists = await User.findOne({ username });
+                if (exists) return res.status(400).json({ error: 'Username already taken.' });
+                user.username = username;
+            }
+        }
+        if (password) {
+            user.password = await bcrypt.hash(password, 10);
+            user.token_version += 1;
+        }
+        if (recovery_email) user.recovery_email = recovery_email;
+        if (session_timeout) user.session_timeout = Number(session_timeout);
+        
+        await user.save();
+        await logActivity('Edit', 'Updated administrator credentials / settings', req);
+        
+        const token = jwt.sign({ id: user._id, username: user.username, token_version: user.token_version }, JWT_SECRET, { expiresIn: '24h' });
+        res.json({ success: true, token });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+app.post('/api/admin/logout-all', authenticateToken, async (req, res) => {
+    try {
+        const user = req.user;
+        user.token_version += 1;
+        await user.save();
+        await logActivity('Login', 'Logged out all active device sessions', req);
+        res.json({ success: true });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+app.get('/api/admin/export', authenticateToken, async (req, res) => {
+    try {
+        const [hero, about, skills, projects, timeline, certificates, contact, socials, seo, website, mobilenav, backgrounds, uxiGeneral, uxiTeam, uxiProjects] = await Promise.all([
+            Hero.find({}), About.find({}), Skill.find({}), Project.find({}), Timeline.find({}), Certificate.find({}),
+            Contact.find({}), SocialLink.find({}), SEO.find({}), WebsiteSettings.find({}), MobileNavigationSettings.find({}),
+            BackgroundSettings.find({}), UXIGeneral.find({}), UXITeam.find({}), UXIProject.find({})
+        ]);
+        res.json({
+            hero, about, skills, projects, timeline, certificates, contact, socials, seo, website, mobilenav, backgrounds, uxiGeneral, uxiTeam, uxiProjects
+        });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+app.post('/api/admin/import', authenticateToken, async (req, res) => {
+    const data = req.body;
+    try {
+        if (data.hero) { await Hero.deleteMany({}); await Hero.insertMany(data.hero); }
+        if (data.about) { await About.deleteMany({}); await About.insertMany(data.about); }
+        if (data.skills) { await Skill.deleteMany({}); await Skill.insertMany(data.skills); }
+        if (data.projects) { await Project.deleteMany({}); await Project.insertMany(data.projects); }
+        if (data.timeline) { await Timeline.deleteMany({}); await Timeline.insertMany(data.timeline); }
+        if (data.certificates) { await Certificate.deleteMany({}); await Certificate.insertMany(data.certificates); }
+        if (data.contact) { await Contact.deleteMany({}); await Contact.insertMany(data.contact); }
+        if (data.socials) { await SocialLink.deleteMany({}); await SocialLink.insertMany(data.socials); }
+        if (data.seo) { await SEO.deleteMany({}); await SEO.insertMany(data.seo); }
+        if (data.website) { await WebsiteSettings.deleteMany({}); await WebsiteSettings.insertMany(data.website); }
+        if (data.mobilenav) { await MobileNavigationSettings.deleteMany({}); await MobileNavigationSettings.insertMany(data.mobilenav); }
+        if (data.backgrounds) { await BackgroundSettings.deleteMany({}); await BackgroundSettings.insertMany(data.backgrounds); }
+        if (data.uxiGeneral) { await UXIGeneral.deleteMany({}); await UXIGeneral.insertMany(data.uxiGeneral); }
+        if (data.uxiTeam) { await UXITeam.deleteMany({}); await UXITeam.insertMany(data.uxiTeam); }
+        if (data.uxiProjects) { await UXIProject.deleteMany({}); await UXIProject.insertMany(data.uxiProjects); }
+        res.json({ success: true });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+app.post('/api/admin/backup', authenticateToken, async (req, res) => {
+    try {
+        const [hero, about, skills, projects, timeline, certificates, contact, socials, seo, website, mobilenav, backgrounds, uxiGeneral, uxiTeam, uxiProjects] = await Promise.all([
+            Hero.find({}), About.find({}), Skill.find({}), Project.find({}), Timeline.find({}), Certificate.find({}),
+            Contact.find({}), SocialLink.find({}), SEO.find({}), WebsiteSettings.find({}), MobileNavigationSettings.find({}),
+            BackgroundSettings.find({}), UXIGeneral.find({}), UXITeam.find({}), UXIProject.find({})
+        ]);
+        const snapshot = {
+            hero, about, skills, projects, timeline, certificates, contact, socials, seo, website, mobilenav, backgrounds, uxiGeneral, uxiTeam, uxiProjects
+        };
+        const backup = new Backup({ data: snapshot });
+        await backup.save();
+        await logActivity('Publish', `Created database backup snapshot (ID: ${backup._id})`, req);
+        res.json({ success: true, timestamp: backup.timestamp, id: backup._id });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+app.get('/api/admin/backups', authenticateToken, async (req, res) => {
+    try {
+        const backups = await Backup.find({}, { timestamp: 1 }).sort({ timestamp: -1 });
+        res.json(backups);
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+app.post('/api/admin/restore/:id', authenticateToken, async (req, res) => {
+    try {
+        const backup = await Backup.findById(req.params.id);
+        if (!backup) return res.status(404).json({ error: 'Backup not found' });
+        const data = backup.data;
+        if (data.hero) { await Hero.deleteMany({}); await Hero.insertMany(data.hero); }
+        if (data.about) { await About.deleteMany({}); await About.insertMany(data.about); }
+        if (data.skills) { await Skill.deleteMany({}); await Skill.insertMany(data.skills); }
+        if (data.projects) { await Project.deleteMany({}); await Project.insertMany(data.projects); }
+        if (data.timeline) { await Timeline.deleteMany({}); await Timeline.insertMany(data.timeline); }
+        if (data.certificates) { await Certificate.deleteMany({}); await Certificate.insertMany(data.certificates); }
+        if (data.contact) { await Contact.deleteMany({}); await Contact.insertMany(data.contact); }
+        if (data.socials) { await SocialLink.deleteMany({}); await SocialLink.insertMany(data.socials); }
+        if (data.seo) { await SEO.deleteMany({}); await SEO.insertMany(data.seo); }
+        if (data.website) { await WebsiteSettings.deleteMany({}); await WebsiteSettings.insertMany(data.website); }
+        if (data.mobilenav) { await MobileNavigationSettings.deleteMany({}); await MobileNavigationSettings.insertMany(data.mobilenav); }
+        if (data.backgrounds) { await BackgroundSettings.deleteMany({}); await BackgroundSettings.insertMany(data.backgrounds); }
+        if (data.uxiGeneral) { await UXIGeneral.deleteMany({}); await UXIGeneral.insertMany(data.uxiGeneral); }
+        if (data.uxiTeam) { await UXITeam.deleteMany({}); await UXITeam.insertMany(data.uxiTeam); }
+        if (data.uxiProjects) { await UXIProject.deleteMany({}); await UXIProject.insertMany(data.uxiProjects); }
+        await logActivity('Publish', `Restored database from snapshot (Date: ${new Date(backup.timestamp).toLocaleString()})`, req);
+        res.json({ success: true });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+app.delete('/api/admin/backups/:id', authenticateToken, async (req, res) => {
+    try {
+        await Backup.findByIdAndDelete(req.params.id);
+        res.json({ success: true });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
 });
 
 // ==========================================
@@ -588,6 +793,19 @@ app.delete('/api/timeline/:id', authenticateToken, async (req, res) => {
     res.json({ success: true });
 });
 
+app.put('/api/timeline/reorder', authenticateToken, async (req, res) => {
+    const { orders } = req.body;
+    try {
+        const promises = orders.map((id, index) => 
+            Timeline.findByIdAndUpdate(id, { display_order: index })
+        );
+        await Promise.all(promises);
+        res.json({ success: true });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
 // Certifications Section
 app.get('/api/certificates', async (req, res) => {
     const certs = await Certificate.find().sort('display_order');
@@ -610,6 +828,19 @@ app.put('/api/certificates/:id', authenticateToken, async (req, res) => {
 app.delete('/api/certificates/:id', authenticateToken, async (req, res) => {
     await Certificate.findByIdAndDelete(req.params.id);
     res.json({ success: true });
+});
+
+app.put('/api/certificates/reorder', authenticateToken, async (req, res) => {
+    const { orders } = req.body;
+    try {
+        const promises = orders.map((id, index) => 
+            Certificate.findByIdAndUpdate(id, { display_order: index })
+        );
+        await Promise.all(promises);
+        res.json({ success: true });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
 });
 
 // Contact Section
@@ -1074,6 +1305,7 @@ app.post('/api/media/upload', authenticateToken, upload.single('file'), async (r
         }
     }
     
+    await logActivity('Upload', `Uploaded media file: ${req.file.filename}`, req);
     res.json({ url: fileUrl, name: req.file.filename });
 });
 
@@ -1978,15 +2210,30 @@ mongoose.set('bufferCommands', false);
 // Seeding function
 async function seedDatabase() {
     // Seed default admin user if none exists
+        // Migration: ensure existing users have username and recovery_email
+        const existingUsers = await User.find({ username: { $exists: false } });
+        for (let u of existingUsers) {
+            const rawEmail = u.get('email');
+            u.username = rawEmail ? rawEmail.split('@')[0] : 'admin';
+            u.recovery_email = rawEmail || 'shaikhafizulrehaman@gmail.com';
+            u.session_timeout = 30;
+            u.token_version = u.token_version || 0;
+            await u.save();
+            console.log(`Migrated user account: set username to "${u.username}" and recovery_email to "${u.recovery_email}"`);
+        }
+
         const userCount = await User.countDocuments();
         if (userCount === 0) {
             const hashedPassword = await bcrypt.hash('admin123', 10);
             const defaultAdmin = new User({
-                email: 'shaikhafizulrehaman@gmail.com',
-                password: hashedPassword
+                username: 'admin',
+                password: hashedPassword,
+                recovery_email: 'shaikhafizulrehaman@gmail.com',
+                session_timeout: 30,
+                token_version: 0
             });
             await defaultAdmin.save();
-            console.log("Seeded default admin account: shaikhafizulrehaman@gmail.com / admin123");
+            console.log("Seeded default admin account: admin / admin123");
         }
 
         // Seed default settings if empty

@@ -759,12 +759,13 @@ section {
 .timeline-container::after {
     content: '';
     position: absolute;
-    width: 2px;
-    background: var(--border);
+    width: 4px;
+    background: #3B82F6 !important;
     top: 0;
     bottom: 0;
     left: 50%;
-    margin-left: -1px;
+    margin-left: -2px;
+    box-shadow: 0 0 10px rgba(59, 130, 246, 0.4);
 }
 
 .timeline-item {
@@ -776,20 +777,21 @@ section {
 .timeline-item::after {
     content: '';
     position: absolute;
-    width: 16px;
-    height: 16px;
-    right: -8px;
-    background-color: var(--bg);
-    border: 3px solid var(--primary);
+    width: 18px;
+    height: 18px;
+    right: -9px;
+    background-color: #FFFFFF !important;
+    border: 4px solid #3B82F6 !important;
     top: 25px;
     border-radius: 50%;
-    z-index: 1;
-    box-shadow: 0 0 10px rgba(59, 130, 246, 0.15);
-    transition: transform 0.3s;
+    z-index: 2;
+    box-shadow: 0 0 10px rgba(59, 130, 246, 0.4);
+    transition: transform 0.3s ease, background-color 0.3s ease;
 }
 
 .timeline-item:hover::after {
     transform: scale(1.3);
+    background-color: #3B82F6 !important;
 }
 
 .timeline-left {
@@ -801,16 +803,28 @@ section {
 }
 
 .timeline-right::after {
-    left: -8px;
+    left: -9px;
 }
 
-.timeline-content {
-    padding: 25px;
+.timeline-content.glass-card {
+    background: #0F172A !important;
+    border: 1px solid rgba(59, 130, 246, 0.25) !important;
+    border-radius: 20px !important;
+    padding: 25px !important;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.3) !important;
+    transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1) !important;
+}
+
+.timeline-content.glass-card:hover {
+    transform: translateY(-5px) !important;
+    border-color: #3B82F6 !important;
+    box-shadow: 0 12px 30px rgba(59, 130, 246, 0.3) !important;
+    background: #0F172A !important;
 }
 
 .timeline-date {
     font-family: 'Orbitron', sans-serif;
-    color: var(--accent);
+    color: #3B82F6 !important;
     font-size: 13px;
     font-weight: 600;
     margin-bottom: 8px;
@@ -820,26 +834,26 @@ section {
 .timeline-content h3 {
     font-size: 19px;
     margin-bottom: 5px;
-    color: var(--text);
+    color: #FFFFFF !important;
 }
 
 .timeline-content h4 {
     font-size: 14px;
-    color: var(--text-muted);
+    color: #94A3B8 !important;
     font-weight: 500;
     margin-bottom: 12px;
 }
 
 .timeline-content p {
     font-size: 14px;
-    color: var(--text-muted);
+    color: #CBD5E1 !important;
     line-height: 1.6;
 }
 
 .timeline-badge {
-    background: rgba(59, 130, 246, 0.08);
-    border: 1px solid var(--primary);
-    color: var(--primary);
+    background: rgba(59, 130, 246, 0.15) !important;
+    border: 1px solid #3B82F6 !important;
+    color: #3B82F6 !important;
     font-size: 12px;
     padding: 3px 8px;
     border-radius: 8px;
@@ -1958,7 +1972,7 @@ body.fade-out {
 
     .timeline-container::after {
         left: 20px !important;
-        background: linear-gradient(to bottom, var(--primary), var(--accent-gradient), var(--primary)) !important;
+        background: #3B82F6 !important;
         box-shadow: 0 0 12px rgba(59, 130, 246, 0.4) !important;
     }
 
@@ -1970,23 +1984,23 @@ body.fade-out {
     }
 
     @keyframes timelineDotGlow {
-        0%, 100% { box-shadow: 0 0 6px var(--accent); }
-        50% { box-shadow: 0 0 16px var(--accent), 0 0 24px var(--primary); }
+        0%, 100% { box-shadow: 0 0 6px rgba(59, 130, 246, 0.4); }
+        50% { box-shadow: 0 0 16px #3B82F6; }
     }
 
     .timeline-item::after {
         left: 11px !important;
         width: 16px !important;
         height: 16px !important;
-        background-color: var(--bg) !important;
-        border: 3px solid var(--accent) !important;
+        background-color: #FFFFFF !important;
+        border: 3px solid #3B82F6 !important;
         top: 28px !important;
         animation: timelineDotGlow 2.5s infinite ease-in-out !important;
     }
 
     .timeline-item:hover::after {
         transform: scale(1.4) !important;
-        background-color: var(--accent) !important;
+        background-color: #3B82F6 !important;
     }
 
     .timeline-right {
@@ -2000,17 +2014,17 @@ body.fade-out {
     .timeline-content.glass-card {
         padding: 22px !important;
         border-radius: 20px !important;
-        background: rgba(255, 255, 255, 0.03) !important;
-        border: 1px solid rgba(255, 255, 255, 0.08) !important;
-        box-shadow: 0 8px 32px 0 rgba(15, 23, 42, 0.08) !important;
+        background: #0F172A !important;
+        border: 1px solid rgba(59, 130, 246, 0.25) !important;
+        box-shadow: 0 8px 32px 0 rgba(15, 23, 42, 0.3) !important;
         transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1) !important;
     }
 
     .timeline-content.glass-card:hover {
         transform: translateY(-5px) !important;
-        box-shadow: 0 12px 30px rgba(59, 130, 246, 0.18) !important;
-        border-color: rgba(59, 130, 246, 0.35) !important;
-        background: rgba(255, 255, 255, 0.05) !important;
+        box-shadow: 0 12px 30px rgba(59, 130, 246, 0.3) !important;
+        border-color: #3B82F6 !important;
+        background: #0F172A !important;
     }
 
     /* GitHub Repos Grid spacing and scaling */

@@ -38,11 +38,12 @@
             width: 100%;
             max-width: 420px;
             padding: 40px;
-            background: rgba(17, 24, 39, 0.6);
-            backdrop-filter: blur(15px);
+            background: rgba(11, 15, 25, 0.65);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 20px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4), 0 0 30px rgba(37, 99, 235, 0.15);
+            border-radius: 24px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), 0 0 35px rgba(59, 130, 246, 0.15);
             text-align: center;
             z-index: 10;
         }
@@ -53,9 +54,9 @@
         
         .login-header i {
             font-size: 44px;
-            color: var(--accent);
+            color: #3b82f6;
             margin-bottom: 15px;
-            filter: drop-shadow(0 0 8px var(--glow-hover));
+            filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.5));
         }
         
         .login-header h2 {
@@ -87,8 +88,8 @@
             width: 100%;
             padding: 12px 16px 12px 42px;
             background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 12px;
             color: #ffffff;
             font-size: 14px;
             transition: all 0.3s ease;
@@ -109,6 +110,20 @@
             font-size: 16px;
         }
         
+        .form-group i.toggle-password {
+            position: absolute;
+            right: 15px;
+            bottom: 14px;
+            color: #94a3b8;
+            cursor: pointer;
+            transition: color 0.2s;
+            font-size: 16px;
+        }
+        
+        .form-group i.toggle-password:hover {
+            color: #ffffff;
+        }
+        
         .btn-login {
             width: 100%;
             height: 48px;
@@ -116,17 +131,17 @@
             border: none;
             color: #ffffff;
             font-weight: 600;
-            border-radius: 10px;
+            border-radius: 12px;
             cursor: pointer;
             transition: all 0.3s ease;
             font-size: 14px;
-            box-shadow: 0 0 15px rgba(37, 99, 235, 0.2);
+            box-shadow: 0 0 15px rgba(37, 99, 235, 0.25);
         }
         
         .btn-login:hover {
             background: #3b82f6;
             color: #ffffff;
-            box-shadow: 0 0 20px rgba(96, 165, 250, 0.4);
+            box-shadow: 0 0 20px rgba(96, 165, 250, 0.45);
             transform: translateY(-2px);
         }
         
@@ -135,7 +150,7 @@
             border: 1px solid rgba(239, 68, 68, 0.3);
             color: #fecaca;
             padding: 12px;
-            border-radius: 10px;
+            border-radius: 12px;
             font-size: 13px;
             margin-bottom: 22px;
             display: none;
@@ -191,15 +206,25 @@
 
         <form id="login-form">
             <div class="form-group">
-                <label for="email">Admin Email</label>
-                <i class="fa-solid fa-envelope input-icon"></i>
-                <input type="email" id="email" placeholder="admin@email.com" required>
+                <label for="username">Admin Username</label>
+                <i class="fa-solid fa-user input-icon"></i>
+                <input type="text" id="username" placeholder="Username" required>
             </div>
             
             <div class="form-group">
                 <label for="password">Password</label>
                 <i class="fa-solid fa-lock input-icon"></i>
                 <input type="password" id="password" placeholder="••••••••" required>
+                <i class="fa-solid fa-eye toggle-password" id="toggle-password"></i>
+            </div>
+
+            <!-- Remember Me & Forgot Password -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; font-size: 13px; font-family: 'Inter', sans-serif;">
+                <label style="display: flex; align-items: center; gap: 8px; color: #94a3b8; cursor: pointer; user-select: none;">
+                    <input type="checkbox" id="remember-me" style="accent-color: #3b82f6; width: 16px; height: 16px; cursor: pointer;">
+                    Remember Me
+                </label>
+                <a href="#" onclick="handleForgotPassword(event)" style="color: #3b82f6; text-decoration: none; font-weight: 500; transition: color 0.2s;">Forgot Password?</a>
             </div>
             
             <button type="submit" class="btn-login" id="btn-submit">
@@ -224,7 +249,22 @@
             const errorBox = document.getElementById('error-box');
             const errorText = document.getElementById('error-text');
             const btnSubmit = document.getElementById('btn-submit');
-            const btnText = document.getElementById('btn-text');
+
+            // Toggle password visibility
+            const passwordInput = document.getElementById('password');
+            const togglePassword = document.getElementById('toggle-password');
+            togglePassword.addEventListener('click', () => {
+                const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                passwordInput.setAttribute('type', type);
+                togglePassword.classList.toggle('fa-eye');
+                togglePassword.classList.toggle('fa-eye-slash');
+            });
+
+            // Recover password instruction handler
+            window.handleForgotPassword = (e) => {
+                e.preventDefault();
+                alert("To reset your password, please look at the database seeder credentials in backend/server.js or contact your hosting administrator.");
+            };
 
             // Redirect if already logged in (verify token validity)
             const token = localStorage.getItem("admin_token");
@@ -249,46 +289,41 @@
             }
 
             // Real-time input validation
-            const emailInput = document.getElementById('email');
-            const passwordInput = document.getElementById('password');
+            const usernameInput = document.getElementById('username');
             
             function validateInputs() {
-                const email = emailInput.value.trim();
+                const username = usernameInput.value.trim();
                 const password = passwordInput.value;
-                const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-                const passwordValid = password.length >= 6;
                 
-                if (email && !emailValid) {
-                    emailInput.style.borderColor = 'rgba(239, 68, 68, 0.5)';
-                } else if (emailValid) {
-                    emailInput.style.borderColor = 'rgba(34, 197, 94, 0.5)';
+                if (username && username.length < 3) {
+                    usernameInput.style.borderColor = 'rgba(239, 68, 68, 0.5)';
+                } else if (username.length >= 3) {
+                    usernameInput.style.borderColor = 'rgba(34, 197, 94, 0.5)';
                 } else {
-                    emailInput.style.borderColor = '';
+                    usernameInput.style.borderColor = '';
                 }
                 
-                if (password && !passwordValid) {
+                if (password && password.length < 6) {
                     passwordInput.style.borderColor = 'rgba(239, 68, 68, 0.5)';
-                } else if (passwordValid) {
+                } else if (password.length >= 6) {
                     passwordInput.style.borderColor = 'rgba(34, 197, 94, 0.5)';
                 } else {
                     passwordInput.style.borderColor = '';
                 }
             }
             
-            emailInput.addEventListener('input', validateInputs);
+            usernameInput.addEventListener('input', validateInputs);
             passwordInput.addEventListener('input', validateInputs);
 
             loginForm.addEventListener("submit", async (e) => {
                 e.preventDefault();
                 errorBox.classList.remove('active');
                 
-                const email = emailInput.value.trim();
+                const username = usernameInput.value.trim();
                 const password = passwordInput.value;
 
-                // Validate before submission
-                const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-                if (!emailValid) {
-                    errorText.textContent = "Please enter a valid email address.";
+                if (username.length < 3) {
+                    errorText.textContent = "Username must be at least 3 characters long.";
                     errorBox.classList.add('active');
                     return;
                 }
@@ -306,7 +341,7 @@
                     const res = await fetch('/api/auth/login', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ email, password })
+                        body: JSON.stringify({ username, password })
                     });
                     
                     let data;
