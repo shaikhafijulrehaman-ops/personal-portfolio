@@ -1084,19 +1084,38 @@ function setupFormAutosave(formId, saveUrl, dataExtractor) {
 // Media Manager Core explorer
 // ==========================================
 let currentMediaFolder = '';
-async function renderMediaManager(filter = '') {
+let currentMediaPage = 1;
+let currentMediaViewMode = 'grid';
+
+async function renderMediaManager() {
     const grid = document.getElementById('media-grid');
+    const listContainer = document.getElementById('media-list-container');
+    const listTbody = document.getElementById('media-list-tbody');
+    const pagination = document.getElementById('media-pagination');
     if (!grid) return;
+    
     grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 40px;"><i class="fa-solid fa-spinner fa-spin fa-2x"></i><p style="margin-top:10px;">Loading assets...</p></div>';
+    if (listTbody) listTbody.innerHTML = '<tr><td colspan="5" style="text-align:center;"><i class="fa-solid fa-spinner fa-spin"></i> Loading...</td></tr>';
     
     try {
-        const url = `/api/media?folder=${currentMediaFolder}`;
-        const files = await apiRequest(url);
+        const searchInput = document.getElementById('media-search-input');
+        const sortSelect = document.getElementById('media-sort-select');
+        const typeFilter = document.getElementById('media-type-filter');
         
-        const filtered = files.filter(item => item.name.toLowerCase().includes(filter));
+        const searchVal = searchInput ? searchInput.value : '';
+        const sortVal = sortSelect ? sortSelect.value : 'date-desc';
+        const typeVal = typeFilter ? typeFilter.value : 'all';
+        
+        const url = `/api/media?folder=${encodeURIComponent(currentMediaFolder)}&search=${encodeURIComponent(searchVal)}&sort=${sortVal}&type=${typeVal}&page=${currentMediaPage}&pagination=true`;
+        const res = await apiRequest(url);
+        
+        const files = res.list || [];
+        const totalPages = res.pages || 1;
+        
         grid.innerHTML = '';
+        if (listTbody) listTbody.innerHTML = '';
         
-        if (currentMediaFolder) {
+        if (currentMediaFolder && currentMediaPage === 1) {
             const backItem = document.createElement('div');
             backItem.className = 'gallery-card';
             backItem.style = 'cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; aspect-ratio: 1; border: 1px dashed rgba(255,255,255,0.15); border-radius: 12px; background: rgba(255,255,255,0.01);';
@@ -1108,63 +1127,131 @@ async function renderMediaManager(filter = '') {
                 const parts = currentMediaFolder.split('/');
                 parts.pop();
                 currentMediaFolder = parts.join('/');
+                currentMediaPage = 1;
                 renderMediaManager();
             });
             grid.appendChild(backItem);
         }
         
-        if (filtered.length === 0 && !currentMediaFolder) {
-            grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 40px;">Media Library is empty. Upload files to get started!</div>';
+        if (files.length === 0 && !currentMediaFolder) {
+            const emptyMsg = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 40px;">Media Library is empty. Upload files to get started!</div>';
+            grid.innerHTML = emptyMsg;
+            if (listTbody) {
+                listTbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color: var(--text-muted);">No assets found.</td></tr>';
+            }
+            if (pagination) pagination.innerHTML = '';
             return;
         }
 
-        filtered.forEach(file => {
-            const card = document.createElement('div');
-            card.className = 'gallery-card';
-            card.style = 'border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; overflow: hidden; background: rgba(0,0,0,0.15); display: flex; flex-direction: column; position: relative; aspect-ratio: 1; transition: transform 0.2s;';
-            card.addEventListener('mouseenter', () => card.style.transform = 'scale(1.02)');
-            card.addEventListener('mouseleave', () => card.style.transform = 'scale(1)');
-            
-            let preview = '';
+        renderMediaBreadcrumbs();
+
+        files.forEach(file => {
             if (file.isDir) {
-                preview = `
+                const card = document.createElement('div');
+                card.className = 'gallery-card';
+                card.style = 'border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; overflow: hidden; background: rgba(0,0,0,0.15); display: flex; flex-direction: column; position: relative; aspect-ratio: 1; transition: transform 0.2s;';
+                card.innerHTML = `
                     <div style="flex:1; display:flex; align-items:center; justify-content:center; cursor:pointer;" onclick="enterMediaFolder('${file.name}')">
                         <i class="fa-solid fa-folder" style="font-size:64px;color:#f59e0b;filter:drop-shadow(0 4px 10px rgba(245,158,11,0.25));"></i>
                     </div>
+                    <div style="padding: 10px; background: rgba(11,15,25,0.85); display: flex; justify-content: space-between; align-items: center; border-top:1px solid rgba(255,255,255,0.06);">
+                        <div style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11px; font-weight: 500; flex:1; padding-right:8px;" title="${file.name}">
+                            ${file.name}
+                        </div>
+                    </div>
                 `;
+                grid.appendChild(card);
+
+                if (listTbody) {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td><i class="fa-solid fa-folder" style="color:#f59e0b; font-size: 20px;"></i></td>
+                        <td><a href="#" onclick="enterMediaFolder('${file.name}'); return false;" style="color:var(--text); text-decoration:none; font-weight:500;">${file.name}</a></td>
+                        <td>${new Date(file.mtime).toLocaleDateString()}</td>
+                        <td>-</td>
+                        <td>-</td>
+                    `;
+                    listTbody.appendChild(row);
+                }
             } else {
+                const card = document.createElement('div');
+                card.className = 'gallery-card';
+                card.style = 'border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; overflow: hidden; background: rgba(0,0,0,0.15); display: flex; flex-direction: column; position: relative; aspect-ratio: 1; transition: transform 0.2s;';
+                card.addEventListener('mouseenter', () => card.style.transform = 'scale(1.02)');
+                card.addEventListener('mouseleave', () => card.style.transform = 'scale(1)');
+
                 const isImg = /\.(jpg|jpeg|png|webp|gif|svg)$/i.test(file.name);
-                preview = `
+                const preview = `
                     <div style="flex:1; display:flex; align-items:center; justify-content:center; overflow:hidden; cursor:pointer; background:#0b0f19;" onclick="previewMedia('${file.url}', '${file.name}')">
                         ${isImg ? `<img src="${file.url}" style="width:100%;height:100%;object-fit:cover;">` : `<i class="fa-solid fa-file-arrow-up" style="font-size:48px;color:var(--text-muted);"></i>`}
                     </div>
                 `;
-            }
-            
-            card.innerHTML = `
-                ${preview}
-                <div style="padding: 10px; background: rgba(11,15,25,0.85); display: flex; justify-content: space-between; align-items: center; border-top:1px solid rgba(255,255,255,0.06);">
-                    <div style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11px; font-weight: 500; flex:1; padding-right:8px;" title="${file.name}">
-                        ${file.name}
-                    </div>
-                    ${!file.isDir ? `
+
+                card.innerHTML = `
+                    ${preview}
+                    <div style="padding: 10px; background: rgba(11,15,25,0.85); display: flex; justify-content: space-between; align-items: center; border-top:1px solid rgba(255,255,255,0.06);">
+                        <div style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11px; font-weight: 500; flex:1; padding-right:8px;" title="${file.name}">
+                            ${file.name}
+                        </div>
                         <div style="display:flex;gap:4px;">
                             <button class="btn-icon" title="Copy URL" onclick="copyMediaUrl('${file.url}')" style="width:24px;height:24px;padding:0;"><i class="fa-solid fa-link" style="font-size:10px;"></i></button>
                             <button class="btn-icon delete-btn" title="Delete" onclick="deleteMediaFile('${file.name}')" style="width:24px;height:24px;padding:0;"><i class="fa-solid fa-trash-can" style="font-size:10px;"></i></button>
                         </div>
-                    ` : ''}
-                </div>
-            `;
-            grid.appendChild(card);
+                    </div>
+                `;
+                grid.appendChild(card);
+
+                if (listTbody) {
+                    const row = document.createElement('tr');
+                    const sizeStr = (file.size / 1024).toFixed(1) + ' KB';
+                    row.innerHTML = `
+                        <td>${isImg ? `<img src="${file.url}" style="width:30px;height:30px;object-fit:cover;border-radius:4px;">` : `<i class="fa-solid fa-file" style="font-size:20px;"></i>`}</td>
+                        <td style="font-size:13px; font-weight:500;">${file.name}</td>
+                        <td style="font-size:13px;">${new Date(file.mtime).toLocaleDateString()}</td>
+                        <td style="font-size:13px;">${sizeStr}</td>
+                        <td>
+                            <button class="btn-icon" title="Copy URL" onclick="copyMediaUrl('${file.url}')" style="display:inline-flex; align-items:center; justify-content:center; width:26px; height:26px;"><i class="fa-solid fa-link" style="font-size:11px;"></i></button>
+                            <button class="btn-icon delete-btn" title="Delete" onclick="deleteMediaFile('${file.name}')" style="display:inline-flex; align-items:center; justify-content:center; width:26px; height:26px;"><i class="fa-solid fa-trash-can" style="font-size:11px;"></i></button>
+                        </td>
+                    `;
+                    listTbody.appendChild(row);
+                }
+            }
         });
+
+        renderMediaPaginationControls(totalPages);
+
     } catch (e) {
         grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--danger); padding: 40px;">Failed to scan media folders.</div>';
     }
 }
 window.renderMediaManager = renderMediaManager;
 
+function renderMediaBreadcrumbs() {
+    const container = document.getElementById('media-breadcrumbs');
+    if (!container) return;
+    container.innerHTML = `<span class="breadcrumb-item ${!currentMediaFolder ? 'active' : ''}" onclick="navigateMediaFolder('')">Root</span>`;
+    
+    if (currentMediaFolder) {
+        const parts = currentMediaFolder.split('/');
+        let accum = '';
+        parts.forEach((p, idx) => {
+            accum = accum ? `${accum}/${p}` : p;
+            const isLast = idx === parts.length - 1;
+            container.innerHTML += ` <span style="color:var(--text-muted);">/</span> <span class="breadcrumb-item ${isLast ? 'active' : ''}" onclick="navigateMediaFolder('${accum}')">${p}</span>`;
+        });
+    }
+}
+
+window.navigateMediaFolder = (folderPath) => {
+    currentMediaFolder = folderPath;
+    currentMediaPage = 1;
+    renderMediaManager();
+};
+
 window.enterMediaFolder = (folderName) => {
     currentMediaFolder = currentMediaFolder ? `${currentMediaFolder}/${folderName}` : folderName;
+    currentMediaPage = 1;
     renderMediaManager();
 };
 
@@ -1177,15 +1264,95 @@ window.copyMediaUrl = (url) => {
     });
 };
 
-window.deleteMediaFile = async (name) => {
-    confirmAction("Delete File?", `Are you sure you want to delete "${name}" from the media gallery?`, async () => {
-        const path = currentMediaFolder ? `${currentMediaFolder}/${name}` : name;
-        const res = await apiRequest(`/api/media/${encodeURIComponent(path)}`, { method: 'DELETE' });
-        if (res.success) {
-            showToast("File deleted successfully", "success");
+function renderMediaPaginationControls(totalPages) {
+    const container = document.getElementById('media-pagination');
+    if (!container) return;
+    container.innerHTML = '';
+    
+    if (totalPages <= 1) return;
+    
+    const prevBtn = document.createElement('button');
+    prevBtn.className = 'btn-secondary';
+    prevBtn.style = 'padding: 6px 12px; font-size: 12px;';
+    prevBtn.innerHTML = '<i class="fa-solid fa-angle-left"></i> Prev';
+    prevBtn.disabled = currentMediaPage === 1;
+    prevBtn.addEventListener('click', () => {
+        if (currentMediaPage > 1) {
+            currentMediaPage--;
             renderMediaManager();
         }
     });
+    container.appendChild(prevBtn);
+    
+    const info = document.createElement('span');
+    info.style = 'font-size: 13px; color: var(--text-muted); font-weight: 500;';
+    info.textContent = `Page ${currentMediaPage} of ${totalPages}`;
+    container.appendChild(info);
+    
+    const nextBtn = document.createElement('button');
+    nextBtn.className = 'btn-secondary';
+    nextBtn.style = 'padding: 6px 12px; font-size: 12px;';
+    nextBtn.innerHTML = 'Next <i class="fa-solid fa-angle-right"></i>';
+    nextBtn.disabled = currentMediaPage === totalPages;
+    nextBtn.addEventListener('click', () => {
+        if (currentMediaPage < totalPages) {
+            currentMediaPage++;
+            renderMediaManager();
+        }
+    });
+    container.appendChild(nextBtn);
+}
+
+window.filterMediaGrid = () => {
+    currentMediaPage = 1;
+    renderMediaManager();
+};
+
+window.sortMediaGrid = () => {
+    currentMediaPage = 1;
+    renderMediaManager();
+};
+
+window.filterMediaType = () => {
+    currentMediaPage = 1;
+    renderMediaManager();
+};
+
+window.setMediaViewMode = (mode) => {
+    currentMediaViewMode = mode;
+    
+    const gridBtn = document.getElementById('view-mode-grid');
+    const listBtn = document.getElementById('view-mode-list');
+    if (gridBtn) gridBtn.classList.toggle('active', mode === 'grid');
+    if (listBtn) listBtn.classList.toggle('active', mode === 'list');
+    
+    const grid = document.getElementById('media-grid');
+    const listContainer = document.getElementById('media-list-container');
+    if (grid) grid.style.display = mode === 'grid' ? 'grid' : 'none';
+    if (listContainer) listContainer.style.display = mode === 'list' ? 'block' : 'none';
+    
+    renderMediaManager();
+};
+
+window.deleteMediaFile = async (name) => {
+    try {
+        const usageRes = await apiRequest(`/api/media/usage?name=${encodeURIComponent(name)}`);
+        const usages = usageRes.usages || [];
+        let msg = `Are you sure you want to delete "${name}" from the media gallery?`;
+        if (usages.length > 0) {
+            msg = `This image is currently being used in ${usages.length} sections (${usages.join(', ')}). Deleting it from the Media Manager will not affect the existing website because those sections already have their own saved reference. Do you still want to remove it from the Media Library?`;
+        }
+        confirmAction("Delete File?", msg, async () => {
+            const path = currentMediaFolder ? `${currentMediaFolder}/${name}` : name;
+            const res = await apiRequest(`/api/media/${encodeURIComponent(path)}`, { method: 'DELETE' });
+            if (res.success) {
+                showToast("File removed from library.", "success");
+                renderMediaManager();
+            }
+        });
+    } catch (err) {
+        showToast(err.message, "error");
+    }
 };
 
 window.handleMediaLibraryUpload = async (input) => {

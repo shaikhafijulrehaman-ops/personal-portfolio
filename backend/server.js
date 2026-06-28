@@ -80,6 +80,16 @@ const BackupSchema = new mongoose.Schema({
 });
 const Backup = mongoose.model('Backup', BackupSchema);
 
+const MediaSchema = new mongoose.Schema({
+    name: { type: String, required: true, unique: true },
+    url: { type: String, required: true },
+    size: { type: Number, default: 0 },
+    mtime: { type: Date, default: Date.now },
+    folder: { type: String, default: '' },
+    is_deleted: { type: Boolean, default: false }
+});
+const Media = mongoose.model('Media', MediaSchema);
+
 const HeroSchema = new mongoose.Schema({
     name: { type: String, default: 'Shaik Hafijulrehaman' },
     tagline: { type: String, default: 'AI/ML Student | Full Stack Web Developer | Co-Founder @ UXI' },
@@ -1434,76 +1444,151 @@ app.post('/api/media/upload', authenticateToken, upload.single('file'), async (r
         }
     }
     
+    try {
+        await Media.findOneAndUpdate(
+            { name: req.file.filename },
+            {
+                name: req.file.filename,
+                url: fileUrl,
+                size: req.file.size,
+                mtime: new Date(),
+                folder: safeFolder || '',
+                is_deleted: false
+            },
+            { upsert: true, new: true }
+        );
+    } catch (dbErr) {
+        console.error("Failed to save media metadata to DB:", dbErr.message);
+    }
+    
     await logActivity('Upload', `Uploaded media file: ${req.file.filename}`, req);
     res.json({ url: fileUrl, name: req.file.filename });
 });
 
 // Get media files listed in folder with details (timestamp, size, type)
 app.get('/api/media', authenticateToken, async (req, res) => {
-    const folder = req.query.folder || '';
-    const safeFolder = folder.replace(/\.\./g, '').replace(/\\/g, '/');
-    const localTargetDir = safeFolder ? path.join(mediaDir, safeFolder) : mediaDir;
-
-    if (supabase) {
-        try {
-            const { data, error } = await supabase.storage
-                .from('media')
-                .list(safeFolder || '', {
-                    limit: 150,
-                    sortBy: { column: 'created_at', order: 'desc' }
-                });
-            if (!error && data) {
-                const list = data.map(file => {
-                    const relativePath = safeFolder ? `${safeFolder}/${file.name}` : file.name;
-                    const { data: publicUrlData } = supabase.storage
-                        .from('media')
-                        .getPublicUrl(relativePath);
-                    return {
-                        name: file.name,
-                        url: file.metadata ? publicUrlData.publicUrl : '',
-                        isDir: !file.metadata,
-                        size: file.metadata ? file.metadata.size : 0,
-                        mtime: file.created_at || new Date()
-                    };
-                });
-                return res.json(list);
-            }
-        } catch (err) {
-            console.error("Failed to list media files from Supabase:", err.message);
+    try {
+        const folder = req.query.folder || '';
+        const search = req.query.search || '';
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 18;
+        const pagination = req.query.pagination === 'true';
+        const sort = req.query.sort || 'date-desc';
+        const type = req.query.type || 'all'; // all, image, video
+        
+        const query = { is_deleted: false };
+        if (folder) {
+            query.folder = folder;
+        } else {
+            query.folder = '';
         }
-    }
-
-    if (!fs.existsSync(localTargetDir)) {
-        return res.json([]);
-    }
-
-    fs.readdir(localTargetDir, (err, files) => {
-        if (err) return res.status(500).json({ error: 'Unable to scan folder' });
         
-        const list = [];
-        files.forEach(file => {
-            const filePath = path.join(localTargetDir, file);
-            let stat;
-            try {
-                stat = fs.statSync(filePath);
-            } catch (e) {
-                return;
+        if (search) {
+            query.name = { $regex: search, $options: 'i' };
+        }
+        
+        if (type === 'image') {
+            query.name = { ...query.name, $regex: /\.(jpg|jpeg|png|webp|gif|svg)$/i };
+        } else if (type === 'video') {
+            query.name = { ...query.name, $regex: /\.(mp4|webm|ogg|mov)$/i };
+        }
+        
+        let sortQuery = { mtime: -1 };
+        if (sort === 'date-asc') {
+            sortQuery = { mtime: 1 };
+        } else if (sort === 'name-asc') {
+            sortQuery = { name: 1 };
+        } else if (sort === 'name-desc') {
+            sortQuery = { name: -1 };
+        } else if (sort === 'size-desc') {
+            sortQuery = { size: -1 };
+        } else if (sort === 'size-asc') {
+            sortQuery = { size: 1 };
+        }
+
+        if (pagination) {
+            const total = await Media.countDocuments(query);
+            const listDocs = await Media.find(query)
+                .sort(sortQuery)
+                .skip((page - 1) * limit)
+                .limit(limit);
+            
+            const list = listDocs.map(m => ({
+                name: m.name,
+                url: m.url,
+                size: m.size,
+                mtime: m.mtime,
+                isDir: false
+            }));
+
+            // Include folders locally if folder is queried or we are at root
+            let finalDirs = [];
+            if (!search) {
+                const targetDir = folder ? path.join(mediaDir, folder) : mediaDir;
+                if (fs.existsSync(targetDir)) {
+                    const localFiles = fs.readdirSync(targetDir);
+                    localFiles.forEach(file => {
+                        const filePath = path.join(targetDir, file);
+                        try {
+                            const stat = fs.statSync(filePath);
+                            if (stat.isDirectory()) {
+                                finalDirs.push({
+                                    name: file,
+                                    url: '',
+                                    size: 0,
+                                    mtime: stat.mtime,
+                                    isDir: true
+                                });
+                            }
+                        } catch (e) {}
+                    });
+                }
             }
-            
-            const isDir = stat.isDirectory();
-            const relativeUrlPath = safeFolder ? `${safeFolder}/${file}` : file;
-            
-            list.push({
-                name: file,
-                url: isDir ? '' : `/uploads/media/${relativeUrlPath}`,
-                isDir,
-                size: stat.size,
-                mtime: stat.mtime
+
+            res.json({
+                total: total + finalDirs.length,
+                page,
+                limit,
+                pages: Math.ceil((total + finalDirs.length) / limit),
+                list: [...finalDirs, ...list]
             });
-        });
-        
-        res.json(list);
-    });
+        } else {
+            const listDocs = await Media.find(query).sort(sortQuery);
+            const list = listDocs.map(m => ({
+                name: m.name,
+                url: m.url,
+                size: m.size,
+                mtime: m.mtime,
+                isDir: false
+            }));
+
+            // Subfolders injection
+            let finalDirs = [];
+            const targetDir = folder ? path.join(mediaDir, folder) : mediaDir;
+            if (fs.existsSync(targetDir)) {
+                const localFiles = fs.readdirSync(targetDir);
+                localFiles.forEach(file => {
+                    const filePath = path.join(targetDir, file);
+                    try {
+                        const stat = fs.statSync(filePath);
+                        if (stat.isDirectory()) {
+                            finalDirs.push({
+                                name: file,
+                                url: '',
+                                size: 0,
+                                mtime: stat.mtime,
+                                isDir: true
+                            });
+                        }
+                    } catch (e) {}
+                });
+            }
+
+            res.json([...finalDirs, ...list]);
+        }
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
 });
 
 // Create folder inside Media Library
@@ -1555,102 +1640,113 @@ app.post('/api/media/delete', authenticateToken, async (req, res) => {
 
 // Check image usage across portfolio sections
 app.get('/api/media/usage', authenticateToken, async (req, res) => {
-    const { url } = req.query;
-    if (!url) return res.status(400).json({ error: 'URL is required' });
+    const { url, name } = req.query;
+    const filename = name || path.basename(url || '');
+    if (!filename) return res.status(400).json({ error: 'URL or name is required' });
 
     const usages = [];
+    const regex = new RegExp('(?:^|/)' + filename.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&') + '$');
 
-    // Query Hero
-    const hero = await Hero.findOne({
-        $or: [
-            { avatar_url: url },
-            { resume_url: url },
-            { background_url: url },
-            { video_path: url }
-        ]
-    });
+    const [hero, about, skill, project, uxiGen, uxiTeam, uxiProject, timeline, cert, contact, seo, settings] = await Promise.all([
+        Hero.findOne({ $or: [ { avatar_url: regex }, { resume_url: regex }, { background_url: regex }, { video_path: regex } ] }),
+        About.findOne({ $or: [ { photo_url: regex }, { image_url: regex } ] }),
+        Skill.findOne({ $or: [ { icon_url: regex } ] }),
+        Project.findOne({ image_url: regex }),
+        UXIGeneral.findOne({ $or: [ { logo_url: regex }, { hero_bg_url: regex }, { team_bg_url: regex }, { projects_bg_url: regex } ] }),
+        UXITeam.findOne({ photo_url: regex }),
+        UXIProject.findOne({ image_url: regex }),
+        Timeline.findOne({ $or: [ { icon_url: regex }, { logo_url: regex } ] }),
+        Certificate.findOne({ image_url: regex }),
+        Contact.findOne({ bg_image_url: regex }),
+        SEO.findOne({ image_url: regex }),
+        WebsiteSettings.findOne({ $or: [ { portfolio_favicon_url: regex }, { uxi_favicon_url: regex }, { admin_favicon_url: regex } ] })
+    ]);
+
     if (hero) usages.push("Hero Section");
-
-    // Query About
-    const about = await About.findOne({ photo_url: url });
     if (about) usages.push("About Section");
-
-    // Query Skills
-    const skill = await Skill.findOne({ icon_url: url });
     if (skill) usages.push(`Skills (${skill.name})`);
-
-    // Query Projects
-    const project = await Project.findOne({ image_url: url });
     if (project) usages.push(`Projects (${project.name})`);
-
-    // Query UXIGeneral
-    const uxiGen = await UXIGeneral.findOne({
-        $or: [
-            { logo_url: url },
-            { hero_bg_url: url },
-            { team_bg_url: url },
-            { projects_bg_url: url }
-        ]
-    });
     if (uxiGen) usages.push("UXI General Page");
-
-    // Query UXITeam
-    const uxiTeam = await UXITeam.findOne({ photo_url: url });
     if (uxiTeam) usages.push(`UXI Team (${uxiTeam.name})`);
-
-    // Query UXIProject
-    const uxiProject = await UXIProject.findOne({ image_url: url });
     if (uxiProject) usages.push(`UXI Projects (${uxiProject.name})`);
-
-    // Query Timeline
-    const timeline = await Timeline.findOne({ icon_url: url });
     if (timeline) usages.push(`Timeline (${timeline.title})`);
-
-    // Query Certificate
-    const cert = await Certificate.findOne({ image_url: url });
-    if (cert) usages.push(`Certificates (${cert.name})`);
-
-    // Query Contact
-    const contact = await Contact.findOne({ bg_image_url: url });
+    if (cert) usages.push(`Certificates (${cert.title || cert.name})`);
     if (contact) usages.push("Contact Section");
-
-    // Query SEO
-    const seo = await SEO.findOne({ image_url: url });
     if (seo) usages.push("SEO Meta Image");
-
-    // Query WebsiteSettings
-    const settings = await WebsiteSettings.findOne({
-        $or: [
-            { portfolio_favicon_url: url },
-            { uxi_favicon_url: url },
-            { admin_favicon_url: url }
-        ]
-    });
-    if (settings) usages.push("Website Logo/Favicon");
+    if (settings) usages.push("Website Favicons");
 
     res.json({ usages });
 });
 
-// Delete media file
+// Delete media file (checks usage for safe deletion)
 app.delete('/api/media/:name', authenticateToken, async (req, res) => {
-    const name = req.params.name;
-    if (supabase) {
-        try {
-            const { error } = await supabase.storage
-                .from('media')
-                .remove([name]);
-            if (!error) return res.json({ success: true });
-        } catch (err) {
-            console.error("Supabase delete failed, trying local:", err.message);
+    try {
+        const name = decodeURIComponent(req.params.name);
+        // Find in Media database first
+        let mediaItem = await Media.findOne({ name });
+        if (!mediaItem) {
+            // Fallback: create temporary reference if it physically exists
+            const filePath = path.join(mediaDir, name);
+            if (fs.existsSync(filePath)) {
+                const stat = fs.statSync(filePath);
+                mediaItem = new Media({
+                    name,
+                    url: `/uploads/media/${name}`,
+                    size: stat.size,
+                    mtime: stat.mtime
+                });
+                await mediaItem.save();
+            } else {
+                return res.status(404).json({ error: 'File not found on disk' });
+            }
         }
-    }
 
-    const filePath = path.join(mediaDir, name);
-    if (fs.existsSync(filePath)) {
-        fs.unlinkSync(filePath);
-        res.json({ success: true });
-    } else {
-        res.status(404).json({ error: 'File not found' });
+        // Query usages
+        const regex = new RegExp('(?:^|/)' + name.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&') + '$');
+        const [hero, about, skill, project, uxiGen, uxiTeam, uxiProject, timeline, cert, contact, seo, settings] = await Promise.all([
+            Hero.findOne({ $or: [ { avatar_url: regex }, { resume_url: regex }, { background_url: regex }, { video_path: regex } ] }),
+            About.findOne({ $or: [ { photo_url: regex }, { image_url: regex } ] }),
+            Skill.findOne({ $or: [ { icon_url: regex } ] }),
+            Project.findOne({ image_url: regex }),
+            UXIGeneral.findOne({ $or: [ { logo_url: regex }, { hero_bg_url: regex }, { team_bg_url: regex }, { projects_bg_url: regex } ] }),
+            UXITeam.findOne({ photo_url: regex }),
+            UXIProject.findOne({ image_url: regex }),
+            Timeline.findOne({ $or: [ { icon_url: regex }, { logo_url: regex } ] }),
+            Certificate.findOne({ image_url: regex }),
+            Contact.findOne({ bg_image_url: regex }),
+            SEO.findOne({ image_url: regex }),
+            WebsiteSettings.findOne({ $or: [ { portfolio_favicon_url: regex }, { uxi_favicon_url: regex }, { admin_favicon_url: regex } ] })
+        ]);
+
+        const inUse = !!(hero || about || skill || project || uxiGen || uxiTeam || uxiProject || timeline || cert || contact || seo || settings);
+
+        if (inUse) {
+            // Soft delete: remove from database list, keep physical file intact
+            mediaItem.is_deleted = true;
+            await mediaItem.save();
+            await logActivity('Delete', `Soft-deleted media asset (retained physical reference): ${name}`, req);
+            return res.json({ success: true, softDeleted: true });
+        } else {
+            // Hard delete: remove from database and delete physically from disk
+            await Media.deleteOne({ _id: mediaItem._id });
+            
+            if (supabase) {
+                try {
+                    await supabase.storage.from('media').remove([name]);
+                } catch (err) {
+                    console.error("Supabase remove failed:", err.message);
+                }
+            }
+
+            const filePath = path.join(mediaDir, mediaItem.folder || '', name);
+            if (fs.existsSync(filePath)) {
+                fs.unlinkSync(filePath);
+            }
+            await logActivity('Delete', `Hard-deleted media asset: ${name}`, req);
+            return res.json({ success: true, hardDeleted: true });
+        }
+    } catch (e) {
+        res.status(500).json({ error: e.message });
     }
 });
 
@@ -1704,6 +1800,8 @@ app.post('/api/media/replace/:name', authenticateToken, upload.single('file'), a
     const name = req.params.name;
     if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
 
+    let finalUrl = `/uploads/media/${name}`;
+
     if (supabase) {
         try {
             const fileBuffer = fs.readFileSync(req.file.path);
@@ -1718,23 +1816,35 @@ app.post('/api/media/replace/:name', authenticateToken, upload.single('file'), a
                 const { data: publicUrlData } = supabase.storage
                     .from('media')
                     .getPublicUrl(name);
-                return res.json({ success: true, url: publicUrlData.publicUrl });
+                finalUrl = publicUrlData.publicUrl;
             } else {
                 throw error;
             }
         } catch (err) {
             console.error("Supabase replace failed, trying local:", err.message);
         }
+    } else {
+        const oldPath = path.join(mediaDir, name);
+        const newPath = req.file.path; // temp uploaded file
+        try {
+            fs.copyFileSync(newPath, oldPath);
+            fs.unlinkSync(newPath); // delete temp upload
+        } catch (err) {
+            return res.status(500).json({ error: 'Failed to replace file content' });
+        }
     }
 
-    const oldPath = path.join(mediaDir, name);
-    const newPath = req.file.path; // temp uploaded file
+    try {
+        await Media.findOneAndUpdate(
+            { name },
+            { size: req.file.size, mtime: new Date(), url: finalUrl },
+            { upsert: true }
+        );
+    } catch (dbErr) {
+        console.error("Failed to update media metadata in DB on replace:", dbErr.message);
+    }
 
-    fs.copyFile(newPath, oldPath, (err) => {
-        fs.unlinkSync(newPath); // delete temp upload
-        if (err) return res.status(500).json({ error: 'Failed to replace file content' });
-        res.json({ success: true, url: `/uploads/media/${name}` });
-    });
+    res.json({ success: true, url: finalUrl });
 });
 
 // Resume PDF upload
@@ -2589,6 +2699,53 @@ async function seedDatabase() {
         }
 }
 
+async function syncLocalMediaToDB() {
+    try {
+        const count = await Media.countDocuments();
+        if (count === 0 && fs.existsSync(mediaDir)) {
+            const files = fs.readdirSync(mediaDir);
+            const docs = [];
+            for (const file of files) {
+                const filePath = path.join(mediaDir, file);
+                try {
+                    const stat = fs.statSync(filePath);
+                    if (stat.isFile()) {
+                        docs.push({
+                            name: file,
+                            url: `/uploads/media/${file}`,
+                            size: stat.size,
+                            mtime: stat.mtime
+                        });
+                    } else if (stat.isDirectory()) {
+                        const subfiles = fs.readdirSync(filePath);
+                        subfiles.forEach(sf => {
+                            const sfPath = path.join(filePath, sf);
+                            try {
+                                const sfStat = fs.statSync(sfPath);
+                                if (sfStat.isFile()) {
+                                    docs.push({
+                                        name: sf,
+                                        url: `/uploads/media/${file}/${sf}`,
+                                        size: sfStat.size,
+                                        mtime: sfStat.mtime,
+                                        folder: file
+                                    });
+                                }
+                            } catch (err) {}
+                        });
+                    }
+                } catch (e) {}
+            }
+            if (docs.length > 0) {
+                await Media.insertMany(docs);
+                console.log(`Synced ${docs.length} local files to Media collection.`);
+            }
+        }
+    } catch (err) {
+        console.error("Failed to sync local media to database:", err.message);
+    }
+}
+
 let dbConnectionPromise = null;
 let isSeeded = false;
 
@@ -2607,6 +2764,7 @@ async function connectToDatabase() {
             isSeeded = true;
             try {
                 await seedDatabase();
+                await syncLocalMediaToDB();
             } catch (seedErr) {
                 console.error("Database seeding failed:", seedErr.message);
             }

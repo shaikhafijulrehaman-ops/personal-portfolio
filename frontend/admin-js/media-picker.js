@@ -330,14 +330,20 @@ window.replacePickerAssetFile = async (file) => {
 // Delete asset from picker
 window.deletePickerAsset = async () => {
     if (!selectedPickerAsset) return;
-    if (!confirm(`Are you sure you want to delete "${selectedPickerAsset.name}"?`)) return;
-    
-    const path = pickerCurrentFolder ? `${pickerCurrentFolder}/${selectedPickerAsset.name}` : selectedPickerAsset.name;
     try {
+        const usageRes = await apiRequest(`/api/media/usage?name=${encodeURIComponent(selectedPickerAsset.name)}`);
+        const usages = usageRes.usages || [];
+        let msg = `Are you sure you want to delete "${selectedPickerAsset.name}"?`;
+        if (usages.length > 0) {
+            msg = `This image is currently being used in ${usages.length} sections (${usages.join(', ')}). Deleting it from the Media Manager will not affect the existing website because those sections already have their own saved reference. Do you still want to remove it from the Media Library?`;
+        }
+        if (!confirm(msg)) return;
+        
+        const path = pickerCurrentFolder ? `${pickerCurrentFolder}/${selectedPickerAsset.name}` : selectedPickerAsset.name;
         await apiRequest(`/api/media/${encodeURIComponent(path)}`, {
             method: 'DELETE'
         });
-        showToast("Asset deleted from library.", "success");
+        showToast("Asset removed from library.", "success");
         selectedPickerAsset = null;
         
         document.getElementById('picker-preview-box').innerHTML = `<i class="fa-solid fa-image"></i>`;

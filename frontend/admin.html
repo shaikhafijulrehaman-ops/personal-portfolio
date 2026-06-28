@@ -565,6 +565,11 @@
                             <i class="fa-solid fa-magnifying-glass"></i>
                             <input type="text" id="media-search-input" placeholder="Search files..." oninput="filterMediaGrid()">
                         </div>
+                        <select id="media-type-filter" onchange="filterMediaType()">
+                            <option value="all">All Types</option>
+                            <option value="image">Images Only</option>
+                            <option value="video">Videos Only</option>
+                        </select>
                         <select id="media-sort-select" onchange="sortMediaGrid()">
                             <option value="date-desc">Newest First</option>
                             <option value="date-asc">Oldest First</option>
@@ -622,6 +627,11 @@
                                 <!-- Populated dynamically -->
                             </tbody>
                         </table>
+                    </div>
+
+                    <!-- Pagination Controls -->
+                    <div class="media-pagination" id="media-pagination" style="display: flex; justify-content: center; align-items: center; gap: 15px; margin-top: 25px;">
+                        <!-- Populated dynamically -->
                     </div>
                 </div>
             </div>
