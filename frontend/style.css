@@ -304,28 +304,40 @@ section {
     margin: 0 auto;
     background: #F8FAFC; /* Premium light theme by default */
     transition: background-color 0.4s ease, color 0.4s ease;
+    color: #334155;
 }
 
-/* Premium Light Theme Hero Styling (Theme Light by default) */
-.main.theme-light .hi h1 {
+/* Default slate-dark colors (Premium Light Theme by default) */
+.main .hi h1 {
     color: #0F172A !important;
 }
-.main.theme-light .main h3 {
+.main .main h3 {
     color: #1E293B !important;
 }
-.main.theme-light .tagline-bullet-list {
+.main .tagline-bullet-list {
     color: #475569 !important;
 }
-.main.theme-light .main p {
+.main .main p {
     color: #334155 !important;
 }
-.main.theme-light .profile-image-container {
+.main .profile-image-container {
     border-color: #FFFFFF !important;
     background: #FFFFFF !important;
     box-shadow: 0 10px 40px rgba(15, 23, 42, 0.08) !important;
 }
+.main .btn a.btn-secondary {
+    background: #FFFFFF !important;
+    border: 1px solid #E2E8F0 !important;
+    color: #0F172A !important;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04) !important;
+}
+.main .btn a.btn-secondary:hover {
+    background: #F1F5F9 !important;
+    border-color: #CBD5E1 !important;
+    color: #0F172A !important;
+}
 
-/* Dark Theme Overrides (when dark background or dark overlay is active) */
+/* Dark Theme Overrides (only when dark background or dark overlay is active) */
 .main.theme-dark {
     background: #080b11 !important;
 }
@@ -346,20 +358,6 @@ section {
     background: rgba(15, 23, 42, 0.6) !important;
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3) !important;
 }
-
-/* Buttons themes */
-.main.theme-light .btn a.btn-secondary {
-    background: #FFFFFF !important;
-    border: 1px solid #E2E8F0 !important;
-    color: #0F172A !important;
-    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04) !important;
-}
-.main.theme-light .btn a.btn-secondary:hover {
-    background: #F1F5F9 !important;
-    border-color: #CBD5E1 !important;
-    color: #0F172A !important;
-}
-
 .main.theme-dark .btn a.btn-secondary {
     background: rgba(255, 255, 255, 0.08) !important;
     border: 1px solid rgba(255, 255, 255, 0.15) !important;
