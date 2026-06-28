@@ -748,21 +748,50 @@ export const lazyLoaders = {
     backgrounds: async () => {
         const bgs = await apiRequest('/api/backgrounds');
         if (bgs) {
-            updateSelectorPreview('bg-hero', bgs.hero_bg_image || '');
-            updateSelectorPreview('bg-about', bgs.about_bg_image || '');
-            updateSelectorPreview('bg-skills', bgs.skills_bg_image || '');
-            updateSelectorPreview('bg-projects', bgs.projects_bg_image || '');
-            updateSelectorPreview('bg-uxi', bgs.uxi_bg_image || '');
-            updateSelectorPreview('bg-contact', bgs.contact_bg_image || '');
+            const heroTypeSelect = document.getElementById('bg-hero-type');
+            if (heroTypeSelect) {
+                heroTypeSelect.value = bgs.hero_bg_type || 'image';
+                window.toggleBackgroundHeroFields();
+            }
             
-            setupFormAutosave('backgrounds-form', '/api/backgrounds', () => ({
-                hero_bg_image: document.getElementById('bg-hero').value,
-                about_bg_image: document.getElementById('bg-about').value,
-                skills_bg_image: document.getElementById('bg-skills').value,
-                projects_bg_image: document.getElementById('bg-projects').value,
-                uxi_bg_image: document.getElementById('bg-uxi').value,
-                contact_bg_image: document.getElementById('bg-contact').value
-            }));
+            updateSelectorPreview('bg-hero-image', bgs.hero_bg_image || '');
+            updateSelectorPreview('bg-hero-video', bgs.hero_bg_video || '');
+            updateSelectorPreview('bg-about-image', bgs.about_bg_image || '');
+            updateSelectorPreview('bg-projects-image', bgs.projects_bg_image || '');
+            updateSelectorPreview('bg-uxi-image', bgs.uxi_bg_image || '');
+            updateSelectorPreview('bg-contact-image', bgs.contact_bg_image || '');
+            
+            const overlayEnable = document.getElementById('bg-hero-overlay-enable');
+            if (overlayEnable) overlayEnable.checked = !!bgs.hero_overlay_enable;
+            
+            const overlayColor = document.getElementById('bg-hero-overlay-color');
+            if (overlayColor) overlayColor.value = bgs.hero_overlay_color || '#000000';
+            
+            const overlayOpacity = document.getElementById('bg-hero-overlay-opacity');
+            if (overlayOpacity) {
+                overlayOpacity.value = bgs.hero_overlay_opacity !== undefined ? bgs.hero_overlay_opacity : 50;
+                const valLabel = document.getElementById('bg-hero-overlay-opacity-val');
+                if (valLabel) valLabel.textContent = overlayOpacity.value + '%';
+            }
+
+            setupFormAutosave('backgrounds-form', '/api/backgrounds', () => {
+                const overlayEnableInput = document.getElementById('bg-hero-overlay-enable');
+                const overlayColorInput = document.getElementById('bg-hero-overlay-color');
+                const overlayOpacityInput = document.getElementById('bg-hero-overlay-opacity');
+                
+                return {
+                    hero_bg_type: document.getElementById('bg-hero-type').value,
+                    hero_bg_image: document.getElementById('bg-hero-image').value,
+                    hero_bg_video: document.getElementById('bg-hero-video').value,
+                    hero_overlay_enable: overlayEnableInput ? overlayEnableInput.checked : false,
+                    hero_overlay_color: overlayColorInput ? overlayColorInput.value : '#000000',
+                    hero_overlay_opacity: overlayOpacityInput ? parseInt(overlayOpacityInput.value) : 50,
+                    about_bg_image: document.getElementById('bg-about-image').value,
+                    projects_bg_image: document.getElementById('bg-projects-image').value,
+                    uxi_bg_image: document.getElementById('bg-uxi-image').value,
+                    contact_bg_image: document.getElementById('bg-contact-image').value
+                };
+            });
         }
     },
 
@@ -1855,3 +1884,21 @@ if (mobileItemForm) {
         }
     });
 }
+
+window.toggleBackgroundHeroFields = () => {
+    const typeSelect = document.getElementById('bg-hero-type');
+    if (!typeSelect) return;
+    const type = typeSelect.value;
+    const imgGroup = document.getElementById('bg-hero-image-group');
+    const vidGroup = document.getElementById('bg-hero-video-group');
+    if (imgGroup) imgGroup.style.display = type === 'image' ? 'block' : 'none';
+    if (vidGroup) vidGroup.style.display = type === 'video' ? 'block' : 'none';
+};
+
+window.removeSelectedImage = (targetId) => {
+    updateSelectorPreview(targetId, '');
+    const form = document.getElementById('backgrounds-form');
+    if (form) {
+        form.dispatchEvent(new Event('input'));
+    }
+};

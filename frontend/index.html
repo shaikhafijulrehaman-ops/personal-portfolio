@@ -632,61 +632,73 @@
                         if (mediaWrapper && overlayEl) {
                             mediaWrapper.innerHTML = '';
                             
-                            const bgType = heroRes.background_type || 'image';
-                            const hasVideo = bgType === 'video' && heroRes.video_path;
-                            const hasImage = heroRes.background_url;
-                            
-                            if (hasVideo) {
-                                const video = document.createElement('video');
-                                video.src = heroRes.video_path;
-                                video.autoplay = true;
-                                video.loop = true;
-                                video.muted = true;
-                                video.playsInline = true;
-                                video.setAttribute('playsinline', '');
-                                video.setAttribute('webkit-playsinline', '');
-                                video.style.width = '100%';
-                                video.style.height = '100%';
-                                video.style.objectFit = 'cover';
-                                if (hasImage) {
-                                    video.poster = heroRes.background_url;
-                                }
-                                mediaWrapper.appendChild(video);
-                            } else if (hasImage) {
-                                const img = document.createElement('img');
-                                img.src = heroRes.background_url;
-                                img.alt = "Hero Backdrop";
-                                img.style.width = '100%';
-                                img.style.height = '100%';
-                                img.style.objectFit = 'cover';
-                                mediaWrapper.appendChild(img);
-                            } else {
-                                const fallbackDiv = document.createElement('div');
-                                fallbackDiv.style.width = '100%';
-                                fallbackDiv.style.height = '100%';
-                                fallbackDiv.style.background = 'var(--bg-secondary)';
-                                mediaWrapper.appendChild(fallbackDiv);
-                            }
-                            
-                            // Apply overlay properties
-                            overlayEl.style.backgroundColor = heroRes.overlay_color || '#000000';
-                            overlayEl.style.opacity = heroRes.overlay_opacity !== undefined ? heroRes.overlay_opacity : 0.5;
-                            
-                            // Apply filter adjustments
-                            const brightness = heroRes.brightness !== undefined ? heroRes.brightness : 100;
-                            const contrast = heroRes.contrast !== undefined ? heroRes.contrast : 100;
-                            const blur = heroRes.blur !== undefined ? heroRes.blur : 0;
-                            mediaWrapper.style.filter = `brightness(${brightness}%) contrast(${contrast}%) blur(${blur}px)`;
-                        }
+                            try {
+                                const bgRes = await fetch('/api/settings/backgrounds').then(res => res.json());
+                                if (bgRes) {
+                                    const bgType = bgRes.hero_bg_type || 'image';
+                                    const hasVideo = bgType === 'video' && bgRes.hero_bg_video;
+                                    const hasImage = bgRes.hero_bg_image;
+                                    
+                                    const detectImageBrightness = (imgUrl) => {
+                                        if (!imgUrl) {
+                                            document.getElementById('home').className = 'main theme-light';
+                                            return;
+                                        }
+                                        const img = new Image();
+                                        img.crossOrigin = "Anonymous";
+                                        img.src = imgUrl;
+                                        img.onload = function() {
+                                            try {
+                                                const canvas = document.createElement('canvas');
+                                                canvas.width = 1;
+                                                canvas.height = 1;
+                                                const ctx = canvas.getContext('2d');
+                                                ctx.drawImage(img, 0, 0, 1, 1);
+                                                const [r, g, b] = ctx.getImageData(0, 0, 1, 1).data;
+                                                const imgBright = 0.299 * r + 0.587 * g + 0.114 * b;
+                                                
+                                                let finalBright = imgBright;
+                                                if (bgRes.hero_overlay_enable) {
+                                                    const opacity = (bgRes.hero_overlay_opacity !== undefined ? bgRes.hero_overlay_opacity : 50) / 100;
+                                                    const hexColor = (bgRes.hero_overlay_color || '#000000').replace('#', '');
+                                                    const or = parseInt(hexColor.substring(0, 2), 16);
+                                                    const og = parseInt(hexColor.substring(2, 4), 16);
+                                                    const ob = parseInt(hexColor.substring(4, 6), 16);
+                                                    const overlayBright = 0.299 * or + 0.587 * og + 0.114 * ob;
+                                                    
+                                                    finalBright = imgBright * (1 - opacity) + overlayBright * opacity;
+                                                }
+                                                
+                                                if (finalBright < 135) {
+                                                    document.getElementById('home').className = 'main theme-dark';
+                                                } else {
+                                                    document.getElementById('home').className = 'main theme-light';
+                                                }
+                                            } catch (e) {
+                                                applyOverlayBasedTheme();
+                                            }
+                                        };
+                                        img.onerror = () => applyOverlayBasedTheme();
+                                    };
 
-                        // Load dynamic section backgrounds from Background Manager
-                        try {
-                            const bgRes = await fetch('/api/settings/backgrounds').then(res => res.json());
-                            if (bgRes) {
-                                if (bgRes.hero_bg_type === 'video' && bgRes.hero_bg_video) {
-                                    const mediaWrapper = document.getElementById('hero-bg-media-wrapper');
-                                    if (mediaWrapper) {
-                                        mediaWrapper.innerHTML = '';
+                                    const applyOverlayBasedTheme = () => {
+                                        if (bgRes.hero_overlay_enable) {
+                                            const opacity = (bgRes.hero_overlay_opacity !== undefined ? bgRes.hero_overlay_opacity : 50) / 100;
+                                            const hexColor = (bgRes.hero_overlay_color || '#000000').replace('#', '');
+                                            const or = parseInt(hexColor.substring(0, 2), 16);
+                                            const og = parseInt(hexColor.substring(2, 4), 16);
+                                            const ob = parseInt(hexColor.substring(4, 6), 16);
+                                            const overlayBright = 0.299 * or + 0.587 * og + 0.114 * ob;
+                                            
+                                            if (overlayBright < 135 && opacity > 0.3) {
+                                                document.getElementById('home').className = 'main theme-dark';
+                                                return;
+                                            }
+                                        }
+                                        document.getElementById('home').className = 'main theme-light';
+                                    };
+
+                                    if (hasVideo) {
                                         const video = document.createElement('video');
                                         video.src = bgRes.hero_bg_video;
                                         video.autoplay = true;
@@ -694,26 +706,43 @@
                                         video.muted = true;
                                         video.playsInline = true;
                                         video.setAttribute('playsinline', '');
+                                        video.setAttribute('webkit-playsinline', '');
                                         video.style.width = '100%';
                                         video.style.height = '100%';
                                         video.style.objectFit = 'cover';
-                                        if (bgRes.hero_bg_image) {
+                                        if (hasImage) {
                                             video.poster = bgRes.hero_bg_image;
+                                            detectImageBrightness(bgRes.hero_bg_image);
+                                        } else {
+                                            applyOverlayBasedTheme();
                                         }
                                         mediaWrapper.appendChild(video);
-                                    }
-                                } else if (bgRes.hero_bg_image) {
-                                    const mediaWrapper = document.getElementById('hero-bg-media-wrapper');
-                                    if (mediaWrapper) {
-                                        mediaWrapper.innerHTML = '';
+                                    } else if (hasImage) {
                                         const img = document.createElement('img');
                                         img.src = bgRes.hero_bg_image;
                                         img.style.width = '100%';
                                         img.style.height = '100%';
                                         img.style.objectFit = 'cover';
+                                        detectImageBrightness(bgRes.hero_bg_image);
                                         mediaWrapper.appendChild(img);
+                                    } else {
+                                        applyOverlayBasedTheme();
+                                    }
+
+                                    if (bgRes.hero_overlay_enable) {
+                                        overlayEl.style.backgroundColor = bgRes.hero_overlay_color || '#000000';
+                                        overlayEl.style.opacity = (bgRes.hero_overlay_opacity !== undefined ? bgRes.hero_overlay_opacity : 50) / 100;
+                                        overlayEl.style.display = 'block';
+                                    } else {
+                                        overlayEl.style.display = 'none';
+                                        overlayEl.style.opacity = '0';
                                     }
                                 }
+                            } catch (bgErr) {
+                                console.error("Failed to load background settings:", bgErr);
+                                document.getElementById('home').className = 'main theme-light';
+                            }
+                        }
 
                                 const aboutSec = document.getElementById('about');
                                 if (aboutSec && bgRes.about_bg_image) {

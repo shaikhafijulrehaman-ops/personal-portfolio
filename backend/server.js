@@ -321,6 +321,9 @@ const BackgroundSettingsSchema = new mongoose.Schema({
     hero_bg_type: { type: String, default: 'image' }, // 'image' or 'video'
     hero_bg_image: { type: String, default: '' },
     hero_bg_video: { type: String, default: '' },
+    hero_overlay_enable: { type: Boolean, default: false },
+    hero_overlay_color: { type: String, default: '#000000' },
+    hero_overlay_opacity: { type: Number, default: 50 },
     about_bg_image: { type: String, default: '' },
     projects_bg_image: { type: String, default: '' },
     uxi_bg_image: { type: String, default: '' },
@@ -1349,8 +1352,28 @@ app.get('/api/settings/backgrounds', async (req, res) => {
     res.json(settings);
 });
 
+app.get('/api/backgrounds', async (req, res) => {
+    let settings = await BackgroundSettings.findOne();
+    if (!settings) {
+        settings = new BackgroundSettings();
+        await settings.save();
+    }
+    res.json(settings);
+});
+
 // POST Background Settings
 app.post('/api/settings/backgrounds', authenticateToken, async (req, res) => {
+    let settings = await BackgroundSettings.findOne();
+    if (!settings) {
+        settings = new BackgroundSettings();
+    }
+    
+    Object.assign(settings, req.body);
+    await settings.save();
+    res.json({ success: true, settings });
+});
+
+app.post('/api/backgrounds', authenticateToken, async (req, res) => {
     let settings = await BackgroundSettings.findOne();
     if (!settings) {
         settings = new BackgroundSettings();

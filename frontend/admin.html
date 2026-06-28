@@ -684,6 +684,25 @@
                         </div>
 
                         <div class="form-group">
+                            <label for="bg-hero-overlay-enable" style="display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 5px 0;">
+                                <input type="checkbox" id="bg-hero-overlay-enable" style="width: auto; margin-right: 8px;"> Enable Overlay Tint
+                            </label>
+                        </div>
+
+                        <div class="form-group" id="bg-hero-overlay-color-group">
+                            <label for="bg-hero-overlay-color">Overlay Color</label>
+                            <input type="color" id="bg-hero-overlay-color" value="#000000" style="padding: 0; height: 42px; width: 100%; border: 1px solid var(--border); border-radius: 12px; background: none; cursor: pointer;">
+                        </div>
+
+                        <div class="form-group" id="bg-hero-overlay-opacity-group">
+                            <label for="bg-hero-overlay-opacity">Overlay Opacity (0–100%)</label>
+                            <div style="display: flex; align-items: center; gap: 12px; margin-top: 8px;">
+                                <input type="range" id="bg-hero-overlay-opacity" min="0" max="100" value="50" oninput="document.getElementById('bg-hero-overlay-opacity-val').textContent = this.value + '%'" style="flex: 1; accent-color: var(--accent);">
+                                <span id="bg-hero-overlay-opacity-val" style="font-size: 13px; font-weight: 600; color: var(--accent); min-width: 40px; text-align: right;">50%</span>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
                             <label>About Section Background</label>
                             <div class="image-selector-widget" data-target="bg-about-image">
                                 <div class="selector-preview-container" id="bg-about-image-preview">

@@ -302,6 +302,74 @@ section {
     justify-content: center;
     padding: 100px 80px 80px; /* Account for fixed header */
     margin: 0 auto;
+    background: #F8FAFC; /* Premium light theme by default */
+    transition: background-color 0.4s ease, color 0.4s ease;
+}
+
+/* Premium Light Theme Hero Styling (Theme Light by default) */
+.main.theme-light .hi h1 {
+    color: #0F172A !important;
+}
+.main.theme-light .main h3 {
+    color: #1E293B !important;
+}
+.main.theme-light .tagline-bullet-list {
+    color: #475569 !important;
+}
+.main.theme-light .main p {
+    color: #334155 !important;
+}
+.main.theme-light .profile-image-container {
+    border-color: #FFFFFF !important;
+    background: #FFFFFF !important;
+    box-shadow: 0 10px 40px rgba(15, 23, 42, 0.08) !important;
+}
+
+/* Dark Theme Overrides (when dark background or dark overlay is active) */
+.main.theme-dark {
+    background: #080b11 !important;
+}
+.main.theme-dark .hi h1 {
+    color: #F8FAFC !important;
+}
+.main.theme-dark .main h3 {
+    color: #E2E8F0 !important;
+}
+.main.theme-dark .tagline-bullet-list {
+    color: #94A3B8 !important;
+}
+.main.theme-dark .main p {
+    color: #CBD5E1 !important;
+}
+.main.theme-dark .profile-image-container {
+    border-color: rgba(255, 255, 255, 0.1) !important;
+    background: rgba(15, 23, 42, 0.6) !important;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Buttons themes */
+.main.theme-light .btn a.btn-secondary {
+    background: #FFFFFF !important;
+    border: 1px solid #E2E8F0 !important;
+    color: #0F172A !important;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04) !important;
+}
+.main.theme-light .btn a.btn-secondary:hover {
+    background: #F1F5F9 !important;
+    border-color: #CBD5E1 !important;
+    color: #0F172A !important;
+}
+
+.main.theme-dark .btn a.btn-secondary {
+    background: rgba(255, 255, 255, 0.08) !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    color: #F8FAFC !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+}
+.main.theme-dark .btn a.btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.15) !important;
+    border-color: rgba(255, 255, 255, 0.3) !important;
+    color: #F8FAFC !important;
 }
 
 .hero-bg-container {
