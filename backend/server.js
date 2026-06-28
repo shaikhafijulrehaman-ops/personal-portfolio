@@ -1427,6 +1427,192 @@ app.delete('/api/admin/backups/:id', authenticateToken, async (req, res) => {
     }
 });
 
+// GET Dashboard stats
+app.get('/api/dashboard/stats', async (req, res) => {
+    try {
+        const [projRes, skillRes, certRes, timelineRes] = await Promise.all([
+            supabase.from('projects').select('*', { count: 'exact', head: true }),
+            supabase.from('skills').select('*', { count: 'exact', head: true }),
+            supabase.from('certificates').select('*', { count: 'exact', head: true }),
+            supabase.from('timeline').select('*', { count: 'exact', head: true })
+        ]);
+        
+        res.json({
+            projects: projRes.count || 0,
+            skills: skillRes.count || 0,
+            certificates: certRes.count || 0,
+            timeline: timelineRes.count || 0
+        });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// GET Mobile navigation Fab menu settings
+app.get('/api/mobilenav/fab', async (req, res) => {
+    try {
+        const nav = await getSettingsValue('mobile_navigation_settings', {
+            is_enabled: true,
+            is_fab_enabled: true,
+            custom_image_url: '',
+            icon_class: 'fa-solid fa-compass',
+            button_size: 60,
+            position: 'bottom-right',
+            bg_color: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
+            border_style: '1px solid rgba(255, 255, 255, 0.2)',
+            shadow_style: '0 8px 32px 0 rgba(31, 38, 135, 0.3)',
+            animation_type: 'pulse',
+            menu_items: []
+        });
+        res.json(nav);
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// GET Mobile navigation menu item by ID
+app.get('/api/mobilenav/fab/:id', async (req, res) => {
+    try {
+        const nav = await getSettingsValue('mobile_navigation_settings', { menu_items: [] });
+        const item = nav.menu_items.find(i => i.id === req.params.id || i._id === req.params.id);
+        if (!item) return res.status(404).json({ error: 'Navigation item not found' });
+        res.json(item);
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// POST Create Mobile navigation menu item
+app.post('/api/mobilenav/fab', authenticateToken, async (req, res) => {
+    try {
+        const nav = await getSettingsValue('mobile_navigation_settings', {
+            is_enabled: true,
+            is_fab_enabled: true,
+            custom_image_url: '',
+            icon_class: 'fa-solid fa-compass',
+            button_size: 60,
+            position: 'bottom-right',
+            bg_color: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
+            border_style: '1px solid rgba(255, 255, 255, 0.2)',
+            shadow_style: '0 8px 32px 0 rgba(31, 38, 135, 0.3)',
+            animation_type: 'pulse',
+            menu_items: []
+        });
+        
+        const { label, description, icon_class, url, target_type, is_enabled } = req.body;
+        const newItem = {
+            id: `item_${Date.now()}`,
+            _id: `item_${Date.now()}`,
+            label,
+            description: description || '',
+            icon_class,
+            url,
+            target_type: target_type || 'scroll',
+            is_enabled: is_enabled !== undefined ? !!is_enabled : true
+        };
+        
+        nav.menu_items.push(newItem);
+        await setSettingsValue('mobile_navigation_settings', nav);
+        res.json({ success: true, item: newItem });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// PUT Update Mobile navigation menu item
+app.put('/api/mobilenav/fab/:id', authenticateToken, async (req, res) => {
+    try {
+        const nav = await getSettingsValue('mobile_navigation_settings', { menu_items: [] });
+        const itemIndex = nav.menu_items.findIndex(i => i.id === req.params.id || i._id === req.params.id);
+        if (itemIndex === -1) return res.status(404).json({ error: 'Navigation item not found' });
+        
+        const { label, description, icon_class, url, target_type, is_enabled } = req.body;
+        nav.menu_items[itemIndex] = {
+            ...nav.menu_items[itemIndex],
+            label: label !== undefined ? label : nav.menu_items[itemIndex].label,
+            description: description !== undefined ? description : nav.menu_items[itemIndex].description,
+            icon_class: icon_class !== undefined ? icon_class : nav.menu_items[itemIndex].icon_class,
+            url: url !== undefined ? url : nav.menu_items[itemIndex].url,
+            target_type: target_type !== undefined ? target_type : nav.menu_items[itemIndex].target_type,
+            is_enabled: is_enabled !== undefined ? !!is_enabled : nav.menu_items[itemIndex].is_enabled
+        };
+        
+        await setSettingsValue('mobile_navigation_settings', nav);
+        res.json({ success: true });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// DELETE Mobile navigation menu item
+app.delete('/api/mobilenav/fab/:id', authenticateToken, async (req, res) => {
+    try {
+        const nav = await getSettingsValue('mobile_navigation_settings', { menu_items: [] });
+        nav.menu_items = nav.menu_items.filter(i => i.id !== req.params.id && i._id !== req.params.id);
+        await setSettingsValue('mobile_navigation_settings', nav);
+        res.json({ success: true });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// PUT Reorder Mobile navigation menu items
+app.put('/api/mobilenav/fab/reorder', authenticateToken, async (req, res) => {
+    try {
+        const { orders } = req.body;
+        const nav = await getSettingsValue('mobile_navigation_settings', { menu_items: [] });
+        
+        const reordered = [];
+        for (const id of orders) {
+            const item = nav.menu_items.find(i => i.id === id || i._id === id);
+            if (item) reordered.push(item);
+        }
+        nav.menu_items = reordered;
+        await setSettingsValue('mobile_navigation_settings', nav);
+        res.json({ success: true });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// POST Settings Logo direct file upload
+app.post('/api/settings/upload', authenticateToken, upload.single('file'), async (req, res) => {
+    if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
+    
+    const fileName = `${Date.now()}_${req.file.originalname.replace(/[^a-zA-Z0-9.]/g, '_')}`;
+    try {
+        const { error } = await supabaseAdmin.storage
+            .from('media')
+            .upload(fileName, req.file.buffer, {
+                contentType: req.file.mimetype,
+                duplex: 'half'
+            });
+        if (error) throw error;
+        
+        const { data } = supabaseAdmin.storage.from('media').getPublicUrl(fileName);
+        res.json({ success: true, url: data.publicUrl });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// POST Delete media asset by path
+app.post('/api/media/delete', authenticateToken, async (req, res) => {
+    const { path: relativePath } = req.body;
+    if (!relativePath) return res.status(400).json({ error: 'Path is required' });
+    
+    try {
+        const filename = relativePath.split('/').pop();
+        const { error: removeErr } = await supabaseAdmin.storage.from('media').remove([relativePath]);
+        if (removeErr) throw removeErr;
+        
+        await supabaseAdmin.from('media_library').delete().eq('name', filename);
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 // ==========================================
 // SUPABASE DATABASE SEEDING ENGINE
 // ==========================================
