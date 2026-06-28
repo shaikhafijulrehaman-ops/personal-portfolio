@@ -1816,6 +1816,89 @@
                 return;
             }
 
+            // Skeletons overlays managers
+            function showModuleSkeleton(moduleId) {
+                const moduleEl = document.getElementById(`module-${moduleId}`);
+                if (!moduleEl) return;
+                const card = moduleEl.querySelector('.admin-card');
+                if (!card) return;
+                
+                if (card.querySelector('.skeleton-overlay')) return;
+                
+                const skeleton = document.createElement('div');
+                skeleton.className = 'skeleton-overlay';
+                skeleton.innerHTML = `
+                    <div class="skeleton-line title"></div>
+                    <div class="skeleton-line desc" style="margin-bottom: 20px;"></div>
+                    <div style="display:flex; flex-direction:column; gap:16px; width:100%;">
+                        <div class="skeleton-line input"></div>
+                        <div class="skeleton-line input"></div>
+                        <div class="skeleton-line input" style="height:100px;"></div>
+                    </div>
+                    <div class="skeleton-line button" style="margin-top:20px;"></div>
+                `;
+                
+                const originalPosition = window.getComputedStyle(card).position;
+                if (originalPosition === 'static') {
+                    card.style.position = 'relative';
+                }
+                
+                card.appendChild(skeleton);
+            }
+
+            function hideModuleSkeleton(moduleId) {
+                const moduleEl = document.getElementById(`module-${moduleId}`);
+                if (!moduleEl) return;
+                const skeleton = moduleEl.querySelector('.skeleton-overlay');
+                if (skeleton) {
+                    skeleton.style.transition = 'opacity 0.2s';
+                    skeleton.style.opacity = '0';
+                    setTimeout(() => {
+                        if (skeleton.parentNode) skeleton.parentNode.removeChild(skeleton);
+                    }, 200);
+                }
+            }
+
+            // Lazy Load Registry
+            const lazyLoaders = {
+                dashboard: loadDashboardMetrics,
+                hero: loadHeroSettings,
+                about: loadAboutSettings,
+                skills: loadSkills,
+                projects: loadProjects,
+                timeline: loadTimeline,
+                certifications: loadCertifications,
+                contact: loadContactSettings,
+                seo: loadSEOSettings,
+                media: loadMediaGrid,
+                backgrounds: loadBackgroundSettings,
+                uxi: loadUXISettings,
+                mobilenav: loadMobileNavSettings,
+                settings: loadWebsiteSettings
+            };
+
+            const loadedModules = new Set();
+
+            async function triggerLazyLoad(moduleName, forceReload = false) {
+                if (lazyLoaders[moduleName] && (!loadedModules.has(moduleName) || forceReload)) {
+                    if (moduleName !== 'dashboard') {
+                        showModuleSkeleton(moduleName);
+                    }
+                    try {
+                        await lazyLoaders[moduleName]();
+                        loadedModules.add(moduleName);
+                    } catch (e) {
+                        console.error(`Error loading module ${moduleName}:`, e);
+                        showToast(`Failed to load ${moduleName} settings`, "error");
+                    } finally {
+                        if (moduleName !== 'dashboard') {
+                            hideModuleSkeleton(moduleName);
+                        }
+                    }
+                }
+            }
+            window.triggerLazyLoad = triggerLazyLoad;
+
             // Verify JWT Token with server
             fetch('/api/auth/me', {
                 headers: { 'Authorization': `Bearer ${token}` }
@@ -1824,21 +1907,8 @@
                     localStorage.removeItem("admin_token");
                     window.location.href = "login.html";
                 } else {
-                    // Load data
-                    loadDashboardMetrics();
-                    loadHeroSettings();
-                    loadAboutSettings();
-                    loadSkills();
-                    loadProjects();
-                    loadTimeline();
-                    loadCertifications();
-                    loadContactSettings();
-                    loadSEOSettings();
-                    loadMediaGrid();
-                    loadUXISettings();
-                    loadWebsiteSettings();
-                    loadMobileNavSettings();
-                    loadBackgroundSettings();
+                    // Eagerly load ONLY the active tab (Dashboard stats)
+                    triggerLazyLoad('dashboard');
                 }
             });
 
@@ -1878,6 +1948,9 @@
                     
                     moduleTitle.textContent = moduleMeta[activeMod].title;
                     moduleSubtitle.textContent = moduleMeta[activeMod].subtitle;
+                    
+                    // Lazy load module data on click
+                    triggerLazyLoad(activeMod);
                 });
             });
 
@@ -2147,22 +2220,28 @@
             window.loadCertifications = loadCertifications;
 
             async function loadContactSettings() {
-                const contactData = await fetch('/api/contact').then(res => res.json());
-                const socialsData = await fetch('/api/socials').then(res => res.json());
+                try {
+                    const [contactData, socialsData] = await Promise.all([
+                        fetch('/api/contact').then(res => res.json()),
+                        fetch('/api/socials').then(res => res.json())
+                    ]);
 
-                if (contactData) {
-                    document.getElementById('contact-phone').value = contactData.phone;
-                    document.getElementById('contact-email').value = contactData.email;
-                    document.getElementById('contact-location').value = contactData.location;
+                    if (contactData) {
+                        document.getElementById('contact-phone').value = contactData.phone;
+                        document.getElementById('contact-email').value = contactData.email;
+                        document.getElementById('contact-location').value = contactData.location;
+                    }
+                    if (socialsData) {
+                        document.getElementById('social-github').value = socialsData.github;
+                        document.getElementById('social-linkedin').value = socialsData.linkedin;
+                        document.getElementById('social-whatsapp').value = socialsData.whatsapp;
+                    }
+                    
+                    trackFormChanges('contact-form', getContactFormData);
+                    document.getElementById('contact-form').setInitialData(getContactFormData());
+                } catch (e) {
+                    console.error("Failed to load contact settings:", e);
                 }
-                if (socialsData) {
-                    document.getElementById('social-github').value = socialsData.github;
-                    document.getElementById('social-linkedin').value = socialsData.linkedin;
-                    document.getElementById('social-whatsapp').value = socialsData.whatsapp;
-                }
-                
-                trackFormChanges('contact-form', getContactFormData);
-                document.getElementById('contact-form').setInitialData(getContactFormData());
             }
 
             async function loadSEOSettings() {
@@ -2644,14 +2723,50 @@
                 const color = document.getElementById('skill-color').value.trim();
                 const visible = document.getElementById('skill-visible').checked;
 
-                const submitBtn = skillForm.querySelector('button[type="submit"]');
-                const originalBtnText = submitBtn.innerHTML;
-                submitBtn.disabled = true;
-                submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
+                // Close modal instantly
+                closeSkillModal();
+                showToast("Saving skill changes...", "accent");
 
                 const url = id ? `/api/skills/${id}` : '/api/skills';
                 const method = id ? 'PUT' : 'POST';
 
+                // Construct optimistic object
+                const tempId = id || 'temp-' + Date.now();
+                const optimisticSkill = {
+                    _id: tempId,
+                    name,
+                    category,
+                    icon_class: icon,
+                    color,
+                    is_visible: visible
+                };
+
+                const tbody = document.getElementById('skills-table-body');
+                let oldRow = null;
+                let oldSkillIndex = -1;
+                let originalSkill = null;
+
+                if (id) {
+                    // EDIT FLOW
+                    oldSkillIndex = localSkills.findIndex(s => s._id === id);
+                    if (oldSkillIndex > -1) {
+                        originalSkill = { ...localSkills[oldSkillIndex] };
+                        localSkills[oldSkillIndex] = optimisticSkill;
+                    }
+                    oldRow = tbody.querySelector(`tr[data-id="${id}"]`);
+                    if (oldRow) {
+                        const newRow = createSkillRow(optimisticSkill);
+                        tbody.replaceChild(newRow, oldRow);
+                    }
+                } else {
+                    // ADD FLOW
+                    localSkills.push(optimisticSkill);
+                    const newRow = createSkillRow(optimisticSkill);
+                    newRow.classList.add('row-fade-in');
+                    tbody.appendChild(newRow);
+                }
+
+                // Background API execution
                 try {
                     const res = await fetch(url, {
                         method: method,
@@ -2666,35 +2781,38 @@
                     
                     const savedSkill = await res.json();
                     
-                    // In-place UI update
-                    const tbody = document.getElementById('skills-table-body');
+                    // Replace temp ID/row with real db instance
+                    const currentIdx = localSkills.findIndex(s => s._id === tempId);
+                    if (currentIdx > -1) localSkills[currentIdx] = savedSkill;
+                    
+                    const rowToUpdate = tbody.querySelector(`tr[data-id="${tempId}"]`);
+                    if (rowToUpdate) {
+                        const finalRow = createSkillRow(savedSkill);
+                        tbody.replaceChild(finalRow, rowToUpdate);
+                    }
+                    showToast("Skill saved successfully!");
+                } catch (err) {
+                    console.error("Optimistic skill save error:", err);
+                    showToast("Failed to save skill: " + err.message, "error");
+                    
+                    // ROLLBACK FLOW
                     if (id) {
-                        // Edit: Update item in cache
-                        const idx = localSkills.findIndex(s => s._id === id);
-                        if (idx > -1) localSkills[idx] = savedSkill;
-                        
-                        // Replace row in DOM
-                        const oldRow = tbody.querySelector(`tr[data-id="${id}"]`);
-                        if (oldRow) {
-                            const newRow = createSkillRow(savedSkill);
-                            tbody.replaceChild(newRow, oldRow);
+                        if (oldSkillIndex > -1) localSkills[oldSkillIndex] = originalSkill;
+                        const rowToRestore = tbody.querySelector(`tr[data-id="${tempId}"]`);
+                        if (rowToRestore && oldRow) {
+                            tbody.replaceChild(oldRow, rowToRestore);
                         }
                     } else {
-                        // Create: Append item in cache
-                        localSkills.push(savedSkill);
-                        
-                        // Append row in DOM
-                        tbody.appendChild(createSkillRow(savedSkill));
+                        const idxToRemove = localSkills.findIndex(s => s._id === tempId);
+                        if (idxToRemove > -1) localSkills.splice(idxToRemove, 1);
+                        const rowToRemove = tbody.querySelector(`tr[data-id="${tempId}"]`);
+                        if (rowToRemove) {
+                            rowToRemove.classList.add('row-fade-out');
+                            setTimeout(() => {
+                                if (rowToRemove.parentNode) rowToRemove.parentNode.removeChild(rowToRemove);
+                            }, 250);
+                        }
                     }
-
-                    showToast("Skill saved successfully!");
-                    closeSkillModal();
-                    console.log(`[PERF] Save skill workflow completed in ${(performance.now() - startTime).toFixed(2)}ms`);
-                } catch (err) {
-                    showToast(err.message, "error");
-                } finally {
-                    submitBtn.disabled = false;
-                    submitBtn.innerHTML = originalBtnText;
                 }
             });
 
@@ -2926,13 +3044,46 @@
                 const techArr = techStr.split(',').map(s => s.trim()).filter(s => s.length > 0);
                 const featuresArr = expected_features_str.split(',').map(s => s.trim()).filter(s => s.length > 0);
 
-                const submitBtn = projForm.querySelector('button[type="submit"]');
-                const originalBtnText = submitBtn.innerHTML;
-                submitBtn.disabled = true;
-                submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
+                closeProjectModal();
+                showToast("Saving project changes...", "accent");
 
                 const url = id ? `/api/projects/${id}` : '/api/projects';
                 const method = id ? 'PUT' : 'POST';
+
+                const tempId = id || 'temp-' + Date.now();
+                const optimisticProj = {
+                    _id: tempId, name, category, short_desc: short, long_desc: long, technologies: techArr, image_url: image,
+                    github_link: github, live_link: live, is_featured: featured, status,
+                    completion_date, dev_stage, expected_release, progress_percent, coming_soon,
+                    expected_features: featuresArr
+                };
+
+                const completedTbody = document.getElementById('completed-projects-table-body');
+                const upcomingTbody = document.getElementById('upcoming-projects-table-body');
+                
+                let oldRow = null;
+                let oldProjIndex = -1;
+                let originalProj = null;
+
+                if (id) {
+                    oldProjIndex = localProjects.findIndex(p => p._id === id);
+                    if (oldProjIndex > -1) {
+                        originalProj = { ...localProjects[oldProjIndex] };
+                        localProjects[oldProjIndex] = optimisticProj;
+                    }
+                    oldRow = completedTbody.querySelector(`tr[data-id="${id}"]`) || upcomingTbody.querySelector(`tr[data-id="${id}"]`);
+                    if (oldRow) oldRow.parentNode.removeChild(oldRow);
+                } else {
+                    localProjects.push(optimisticProj);
+                }
+
+                const optRow = createProjectRow(optimisticProj);
+                optRow.classList.add('row-fade-in');
+                if (optimisticProj.status === 'Completed') {
+                    completedTbody.appendChild(optRow);
+                } else {
+                    upcomingTbody.appendChild(optRow);
+                }
 
                 try {
                     const res = await fetch(url, {
@@ -2953,37 +3104,41 @@
                     
                     const savedProj = await res.json();
                     
-                    const completedTbody = document.getElementById('completed-projects-table-body');
-                    const upcomingTbody = document.getElementById('upcoming-projects-table-body');
+                    // Replace tempId with savedProj
+                    const currentIdx = localProjects.findIndex(p => p._id === tempId);
+                    if (currentIdx > -1) localProjects[currentIdx] = savedProj;
+                    
+                    const rowToRemove = completedTbody.querySelector(`tr[data-id="${tempId}"]`) || upcomingTbody.querySelector(`tr[data-id="${tempId}"]`);
+                    if (rowToRemove) rowToRemove.parentNode.removeChild(rowToRemove);
+                    
+                    const finalRow = createProjectRow(savedProj);
+                    if (savedProj.status === 'Completed') {
+                        completedTbody.appendChild(finalRow);
+                    } else {
+                        upcomingTbody.appendChild(finalRow);
+                    }
+                    showToast("Project saved successfully!");
+                } catch (err) {
+                    console.error("Optimistic project save error:", err);
+                    showToast("Failed to save project: " + err.message, "error");
+                    
+                    // Rollback
+                    const rowToRemove = completedTbody.querySelector(`tr[data-id="${tempId}"]`) || upcomingTbody.querySelector(`tr[data-id="${tempId}"]`);
+                    if (rowToRemove) rowToRemove.parentNode.removeChild(rowToRemove);
 
-                    // In-place UI update
                     if (id) {
-                        const idx = localProjects.findIndex(p => p._id === id);
-                        if (idx > -1) localProjects[idx] = savedProj;
-                        
-                        const oldRow = completedTbody.querySelector(`tr[data-id="${id}"]`) || upcomingTbody.querySelector(`tr[data-id="${id}"]`);
+                        if (oldProjIndex > -1) localProjects[oldProjIndex] = originalProj;
                         if (oldRow) {
-                            oldRow.parentNode.removeChild(oldRow);
+                            if (originalProj.status === 'Completed') {
+                                completedTbody.appendChild(oldRow);
+                            } else {
+                                upcomingTbody.appendChild(oldRow);
+                            }
                         }
                     } else {
-                        localProjects.push(savedProj);
+                        const idxToRemove = localProjects.findIndex(p => p._id === tempId);
+                        if (idxToRemove > -1) localProjects.splice(idxToRemove, 1);
                     }
-
-                    const newRow = createProjectRow(savedProj);
-                    if (savedProj.status === 'Completed') {
-                        completedTbody.appendChild(newRow);
-                    } else {
-                        upcomingTbody.appendChild(newRow);
-                    }
-
-                    showToast("Project saved successfully!");
-                    closeProjectModal();
-                    console.log(`[PERF] Save project workflow completed in ${(performance.now() - startTime).toFixed(2)}ms`);
-                } catch (err) {
-                    showToast(err.message, "error");
-                } finally {
-                    submitBtn.disabled = false;
-                    submitBtn.innerHTML = originalBtnText;
                 }
             });
 
@@ -3100,13 +3255,39 @@
                 const desc = document.getElementById('timeline-desc').value.trim();
                 const logo = document.getElementById('timeline-logo').value;
 
-                const submitBtn = tlineForm.querySelector('button[type="submit"]');
-                const originalBtnText = submitBtn.innerHTML;
-                submitBtn.disabled = true;
-                submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
+                closeTimelineModal();
+                showToast("Saving timeline changes...", "accent");
 
                 const url = id ? `/api/timeline/${id}` : '/api/timeline';
                 const method = id ? 'PUT' : 'POST';
+
+                const tempId = id || 'temp-' + Date.now();
+                const optimisticItem = {
+                    _id: tempId, title, company, start_date: start, end_date: end, badge, description: desc, logo_url: logo
+                };
+
+                const tbody = document.getElementById('timeline-table-body');
+                let oldRow = null;
+                let oldItemIndex = -1;
+                let originalItem = null;
+
+                if (id) {
+                    oldItemIndex = localTimeline.findIndex(item => item._id === id);
+                    if (oldItemIndex > -1) {
+                        originalItem = { ...localTimeline[oldItemIndex] };
+                        localTimeline[oldItemIndex] = optimisticItem;
+                    }
+                    oldRow = tbody.querySelector(`tr[data-id="${id}"]`);
+                    if (oldRow) {
+                        const newRow = createTimelineRow(optimisticItem);
+                        tbody.replaceChild(newRow, oldRow);
+                    }
+                } else {
+                    localTimeline.push(optimisticItem);
+                    const newRow = createTimelineRow(optimisticItem);
+                    newRow.classList.add('row-fade-in');
+                    tbody.appendChild(newRow);
+                }
 
                 try {
                     const res = await fetch(url, {
@@ -3122,29 +3303,38 @@
                     
                     const savedItem = await res.json();
                     
-                    const tbody = document.getElementById('timeline-table-body');
+                    // Replace tempId with savedItem
+                    const currentIdx = localTimeline.findIndex(item => item._id === tempId);
+                    if (currentIdx > -1) localTimeline[currentIdx] = savedItem;
+                    
+                    const rowToUpdate = tbody.querySelector(`tr[data-id="${tempId}"]`);
+                    if (rowToUpdate) {
+                        const finalRow = createTimelineRow(savedItem);
+                        tbody.replaceChild(finalRow, rowToUpdate);
+                    }
+                    showToast("Timeline entry saved successfully!");
+                } catch (err) {
+                    console.error("Optimistic timeline save error:", err);
+                    showToast("Failed to save entry: " + err.message, "error");
+                    
+                    // Rollback
                     if (id) {
-                        const idx = localTimeline.findIndex(item => item._id === id);
-                        if (idx > -1) localTimeline[idx] = savedItem;
-                        
-                        const oldRow = tbody.querySelector(`tr[data-id="${id}"]`);
-                        if (oldRow) {
-                            const newRow = createTimelineRow(savedItem);
-                            tbody.replaceChild(newRow, oldRow);
+                        if (oldItemIndex > -1) localTimeline[oldItemIndex] = originalItem;
+                        const rowToRestore = tbody.querySelector(`tr[data-id="${tempId}"]`);
+                        if (rowToRestore && oldRow) {
+                            tbody.replaceChild(oldRow, rowToRestore);
                         }
                     } else {
-                        localTimeline.push(savedItem);
-                        tbody.appendChild(createTimelineRow(savedItem));
+                        const idxToRemove = localTimeline.findIndex(item => item._id === tempId);
+                        if (idxToRemove > -1) localTimeline.splice(idxToRemove, 1);
+                        const rowToRemove = tbody.querySelector(`tr[data-id="${tempId}"]`);
+                        if (rowToRemove) {
+                            rowToRemove.classList.add('row-fade-out');
+                            setTimeout(() => {
+                                if (rowToRemove.parentNode) rowToRemove.parentNode.removeChild(rowToRemove);
+                            }, 250);
+                        }
                     }
-
-                    showToast("Timeline entry saved successfully!");
-                    closeTimelineModal();
-                    console.log(`[PERF] Save timeline workflow completed in ${(performance.now() - startTime).toFixed(2)}ms`);
-                } catch (err) {
-                    showToast(err.message, "error");
-                } finally {
-                    submitBtn.disabled = false;
-                    submitBtn.innerHTML = originalBtnText;
                 }
             });
 
@@ -3248,13 +3438,39 @@
                 const link = document.getElementById('cert-link').value.trim();
                 const image = document.getElementById('cert-image').value;
 
-                const submitBtn = certForm.querySelector('button[type="submit"]');
-                const originalBtnText = submitBtn.innerHTML;
-                submitBtn.disabled = true;
-                submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
+                closeCertModal();
+                showToast("Saving certification changes...", "accent");
 
                 const url = id ? `/api/certificates/${id}` : '/api/certificates';
                 const method = id ? 'PUT' : 'POST';
+
+                const tempId = id || 'temp-' + Date.now();
+                const optimisticCert = {
+                    _id: tempId, title, organization: org, issue_date: date, credential_link: link, image_url: image
+                };
+
+                const tbody = document.getElementById('certs-table-body');
+                let oldRow = null;
+                let oldCertIndex = -1;
+                let originalCert = null;
+
+                if (id) {
+                    oldCertIndex = localCertificates.findIndex(c => c._id === id);
+                    if (oldCertIndex > -1) {
+                        originalCert = { ...localCertificates[oldCertIndex] };
+                        localCertificates[oldCertIndex] = optimisticCert;
+                    }
+                    oldRow = tbody.querySelector(`tr[data-id="${id}"]`);
+                    if (oldRow) {
+                        const newRow = createCertRow(optimisticCert);
+                        tbody.replaceChild(newRow, oldRow);
+                    }
+                } else {
+                    localCertificates.push(optimisticCert);
+                    const newRow = createCertRow(optimisticCert);
+                    newRow.classList.add('row-fade-in');
+                    tbody.appendChild(newRow);
+                }
 
                 try {
                     const res = await fetch(url, {
@@ -3270,29 +3486,38 @@
                     
                     const savedCert = await res.json();
                     
-                    const tbody = document.getElementById('certs-table-body');
+                    // Replace tempId
+                    const currentIdx = localCertificates.findIndex(c => c._id === tempId);
+                    if (currentIdx > -1) localCertificates[currentIdx] = savedCert;
+                    
+                    const rowToUpdate = tbody.querySelector(`tr[data-id="${tempId}"]`);
+                    if (rowToUpdate) {
+                        const finalRow = createCertRow(savedCert);
+                        tbody.replaceChild(finalRow, rowToUpdate);
+                    }
+                    showToast("Certification saved successfully!");
+                } catch (err) {
+                    console.error("Optimistic cert save error:", err);
+                    showToast("Failed to save certification: " + err.message, "error");
+                    
+                    // Rollback
                     if (id) {
-                        const idx = localCertificates.findIndex(c => c._id === id);
-                        if (idx > -1) localCertificates[idx] = savedCert;
-                        
-                        const oldRow = tbody.querySelector(`tr[data-id="${id}"]`);
-                        if (oldRow) {
-                            const newRow = createCertRow(savedCert);
-                            tbody.replaceChild(newRow, oldRow);
+                        if (oldCertIndex > -1) localCertificates[oldCertIndex] = originalCert;
+                        const rowToRestore = tbody.querySelector(`tr[data-id="${tempId}"]`);
+                        if (rowToRestore && oldRow) {
+                            tbody.replaceChild(oldRow, rowToRestore);
                         }
                     } else {
-                        localCertificates.push(savedCert);
-                        tbody.appendChild(createCertRow(savedCert));
+                        const idxToRemove = localCertificates.findIndex(c => c._id === tempId);
+                        if (idxToRemove > -1) localCertificates.splice(idxToRemove, 1);
+                        const rowToRemove = tbody.querySelector(`tr[data-id="${tempId}"]`);
+                        if (rowToRemove) {
+                            rowToRemove.classList.add('row-fade-out');
+                            setTimeout(() => {
+                                if (rowToRemove.parentNode) rowToRemove.parentNode.removeChild(rowToRemove);
+                            }, 250);
+                        }
                     }
-
-                    showToast("Certification saved successfully!");
-                    closeCertModal();
-                    console.log(`[PERF] Save cert workflow completed in ${(performance.now() - startTime).toFixed(2)}ms`);
-                } catch (err) {
-                    showToast(err.message, "error");
-                } finally {
-                    submitBtn.disabled = false;
-                    submitBtn.innerHTML = originalBtnText;
                 }
             });
 
@@ -4299,35 +4524,38 @@
 
             // General Info load & save
             async function loadUXISettings() {
-                // 1. General settings
                 try {
-                    const gen = await fetch('/api/uxi/general').then(res => res.json());
-                    if (gen) {
-                        updateSelectorPreview('uxi-logo', gen.logo_url || '');
-                        document.getElementById('uxi-about-copy').value = gen.about_copy || '';
-                        document.getElementById('uxi-mission').value = gen.mission || '';
-                        document.getElementById('uxi-vision').value = gen.vision || '';
-                        document.getElementById('uxi-founded-year').value = gen.founded_year || '2026';
-                        document.getElementById('uxi-website-link').value = gen.website_link || 'https://uxitech.in';
-                        document.getElementById('uxi-email').value = gen.email || 'contact@uxitech.in';
-                        document.getElementById('uxi-phone').value = gen.phone || '';
-                        document.getElementById('uxi-location').value = gen.location || '';
+                    await Promise.all([
+                        (async () => {
+                            try {
+                                const gen = await fetch('/api/uxi/general').then(res => res.json());
+                                if (gen) {
+                                    updateSelectorPreview('uxi-logo', gen.logo_url || '');
+                                    document.getElementById('uxi-about-copy').value = gen.about_copy || '';
+                                    document.getElementById('uxi-mission').value = gen.mission || '';
+                                    document.getElementById('uxi-vision').value = gen.vision || '';
+                                    document.getElementById('uxi-founded-year').value = gen.founded_year || '2026';
+                                    document.getElementById('uxi-website-link').value = gen.website_link || 'https://uxitech.in';
+                                    document.getElementById('uxi-email').value = gen.email || 'contact@uxitech.in';
+                                    document.getElementById('uxi-phone').value = gen.phone || '';
+                                    document.getElementById('uxi-location').value = gen.location || '';
 
-                        // Load Footer Settings
-                        document.getElementById('uxi-footer-company').value = gen.footer_btn_text || 'UXI Technologies';
-                        document.getElementById('uxi-footer-tagline').value = gen.footer_tagline || 'Empowering the next generation of seamless web experiences.';
-                        document.getElementById('uxi-footer-website').value = gen.footer_btn_link || 'https://uxitech.in';
-                        document.getElementById('uxi-footer-copyright').value = gen.footer_text || '© 2026 UXI Startup. All rights reserved.';
-                    }
+                                    // Load Footer Settings
+                                    document.getElementById('uxi-footer-company').value = gen.footer_btn_text || 'UXI Technologies';
+                                    document.getElementById('uxi-footer-tagline').value = gen.footer_tagline || 'Empowering the next generation of seamless web experiences.';
+                                    document.getElementById('uxi-footer-website').value = gen.footer_btn_link || 'https://uxitech.in';
+                                    document.getElementById('uxi-footer-copyright').value = gen.footer_text || '© 2026 UXI Startup. All rights reserved.';
+                                }
+                            } catch (e) {
+                                console.error("Failed to load UXI general settings", e);
+                            }
+                        })(),
+                        loadUXITeam(),
+                        loadUXIProjects()
+                    ]);
                 } catch (e) {
-                    console.error("Failed to load UXI general settings", e);
+                    console.error("Failed to parallel load UXI sub-modules", e);
                 }
-
-                // 2. Team list
-                loadUXITeam();
-
-                // 3. Projects list
-                loadUXIProjects();
             }
             window.loadUXISettings = loadUXISettings;
 
@@ -4650,13 +4878,39 @@
 
                 const skills = skillsStr.split(',').map(s => s.trim()).filter(s => s.length > 0);
 
-                const submitBtn = uxiTeamForm.querySelector('button[type="submit"]');
-                const originalBtnText = submitBtn.innerHTML;
-                submitBtn.disabled = true;
-                submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
+                closeUXITeamModal();
+                showToast("Saving team member changes...", "accent");
 
                 const url = id ? `/api/uxi/team/${id}` : '/api/uxi/team';
                 const method = id ? 'PUT' : 'POST';
+
+                const tempId = id || 'temp-' + Date.now();
+                const optimisticMember = {
+                    _id: tempId, name, role, bio, responsibilities, skills, linkedin_link, photo_url
+                };
+
+                const tbody = document.getElementById('uxi-team-table-body');
+                let oldRow = null;
+                let oldMemberIndex = -1;
+                let originalMember = null;
+
+                if (id) {
+                    oldMemberIndex = localUXITeam.findIndex(m => m._id === id);
+                    if (oldMemberIndex > -1) {
+                        originalMember = { ...localUXITeam[oldMemberIndex] };
+                        localUXITeam[oldMemberIndex] = optimisticMember;
+                    }
+                    oldRow = tbody.querySelector(`tr[data-id="${id}"]`);
+                    if (oldRow) {
+                        const newRow = createUXITeamRow(optimisticMember);
+                        tbody.replaceChild(newRow, oldRow);
+                    }
+                } else {
+                    localUXITeam.push(optimisticMember);
+                    const newRow = createUXITeamRow(optimisticMember);
+                    newRow.classList.add('row-fade-in');
+                    tbody.appendChild(newRow);
+                }
 
                 try {
                     const res = await fetch(url, {
@@ -4672,29 +4926,38 @@
 
                     const savedMember = await res.json();
                     
-                    const tbody = document.getElementById('uxi-team-table-body');
+                    // Replace tempId
+                    const currentIdx = localUXITeam.findIndex(m => m._id === tempId);
+                    if (currentIdx > -1) localUXITeam[currentIdx] = savedMember;
+                    
+                    const rowToUpdate = tbody.querySelector(`tr[data-id="${tempId}"]`);
+                    if (rowToUpdate) {
+                        const finalRow = createUXITeamRow(savedMember);
+                        tbody.replaceChild(finalRow, rowToUpdate);
+                    }
+                    showToast("Team member saved successfully!");
+                } catch (err) {
+                    console.error("Optimistic UXI team save error:", err);
+                    showToast("Failed to save team member: " + err.message, "error");
+                    
+                    // Rollback
                     if (id) {
-                        const idx = localUXITeam.findIndex(m => m._id === id);
-                        if (idx > -1) localUXITeam[idx] = savedMember;
-                        
-                        const oldRow = tbody.querySelector(`tr[data-id="${id}"]`);
-                        if (oldRow) {
-                            const newRow = createUXITeamRow(savedMember);
-                            tbody.replaceChild(newRow, oldRow);
+                        if (oldMemberIndex > -1) localUXITeam[oldMemberIndex] = originalMember;
+                        const rowToRestore = tbody.querySelector(`tr[data-id="${tempId}"]`);
+                        if (rowToRestore && oldRow) {
+                            tbody.replaceChild(oldRow, rowToRestore);
                         }
                     } else {
-                        localUXITeam.push(savedMember);
-                        tbody.appendChild(createUXITeamRow(savedMember));
+                        const idxToRemove = localUXITeam.findIndex(m => m._id === tempId);
+                        if (idxToRemove > -1) localUXITeam.splice(idxToRemove, 1);
+                        const rowToRemove = tbody.querySelector(`tr[data-id="${tempId}"]`);
+                        if (rowToRemove) {
+                            rowToRemove.classList.add('row-fade-out');
+                            setTimeout(() => {
+                                if (rowToRemove.parentNode) rowToRemove.parentNode.removeChild(rowToRemove);
+                            }, 250);
+                        }
                     }
-
-                    showToast("Team member saved successfully!");
-                    closeUXITeamModal();
-                    console.log(`[PERF] Save team member workflow completed in ${(performance.now() - startTime).toFixed(2)}ms`);
-                } catch (err) {
-                    showToast(err.message, "error");
-                } finally {
-                    submitBtn.disabled = false;
-                    submitBtn.innerHTML = originalBtnText;
                 }
             });
 
@@ -4820,13 +5083,40 @@
                 const technologies = techStr.split(',').map(s => s.trim()).filter(s => s.length > 0);
                 const expected_features = expected_features_str.split(',').map(s => s.trim()).filter(s => s.length > 0);
 
-                const submitBtn = uxiProjForm.querySelector('button[type="submit"]');
-                const originalBtnText = submitBtn.innerHTML;
-                submitBtn.disabled = true;
-                submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
+                closeUXIProjectModal();
+                showToast("Saving UXI project changes...", "accent");
 
                 const url = id ? `/api/uxi/projects/${id}` : '/api/uxi/projects';
                 const method = id ? 'PUT' : 'POST';
+
+                const tempId = id || 'temp-' + Date.now();
+                const optimisticProj = {
+                    _id: tempId, name, status, description, technologies, image_url, github_link, live_link, 
+                    completion_date, dev_stage, expected_release, progress_percent, coming_soon, expected_features 
+                };
+
+                const tbody = document.getElementById('uxi-project-table-body');
+                let oldRow = null;
+                let oldProjIndex = -1;
+                let originalProj = null;
+
+                if (id) {
+                    oldProjIndex = localUXIProjects.findIndex(p => p._id === id);
+                    if (oldProjIndex > -1) {
+                        originalProj = { ...localUXIProjects[oldProjIndex] };
+                        localUXIProjects[oldProjIndex] = optimisticProj;
+                    }
+                    oldRow = tbody.querySelector(`tr[data-id="${id}"]`);
+                    if (oldRow) {
+                        const newRow = createUXIProjectRow(optimisticProj);
+                        tbody.replaceChild(newRow, oldRow);
+                    }
+                } else {
+                    localUXIProjects.push(optimisticProj);
+                    const newRow = createUXIProjectRow(optimisticProj);
+                    newRow.classList.add('row-fade-in');
+                    tbody.appendChild(newRow);
+                }
 
                 try {
                     const res = await fetch(url, {
@@ -4845,29 +5135,38 @@
 
                     const savedProj = await res.json();
                     
-                    const tbody = document.getElementById('uxi-project-table-body');
+                    // Replace tempId
+                    const currentIdx = localUXIProjects.findIndex(p => p._id === tempId);
+                    if (currentIdx > -1) localUXIProjects[currentIdx] = savedProj;
+                    
+                    const rowToUpdate = tbody.querySelector(`tr[data-id="${tempId}"]`);
+                    if (rowToUpdate) {
+                        const finalRow = createUXIProjectRow(savedProj);
+                        tbody.replaceChild(finalRow, rowToUpdate);
+                    }
+                    showToast("UXI Project saved successfully!");
+                } catch (err) {
+                    console.error("Optimistic UXI project save error:", err);
+                    showToast("Failed to save project: " + err.message, "error");
+                    
+                    // Rollback
                     if (id) {
-                        const idx = localUXIProjects.findIndex(p => p._id === id);
-                        if (idx > -1) localUXIProjects[idx] = savedProj;
-                        
-                        const oldRow = tbody.querySelector(`tr[data-id="${id}"]`);
-                        if (oldRow) {
-                            const newRow = createUXIProjectRow(savedProj);
-                            tbody.replaceChild(newRow, oldRow);
+                        if (oldProjIndex > -1) localUXIProjects[oldProjIndex] = originalProj;
+                        const rowToRestore = tbody.querySelector(`tr[data-id="${tempId}"]`);
+                        if (rowToRestore && oldRow) {
+                            tbody.replaceChild(oldRow, rowToRestore);
                         }
                     } else {
-                        localUXIProjects.push(savedProj);
-                        tbody.appendChild(createUXIProjectRow(savedProj));
+                        const idxToRemove = localUXIProjects.findIndex(p => p._id === tempId);
+                        if (idxToRemove > -1) localUXIProjects.splice(idxToRemove, 1);
+                        const rowToRemove = tbody.querySelector(`tr[data-id="${tempId}"]`);
+                        if (rowToRemove) {
+                            rowToRemove.classList.add('row-fade-out');
+                            setTimeout(() => {
+                                if (rowToRemove.parentNode) rowToRemove.parentNode.removeChild(rowToRemove);
+                            }, 250);
+                        }
                     }
-
-                    showToast("UXI Project saved successfully!");
-                    closeUXIProjectModal();
-                    console.log(`[PERF] Save UXI project workflow completed in ${(performance.now() - startTime).toFixed(2)}ms`);
-                } catch (err) {
-                    showToast(err.message, "error");
-                } finally {
-                    submitBtn.disabled = false;
-                    submitBtn.innerHTML = originalBtnText;
                 }
             });
 

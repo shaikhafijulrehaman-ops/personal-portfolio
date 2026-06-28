@@ -160,9 +160,19 @@
         .back-to-site:hover {
             color: var(--accent);
         }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
+
+    <!-- Fullscreen Recovery Loader Overlay -->
+    <div id="session-recovery-loader" style="display: none; position: fixed; top:0; left:0; width:100vw; height:100vh; background: #0b0f19; z-index: 99999; flex-direction: column; align-items: center; justify-content: center; gap: 20px;">
+        <div class="loader-spinner" style="width: 50px; height: 50px; border: 3px solid rgba(255,255,255,0.05); border-top-color: #3b82f6; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+        <p style="color: #94a3b8; font-size: 14px; font-weight: 500; font-family: 'Inter', sans-serif;">Restoring your session...</p>
+    </div>
 
     <!-- Spotlight Cursor Glow -->
     <div class="cursor-glow" id="cursor-glow" style="display: block;"></div>
@@ -219,26 +229,78 @@
             // Redirect if already logged in (verify token validity)
             const token = localStorage.getItem("admin_token");
             if (token) {
+                const recoveryLoader = document.getElementById('session-recovery-loader');
+                if (recoveryLoader) recoveryLoader.style.display = 'flex';
+                
                 fetch('/api/auth/me', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 }).then(res => {
                     const contentType = res.headers.get("content-type");
                     if (res.ok && contentType && contentType.includes("application/json")) {
                         window.location.href = "admin.html";
+                    } else {
+                        if (recoveryLoader) recoveryLoader.style.display = 'none';
+                        localStorage.removeItem("admin_token");
                     }
-                }).catch(err => console.error("Verify token error:", err));
+                }).catch(err => {
+                    console.error("Verify token error:", err);
+                    if (recoveryLoader) recoveryLoader.style.display = 'none';
+                });
             }
+
+            // Real-time input validation
+            const emailInput = document.getElementById('email');
+            const passwordInput = document.getElementById('password');
+            
+            function validateInputs() {
+                const email = emailInput.value.trim();
+                const password = passwordInput.value;
+                const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+                const passwordValid = password.length >= 6;
+                
+                if (email && !emailValid) {
+                    emailInput.style.borderColor = 'rgba(239, 68, 68, 0.5)';
+                } else if (emailValid) {
+                    emailInput.style.borderColor = 'rgba(34, 197, 94, 0.5)';
+                } else {
+                    emailInput.style.borderColor = '';
+                }
+                
+                if (password && !passwordValid) {
+                    passwordInput.style.borderColor = 'rgba(239, 68, 68, 0.5)';
+                } else if (passwordValid) {
+                    passwordInput.style.borderColor = 'rgba(34, 197, 94, 0.5)';
+                } else {
+                    passwordInput.style.borderColor = '';
+                }
+            }
+            
+            emailInput.addEventListener('input', validateInputs);
+            passwordInput.addEventListener('input', validateInputs);
 
             loginForm.addEventListener("submit", async (e) => {
                 e.preventDefault();
                 errorBox.classList.remove('active');
                 
-                const email = document.getElementById('email').value.trim();
-                const password = document.getElementById('password').value;
+                const email = emailInput.value.trim();
+                const password = passwordInput.value;
+
+                // Validate before submission
+                const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+                if (!emailValid) {
+                    errorText.textContent = "Please enter a valid email address.";
+                    errorBox.classList.add('active');
+                    return;
+                }
+                if (password.length < 6) {
+                    errorText.textContent = "Password must be at least 6 characters long.";
+                    errorBox.classList.add('active');
+                    return;
+                }
 
                 // Set loading status
                 btnSubmit.disabled = true;
-                btnText.textContent = "Authenticating...";
+                btnSubmit.innerHTML = '<i class="fa-solid fa-spinner fa-spin" style="margin-right: 8px;"></i> Authenticating...';
 
                 try {
                     const res = await fetch('/api/auth/login', {
@@ -252,7 +314,6 @@
                     if (contentType && contentType.includes("application/json")) {
                         data = await res.json();
                     } else {
-                        // Response is not JSON (e.g. Vercel 404 HTML, Render 502 HTML)
                         throw new Error("Could not connect to the backend server. Please verify your backend Render URL in frontend/config.js.");
                     }
 
@@ -267,9 +328,8 @@
                     console.error("Login error:", err);
                     errorText.textContent = err.message || "Authentication failed.";
                     errorBox.classList.add('active');
-                } finally {
                     btnSubmit.disabled = false;
-                    btnText.textContent = "Sign In";
+                    btnSubmit.innerHTML = 'Sign In <i class="fa-solid fa-arrow-right-to-bracket" style="margin-left: 8px;"></i>';
                 }
             });
         });
