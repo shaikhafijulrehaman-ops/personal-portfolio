@@ -1902,3 +1902,34 @@ window.removeSelectedImage = (targetId) => {
         form.dispatchEvent(new Event('input'));
     }
 };
+
+window.handleDirectFaviconUpload = async (inputEl, targetId) => {
+    if (!inputEl.files || inputEl.files.length === 0) return;
+    const file = inputEl.files[0];
+    
+    showToast(`Uploading ${file.name} to Media Manager...`, "accent");
+    
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    try {
+        const res = await apiRequest('/api/media/upload', {
+            method: 'POST',
+            body: formData
+        });
+        
+        if (res && res.url) {
+            showToast("Upload successful!", "success");
+            updateSelectorPreview(targetId, res.url);
+            inputEl.value = '';
+            
+            // Dispatch input event to trigger form autosave
+            const form = inputEl.closest('form');
+            if (form) {
+                form.dispatchEvent(new Event('input'));
+            }
+        }
+    } catch (err) {
+        showToast(`Upload failed: ${err.message}`, "error");
+    }
+};
