@@ -1521,9 +1521,37 @@ async function seedSupabaseDatabase() {
     }
 }
 
+// ==========================================
+// SUPABASE STORAGE INITIALIZATION ENGINE
+// ==========================================
+async function initializeSupabaseStorage() {
+    const buckets = ['hero', 'projects', 'certificates', 'team', 'gallery', 'media', 'resume', 'logos'];
+    for (const bucketName of buckets) {
+        try {
+            const { data, error } = await supabaseAdmin.storage.getBucket(bucketName);
+            if (error || !data) {
+                const { error: createError } = await supabaseAdmin.storage.createBucket(bucketName, {
+                    public: true,
+                    fileSizeLimit: 52428800 // 50MB
+                });
+                if (createError) {
+                    console.error(`Failed to create bucket "${bucketName}":`, createError.message);
+                } else {
+                    console.log(`Successfully created public Supabase bucket: "${bucketName}"`);
+                }
+            } else {
+                console.log(`Supabase bucket "${bucketName}" already exists.`);
+            }
+        } catch (e) {
+            console.error(`Error checking/creating bucket "${bucketName}":`, e.message);
+        }
+    }
+}
+
 // Start Server & Run Seeder
 app.listen(PORT, async () => {
     console.log(`Server is running at http://localhost:${PORT}`);
+    await initializeSupabaseStorage();
     await seedSupabaseDatabase();
 });
 
