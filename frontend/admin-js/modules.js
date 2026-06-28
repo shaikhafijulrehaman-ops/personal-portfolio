@@ -549,28 +549,51 @@ export const lazyLoaders = {
     // ------------------------------------------
     projects: async () => {
         const projs = await apiRequest('/api/projects');
-        const tbody = document.getElementById('projects-table-body');
-        tbody.innerHTML = '';
+        const completedBody = document.getElementById('completed-projects-table-body');
+        const upcomingBody = document.getElementById('upcoming-projects-table-body');
+        
+        if (completedBody) completedBody.innerHTML = '';
+        if (upcomingBody) upcomingBody.innerHTML = '';
         
         projs.forEach(proj => {
             const tr = document.createElement('tr');
             tr.setAttribute('data-id', proj._id);
-            tr.innerHTML = `
-                <td><i class="fa-solid fa-grip-vertical drag-handle"></i></td>
-                <td><strong>${proj.name}</strong></td>
-                <td>${proj.status === 'Completed' ? '<span class="badge-status badge-published">Completed</span>' : '<span class="badge-status badge-draft">Upcoming</span>'}</td>
-                <td>${proj.is_featured ? '<span class="badge-status badge-published"><i class="fa-solid fa-star"></i> Featured</span>' : '<span style="color:var(--text-muted);">Standard</span>'}</td>
-                <td>${proj.technologies ? proj.technologies.slice(0, 3).join(', ') : ''}</td>
-                <td class="actions-cell">
-                    <button class="btn-icon edit-btn" title="Edit" onclick="editProject('${proj._id}')"><i class="fa-solid fa-pen"></i></button>
-                    <button class="btn-icon duplicate-btn" title="Duplicate" onclick="duplicateProject('${proj._id}')" style="margin: 0 4px;"><i class="fa-solid fa-copy"></i></button>
-                    <button class="btn-icon delete-btn" title="Delete" onclick="deleteProject('${proj._id}')"><i class="fa-solid fa-trash"></i></button>
-                </td>
-            `;
-            tbody.appendChild(tr);
+            
+            if (proj.status === 'Completed') {
+                tr.innerHTML = `
+                    <td><i class="fa-solid fa-grip-vertical drag-handle"></i></td>
+                    <td><strong>${proj.name}</strong></td>
+                    <td>${proj.short_desc || ''}</td>
+                    <td>${proj.technologies ? proj.technologies.slice(0, 3).join(', ') : ''}</td>
+                    <td>${proj.is_featured ? '<span class="badge-status badge-published"><i class="fa-solid fa-star"></i> Featured</span>' : '<span style="color:var(--text-muted);">Standard</span>'}</td>
+                    <td class="actions-cell">
+                        <button class="btn-icon edit-btn" title="Edit" onclick="editProject('${proj._id}')"><i class="fa-solid fa-pen"></i></button>
+                        <button class="btn-icon duplicate-btn" title="Duplicate" onclick="duplicateProject('${proj._id}')" style="margin: 0 4px;"><i class="fa-solid fa-copy"></i></button>
+                        <button class="btn-icon delete-btn" title="Delete" onclick="deleteProject('${proj._id}')"><i class="fa-solid fa-trash"></i></button>
+                    </td>
+                `;
+                if (completedBody) completedBody.appendChild(tr);
+            } else {
+                tr.innerHTML = `
+                    <td><i class="fa-solid fa-grip-vertical drag-handle"></i></td>
+                    <td><strong>${proj.name}</strong></td>
+                    <td>${proj.short_desc || ''}</td>
+                    <td>${proj.technologies ? proj.technologies.slice(0, 3).join(', ') : ''}</td>
+                    <td>${proj.dev_stage || 'Planning'}</td>
+                    <td>${proj.progress_percent || 0}%</td>
+                    <td>${proj.coming_soon ? '<span class="badge-status badge-draft">Yes</span>' : '<span style="color:var(--text-muted);">No</span>'}</td>
+                    <td class="actions-cell">
+                        <button class="btn-icon edit-btn" title="Edit" onclick="editProject('${proj._id}')"><i class="fa-solid fa-pen"></i></button>
+                        <button class="btn-icon duplicate-btn" title="Duplicate" onclick="duplicateProject('${proj._id}')" style="margin: 0 4px;"><i class="fa-solid fa-copy"></i></button>
+                        <button class="btn-icon delete-btn" title="Delete" onclick="deleteProject('${proj._id}')"><i class="fa-solid fa-trash"></i></button>
+                    </td>
+                `;
+                if (upcomingBody) upcomingBody.appendChild(tr);
+            }
         });
         
-        setupSortable('projects-table-body', '/api/projects/reorder');
+        if (completedBody) setupSortable('completed-projects-table-body', '/api/projects/reorder');
+        if (upcomingBody) setupSortable('upcoming-projects-table-body', '/api/projects/reorder');
     },
 
     // ------------------------------------------
@@ -606,26 +629,27 @@ export const lazyLoaders = {
     // ------------------------------------------
     certifications: async () => {
         const certs = await apiRequest('/api/certificates');
-        const tbody = document.getElementById('certifications-table-body');
-        tbody.innerHTML = '';
-        
-        certs.forEach(cert => {
-            const tr = document.createElement('tr');
-            tr.setAttribute('data-id', cert._id);
-            tr.innerHTML = `
-                <td><i class="fa-solid fa-grip-vertical drag-handle"></i></td>
-                <td><strong>${cert.title}</strong></td>
-                <td>${cert.organization}</td>
-                <td>${cert.issue_date}</td>
-                <td class="actions-cell">
-                    <button class="btn-icon edit-btn" onclick="editCertificate('${cert._id}')"><i class="fa-solid fa-pen"></i></button>
-                    <button class="btn-icon duplicate-btn" onclick="duplicateCertificate('${cert._id}')" style="margin: 0 4px;"><i class="fa-solid fa-copy"></i></button>
-                    <button class="btn-icon delete-btn" onclick="deleteCertificate('${cert._id}')"><i class="fa-solid fa-trash"></i></button>
-                </td>
-            `;
-            tbody.appendChild(tr);
-        });
-        setupSortable('certifications-table-body', '/api/certificates/reorder');
+        const tbody = document.getElementById('certs-table-body');
+        if (tbody) {
+            tbody.innerHTML = '';
+            certs.forEach(cert => {
+                const tr = document.createElement('tr');
+                tr.setAttribute('data-id', cert._id);
+                tr.innerHTML = `
+                    <td><i class="fa-solid fa-grip-vertical drag-handle"></i></td>
+                    <td><strong>${cert.title}</strong></td>
+                    <td>${cert.organization}</td>
+                    <td>${cert.issue_date}</td>
+                    <td class="actions-cell">
+                        <button class="btn-icon edit-btn" onclick="editCertificate('${cert._id}')"><i class="fa-solid fa-pen"></i></button>
+                        <button class="btn-icon duplicate-btn" onclick="duplicateCertificate('${cert._id}')" style="margin: 0 4px;"><i class="fa-solid fa-copy"></i></button>
+                        <button class="btn-icon delete-btn" onclick="deleteCertificate('${cert._id}')"><i class="fa-solid fa-trash"></i></button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+            setupSortable('certs-table-body', '/api/certificates/reorder');
+        }
     },
 
     // ------------------------------------------
