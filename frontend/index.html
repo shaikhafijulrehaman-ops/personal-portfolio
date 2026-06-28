@@ -678,6 +678,67 @@
                             const blur = heroRes.blur !== undefined ? heroRes.blur : 0;
                             mediaWrapper.style.filter = `brightness(${brightness}%) contrast(${contrast}%) blur(${blur}px)`;
                         }
+
+                        // Load dynamic section backgrounds from Background Manager
+                        try {
+                            const bgRes = await fetch('/api/settings/backgrounds').then(res => res.json());
+                            if (bgRes) {
+                                if (bgRes.hero_bg_type === 'video' && bgRes.hero_bg_video) {
+                                    const mediaWrapper = document.getElementById('hero-bg-media-wrapper');
+                                    if (mediaWrapper) {
+                                        mediaWrapper.innerHTML = '';
+                                        const video = document.createElement('video');
+                                        video.src = bgRes.hero_bg_video;
+                                        video.autoplay = true;
+                                        video.loop = true;
+                                        video.muted = true;
+                                        video.playsInline = true;
+                                        video.setAttribute('playsinline', '');
+                                        video.style.width = '100%';
+                                        video.style.height = '100%';
+                                        video.style.objectFit = 'cover';
+                                        if (bgRes.hero_bg_image) {
+                                            video.poster = bgRes.hero_bg_image;
+                                        }
+                                        mediaWrapper.appendChild(video);
+                                    }
+                                } else if (bgRes.hero_bg_image) {
+                                    const mediaWrapper = document.getElementById('hero-bg-media-wrapper');
+                                    if (mediaWrapper) {
+                                        mediaWrapper.innerHTML = '';
+                                        const img = document.createElement('img');
+                                        img.src = bgRes.hero_bg_image;
+                                        img.style.width = '100%';
+                                        img.style.height = '100%';
+                                        img.style.objectFit = 'cover';
+                                        mediaWrapper.appendChild(img);
+                                    }
+                                }
+
+                                const aboutSec = document.getElementById('about');
+                                if (aboutSec && bgRes.about_bg_image) {
+                                    aboutSec.style.backgroundImage = `url('${bgRes.about_bg_image}')`;
+                                    aboutSec.style.backgroundSize = 'cover';
+                                    aboutSec.style.backgroundPosition = 'center';
+                                }
+
+                                const projectsSec = document.getElementById('projects');
+                                if (projectsSec && bgRes.projects_bg_image) {
+                                    projectsSec.style.backgroundImage = `url('${bgRes.projects_bg_image}')`;
+                                    projectsSec.style.backgroundSize = 'cover';
+                                    projectsSec.style.backgroundPosition = 'center';
+                                }
+
+                                const contactSec = document.getElementById('contact');
+                                if (contactSec && bgRes.contact_bg_image) {
+                                    contactSec.style.backgroundImage = `url('${bgRes.contact_bg_image}')`;
+                                    contactSec.style.backgroundSize = 'cover';
+                                    contactSec.style.backgroundPosition = 'center';
+                                }
+                            }
+                        } catch (e) {
+                            console.error("Failed to load section backgrounds:", e);
+                        }
                         
                         // Re-initialize Typed with dynamic tags
                         if (heroRes.tagline) {

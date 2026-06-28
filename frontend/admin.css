@@ -659,6 +659,298 @@ input:checked + .slider:before {
     border-left-color: var(--danger);
 }
 
+/* Media Explorer Additions */
+.breadcrumbs-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 20px;
+    font-size: 14px;
+    color: var(--text-muted);
+}
+.breadcrumb-item {
+    cursor: pointer;
+    font-weight: 500;
+    transition: color 0.2s;
+}
+.breadcrumb-item:hover {
+    color: var(--accent);
+}
+.breadcrumb-item.active {
+    color: var(--text);
+    cursor: default;
+}
+.breadcrumb-separator {
+    color: var(--border);
+}
+
+.media-explorer-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    margin-bottom: 20px;
+    padding: 15px;
+    background: rgba(30, 41, 59, 0.5);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+}
+.search-box-wrapper {
+    position: relative;
+    flex: 1;
+    min-width: 200px;
+}
+.search-box-wrapper input {
+    width: 100%;
+    padding: 10px 16px 10px 40px;
+    border-radius: 12px;
+    background: #0f172a;
+    border: 1px solid var(--border);
+    color: var(--text);
+}
+.search-box-wrapper i {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+}
+
+.media-explorer-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.view-mode-toggles {
+    display: flex;
+    background: #0f172a;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    padding: 2px;
+}
+.view-mode-toggles button {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    padding: 8px 12px;
+    cursor: pointer;
+    border-radius: 10px;
+    transition: all 0.2s;
+}
+.view-mode-toggles button.active {
+    background: var(--accent);
+    color: white;
+}
+
+.folder-item {
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    transition: transform 0.2s, border-color 0.2s;
+}
+.folder-item:hover {
+    transform: translateY(-2px);
+    border-color: var(--accent);
+}
+.folder-icon {
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.folder-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+    text-align: center;
+    word-break: break-all;
+    max-width: 100%;
+}
+.folder-delete {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+.folder-item:hover .folder-delete {
+    opacity: 1;
+}
+
+/* List Table view */
+.media-explorer-list-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+.media-explorer-list-table th, 
+.media-explorer-list-table td {
+    padding: 12px 16px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+}
+.media-explorer-list-table th {
+    font-weight: 600;
+    color: var(--text-muted);
+    background: rgba(30, 41, 59, 0.3);
+}
+.media-explorer-list-table tr:hover {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+/* Upload progress styles */
+.upload-progress-container {
+    width: 100%;
+    margin-top: 15px;
+    background: #0f172a;
+    border-radius: 12px;
+    padding: 12px 16px;
+    border: 1px solid var(--border);
+}
+.progress-bar-wrapper {
+    height: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    overflow: hidden;
+    margin: 8px 0;
+}
+.progress-bar-inner {
+    height: 100%;
+    background: var(--accent);
+    width: 0;
+    transition: width 0.1s ease;
+}
+
+/* Disabled button state */
+button.btn-disabled {
+    opacity: 0.5 !important;
+    cursor: not-allowed !important;
+    pointer-events: none !important;
+    background: var(--border) !important;
+    border-color: var(--border) !important;
+    box-shadow: none !important;
+}
+
+/* Toggle Switches */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 26px;
+}
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+.switch-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: rgba(255, 255, 255, 0.1);
+    transition: .3s;
+    border-radius: 34px;
+    border: 1px solid var(--border);
+}
+.switch-slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+    background-color: var(--text-muted);
+    transition: .3s;
+    border-radius: 50%;
+}
+input:checked + .switch-slider {
+    background-color: var(--accent);
+}
+input:checked + .switch-slider:before {
+    transform: translateX(24px);
+    background-color: #ffffff;
+}
+
+/* Tags Input Container */
+.tags-input-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 10px;
+    background: #0f172a;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    min-height: 48px;
+    align-items: center;
+    cursor: text;
+}
+.tags-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+.tag-badge {
+    background: rgba(37, 99, 235, 0.2);
+    border: 1px solid rgba(37, 99, 235, 0.4);
+    color: var(--accent-light, #60a5fa);
+    padding: 4px 10px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+.tag-badge i {
+    cursor: pointer;
+    font-size: 10px;
+    color: var(--text-muted);
+}
+.tag-badge i:hover {
+    color: var(--danger);
+}
+.tag-text-entry {
+    background: none;
+    border: none;
+    outline: none;
+    color: var(--text);
+    font-size: 13px;
+    flex: 1;
+    min-width: 120px;
+    padding: 0;
+}
+
+/* Responsive sidebar drawer navigation on tablet/mobile */
+@media (max-width: 768px) {
+    .sidebar-toggle-btn {
+        display: block !important;
+        margin-right: 15px;
+    }
+    
+    #sidebar {
+        position: fixed;
+        left: -280px;
+        top: 0;
+        bottom: 0;
+        z-index: 99999;
+        transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        width: 280px;
+        box-shadow: 5px 0 25px rgba(0,0,0,0.5);
+    }
+    #sidebar.mobile-open {
+        left: 0;
+    }
+    .main-content {
+        margin-left: 0 !important;
+        width: 100% !important;
+    }
+}
+
 @keyframes slideInToast {
     to {
         transform: translateY(0);

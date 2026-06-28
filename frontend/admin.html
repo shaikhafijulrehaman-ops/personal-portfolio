@@ -43,6 +43,7 @@
             <li data-module="contact"><a href="#contact"><i class="fa-solid fa-address-book"></i> Contact Settings</a></li>
             <li data-module="seo"><a href="#seo"><i class="fa-solid fa-globe"></i> SEO Settings</a></li>
             <li data-module="media"><a href="#media"><i class="fa-solid fa-images"></i> Media Manager</a></li>
+            <li data-module="backgrounds"><a href="#backgrounds"><i class="fa-solid fa-photo-film"></i> Background Manager</a></li>
             <li data-module="resume"><a href="#resume"><i class="fa-solid fa-file-pdf"></i> Resume Settings</a></li>
             <li data-module="uxi"><a href="#uxi"><i class="fa-solid fa-rocket"></i> UXI Startup</a></li>
             <li data-module="mobilenav"><a href="#mobilenav"><i class="fa-solid fa-compass"></i> Mobile Navigation</a></li>
@@ -549,17 +550,192 @@
              MODULE: Media Library (Uploader)
              ======================================================== -->
         <section id="module-media" class="dashboard-module">
-            <div class="admin-card">
+            <div class="admin-card media-explorer-card">
+                <!-- Media Explorer Toolbar -->
+                <div class="media-explorer-toolbar">
+                    <div class="toolbar-left">
+                        <button class="btn-primary" type="button" onclick="openCreateFolderModal()"><i class="fa-solid fa-folder-plus"></i> New Folder</button>
+                        <div class="breadcrumb-container" id="media-breadcrumbs">
+                            <span class="breadcrumb-item active" onclick="navigateMediaFolder('')">Root</span>
+                        </div>
+                    </div>
+                    <div class="toolbar-right">
+                        <div class="search-box">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <input type="text" id="media-search-input" placeholder="Search files..." oninput="filterMediaGrid()">
+                        </div>
+                        <select id="media-sort-select" onchange="sortMediaGrid()">
+                            <option value="date-desc">Newest First</option>
+                            <option value="date-asc">Oldest First</option>
+                            <option value="name-asc">Name (A-Z)</option>
+                            <option value="name-desc">Name (Z-A)</option>
+                            <option value="size-desc">Size (Large-Small)</option>
+                            <option value="size-asc">Size (Small-Large)</option>
+                        </select>
+                        <div class="view-mode-toggles">
+                            <button class="btn-icon active" type="button" id="view-mode-grid" onclick="setMediaViewMode('grid')"><i class="fa-solid fa-grip"></i></button>
+                            <button class="btn-icon" type="button" id="view-mode-list" onclick="setMediaViewMode('list')"><i class="fa-solid fa-list"></i></button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Drag & Drop Uploader Area -->
                 <div class="media-upload-area" id="dropzone">
                     <i class="fa-solid fa-cloud-arrow-up"></i>
                     <h3>Drag & Drop files here, or click to upload</h3>
-                    <p style="color: var(--text-muted); font-size: 12px; margin-top: 5px;">Supports: JPG, PNG, WEBP, SVG</p>
-                    <input type="file" id="file-uploader" style="display: none;" accept="image/*">
+                    <p style="color: var(--text-muted); font-size: 12px; margin-top: 5px;">Supports: JPG, JPEG, PNG, WEBP (Max 5MB)</p>
+                    <input type="file" id="file-uploader" style="display: none;" accept="image/*,video/*" multiple>
+                    
+                    <!-- Inline Upload Progress bar -->
+                    <div class="upload-progress-container" id="media-upload-progress" style="display: none; width: 100%; max-width: 400px; margin: 15px auto 0 auto;">
+                        <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 5px; color: var(--accent);">
+                            <span id="media-progress-text">Uploading...</span>
+                            <span id="media-progress-percent">0%</span>
+                        </div>
+                        <div class="progress-bar-track" style="height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden;">
+                            <div id="media-progress-bar" style="width: 0%; height: 100%; background: var(--accent); transition: width 0.1s ease;"></div>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="media-grid" id="media-grid">
-                    <!-- Populated dynamically -->
+                <!-- Media Display Grid/List Container -->
+                <div class="media-explorer-body">
+                    <!-- Grid View -->
+                    <div class="media-grid" id="media-grid">
+                        <!-- Populated dynamically -->
+                    </div>
+                    
+                    <!-- List View (Hidden by default) -->
+                    <div class="media-list-container" id="media-list-container" style="display: none;">
+                        <table class="admin-table responsive-table">
+                            <thead>
+                                <tr>
+                                    <th>Preview</th>
+                                    <th>Name</th>
+                                    <th>Date Modified</th>
+                                    <th>File Size</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="media-list-tbody">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
+            </div>
+        </section>
+
+        <!-- ========================================================
+             MODULE: Background Manager
+             ======================================================== -->
+        <section id="module-backgrounds" class="dashboard-module">
+            <div class="admin-card">
+                <form id="backgrounds-form">
+                    <h3 style="font-family: 'Orbitron', sans-serif; margin-bottom: 20px; color: var(--text);">Background Backdrop Settings</h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="bg-hero-type">Hero Background Type</label>
+                            <select id="bg-hero-type" onchange="toggleBackgroundHeroFields()">
+                                <option value="image">Image Background</option>
+                                <option value="video">Video Background</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group" id="bg-hero-image-group">
+                            <label>Hero Background Image</label>
+                            <div class="image-selector-widget" data-target="bg-hero-image">
+                                <div class="selector-preview-container" id="bg-hero-image-preview">
+                                    <i class="fa-solid fa-image"></i>
+                                </div>
+                                <div class="selector-actions">
+                                    <button type="button" class="btn-select" onclick="openMediaPicker('bg-hero-image')"><i class="fa-solid fa-photo-film"></i> Select Image</button>
+                                    <button type="button" class="btn-remove" onclick="removeSelectedImage('bg-hero-image')"><i class="fa-solid fa-trash-can"></i> Remove</button>
+                                    <div class="selector-info" id="bg-hero-image-info">No image selected</div>
+                                </div>
+                                <input type="hidden" id="bg-hero-image">
+                            </div>
+                        </div>
+
+                        <div class="form-group" id="bg-hero-video-group" style="display: none;">
+                            <label>Hero Background Video</label>
+                            <div class="image-selector-widget" data-target="bg-hero-video">
+                                <div class="selector-preview-container" id="bg-hero-video-preview">
+                                    <i class="fa-solid fa-file-video"></i>
+                                </div>
+                                <div class="selector-actions">
+                                    <button type="button" class="btn-select" onclick="openMediaPicker('bg-hero-video')"><i class="fa-solid fa-photo-film"></i> Select Video</button>
+                                    <button type="button" class="btn-remove" onclick="removeSelectedImage('bg-hero-video')"><i class="fa-solid fa-trash-can"></i> Remove</button>
+                                    <div class="selector-info" id="bg-hero-video-info">No video selected</div>
+                                </div>
+                                <input type="hidden" id="bg-hero-video">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>About Section Background</label>
+                            <div class="image-selector-widget" data-target="bg-about-image">
+                                <div class="selector-preview-container" id="bg-about-image-preview">
+                                    <i class="fa-solid fa-image"></i>
+                                </div>
+                                <div class="selector-actions">
+                                    <button type="button" class="btn-select" onclick="openMediaPicker('bg-about-image')"><i class="fa-solid fa-photo-film"></i> Select Image</button>
+                                    <button type="button" class="btn-remove" onclick="removeSelectedImage('bg-about-image')"><i class="fa-solid fa-trash-can"></i> Remove</button>
+                                    <div class="selector-info" id="bg-about-image-info">No image selected</div>
+                                </div>
+                                <input type="hidden" id="bg-about-image">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Projects Section Background</label>
+                            <div class="image-selector-widget" data-target="bg-projects-image">
+                                <div class="selector-preview-container" id="bg-projects-image-preview">
+                                    <i class="fa-solid fa-image"></i>
+                                </div>
+                                <div class="selector-actions">
+                                    <button type="button" class="btn-select" onclick="openMediaPicker('bg-projects-image')"><i class="fa-solid fa-photo-film"></i> Select Image</button>
+                                    <button type="button" class="btn-remove" onclick="removeSelectedImage('bg-projects-image')"><i class="fa-solid fa-trash-can"></i> Remove</button>
+                                    <div class="selector-info" id="bg-projects-image-info">No image selected</div>
+                                </div>
+                                <input type="hidden" id="bg-projects-image">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>UXI Startup Page Background</label>
+                            <div class="image-selector-widget" data-target="bg-uxi-image">
+                                <div class="selector-preview-container" id="bg-uxi-image-preview">
+                                    <i class="fa-solid fa-image"></i>
+                                </div>
+                                <div class="selector-actions">
+                                    <button type="button" class="btn-select" onclick="openMediaPicker('bg-uxi-image')"><i class="fa-solid fa-photo-film"></i> Select Image</button>
+                                    <button type="button" class="btn-remove" onclick="removeSelectedImage('bg-uxi-image')"><i class="fa-solid fa-trash-can"></i> Remove</button>
+                                    <div class="selector-info" id="bg-uxi-image-info">No image selected</div>
+                                </div>
+                                <input type="hidden" id="bg-uxi-image">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Contact Section Background</label>
+                            <div class="image-selector-widget" data-target="bg-contact-image">
+                                <div class="selector-preview-container" id="bg-contact-image-preview">
+                                    <i class="fa-solid fa-image"></i>
+                                </div>
+                                <div class="selector-actions">
+                                    <button type="button" class="btn-select" onclick="openMediaPicker('bg-contact-image')"><i class="fa-solid fa-photo-film"></i> Select Image</button>
+                                    <button type="button" class="btn-remove" onclick="removeSelectedImage('bg-contact-image')"><i class="fa-solid fa-trash-can"></i> Remove</button>
+                                    <div class="selector-info" id="bg-contact-image-info">No image selected</div>
+                                </div>
+                                <input type="hidden" id="bg-contact-image">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button class="btn-primary" type="submit" id="btn-save-backgrounds"><i class="fa-solid fa-cloud-arrow-up"></i> Save Background Settings</button>
+                    </div>
+                </form>
             </div>
         </section>
 
@@ -1662,6 +1838,7 @@
                     loadUXISettings();
                     loadWebsiteSettings();
                     loadMobileNavSettings();
+                    loadBackgroundSettings();
                 }
             });
 
@@ -1682,6 +1859,7 @@
                 contact: { title: "Contact Settings", subtitle: "Update email, location, phone, and direct messaging socials." },
                 seo: { title: "SEO Settings", subtitle: "Configure Open Graph metadata, titles, keywords, and search tags." },
                 media: { title: "Media Manager", subtitle: "Manage your portfolio graphics assets. Upload files directly." },
+                backgrounds: { title: "Background Manager", subtitle: "Configure dynamic image or video backgrounds for each page section." },
                 resume: { title: "Resume Settings", subtitle: "Upload or replace your resume PDF file for download actions." },
                 uxi: { title: "UXI Startup Settings", subtitle: "Configure General Startup Info, Team Members, and UXI Projects." },
                 mobilenav: { title: "Mobile Navigation Settings", subtitle: "Configure dynamic compact mobile headers and floating nav buttons." },
@@ -1882,6 +2060,9 @@
                     toggleHeroBgTypeFields();
                     handleOverlayOpacityChange();
                     updateHeroLivePreview();
+
+                    trackFormChanges('hero-form', getHeroFormData);
+                    document.getElementById('hero-form').setInitialData(getHeroFormData());
                 }
             }
 
@@ -1896,6 +2077,9 @@
                     document.getElementById('about-location').value = data.location;
                     updateSelectorPreview('about-image', data.image_url);
                     document.getElementById('about-description').value = data.description;
+
+                    trackFormChanges('about-form', getAboutFormData);
+                    document.getElementById('about-form').setInitialData(getAboutFormData());
                 }
             }
 
@@ -1976,6 +2160,9 @@
                     document.getElementById('social-linkedin').value = socialsData.linkedin;
                     document.getElementById('social-whatsapp').value = socialsData.whatsapp;
                 }
+                
+                trackFormChanges('contact-form', getContactFormData);
+                document.getElementById('contact-form').setInitialData(getContactFormData());
             }
 
             async function loadSEOSettings() {
@@ -1986,6 +2173,9 @@
                     document.getElementById('seo-keywords').value = data.keywords;
                     updateSelectorPreview('seo-image', data.image_url || '');
                     updateSelectorPreview('seo-favicon', data.favicon_url || '');
+                    
+                    trackFormChanges('seo-form', getSEOFormData);
+                    document.getElementById('seo-form').setInitialData(getSEOFormData());
                 }
             }
 
@@ -2051,6 +2241,10 @@
                         document.getElementById('mobilenav-animation').value = data.animation_type || 'pulse';
 
                         renderMobileNavMenuItems();
+
+                        // Register dirty baseline
+                        trackFormChanges('mobilenav-settings-form', getMobileNavFormData);
+                        document.getElementById('mobilenav-settings-form').setInitialData(getMobileNavFormData());
                     }
                 } catch (e) {
                     console.error("Failed to load Mobile Navigation settings:", e);
@@ -2116,6 +2310,11 @@
                 renderMobileNavMenuItems();
                 closeMobileNavItemModal();
                 showToast("Navigation item updated locally. Save configuration to apply.");
+                
+                const mainForm = document.getElementById('mobilenav-settings-form');
+                if (mainForm && typeof mainForm.checkChanges === 'function') {
+                    mainForm.checkChanges();
+                }
             });
 
             window.editMobileNavItem = (index) => {
@@ -2132,8 +2331,28 @@
                         localMobileNavSettings.menu_items.splice(index, 1);
                         renderMobileNavMenuItems();
                         showToast("Navigation item deleted locally. Save configuration to apply.");
+                        const form = document.getElementById('mobilenav-settings-form');
+                        if (form && typeof form.checkChanges === 'function') {
+                            form.checkChanges();
+                        }
                     }
                 });
+            };
+
+            window.getMobileNavFormData = () => {
+                return {
+                    is_enabled: document.getElementById('mobilenav-enabled').checked,
+                    is_fab_enabled: document.getElementById('mobilenav-fab-enabled').checked,
+                    icon_class: document.getElementById('mobilenav-icon-class').value.trim(),
+                    custom_image_url: document.getElementById('mobilenav-custom-image').value,
+                    button_size: parseInt(document.getElementById('mobilenav-size').value) || 60,
+                    position: document.getElementById('mobilenav-position').value,
+                    bg_color: document.getElementById('mobilenav-bg-color').value.trim(),
+                    border_style: document.getElementById('mobilenav-border').value.trim(),
+                    shadow_style: document.getElementById('mobilenav-shadow').value.trim(),
+                    animation_type: document.getElementById('mobilenav-animation').value,
+                    menu_items: localMobileNavSettings.menu_items || []
+                };
             };
 
             document.getElementById('mobilenav-settings-form').addEventListener('submit', async (e) => {
@@ -2166,12 +2385,21 @@
                     });
 
                     if (!res.ok) throw new Error("Failed to save Mobile Navigation settings.");
-                    showToast("Mobile Navigation settings saved successfully!");
+                    showToast("Mobile Navigation settings saved successfully!", "success");
+                    
+                    const form = document.getElementById('mobilenav-settings-form');
+                    if (typeof form.setInitialData === 'function') {
+                        form.setInitialData(getMobileNavFormData());
+                    }
                 } catch (err) {
                     showToast(err.message, "error");
                 } finally {
                     submitBtn.disabled = false;
                     submitBtn.innerHTML = originalBtnText;
+                    const form = document.getElementById('mobilenav-settings-form');
+                    if (typeof form.checkChanges === 'function') {
+                        form.checkChanges();
+                    }
                 }
             });
 
@@ -2189,6 +2417,11 @@
                     });
                     localMobileNavSettings.menu_items = newItems;
                     renderMobileNavMenuItems();
+                    
+                    const form = document.getElementById('mobilenav-settings-form');
+                    if (form && typeof form.checkChanges === 'function') {
+                        form.checkChanges();
+                    }
                 }
             });
 
@@ -2196,18 +2429,49 @@
             // SAVE FORM OPERATIONS
             // ========================================================
 
-            document.getElementById('hero-form').addEventListener("submit", async (e) => {
-                e.preventDefault();
+            // General loading state form submit helper
+            async function submitFormWithLoading(formId, url, method, dataGetter, successCallback) {
+                const form = document.getElementById(formId);
+                if (!form) return;
+                const btn = form.querySelector('button[type="submit"]');
+                if (!btn) return;
+                
+                const originalHtml = btn.innerHTML;
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
+                btn.disabled = true;
+                
+                try {
+                    const res = await fetch(url, {
+                        method: method,
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify(dataGetter())
+                    });
+                    
+                    const data = await res.json();
+                    if (!res.ok) throw new Error(data.error || "Save failed");
+                    
+                    showToast("Changes saved successfully!", "success");
+                    if (successCallback) successCallback(data);
+                    
+                    // Reset dirty checked baseline
+                    if (typeof form.setInitialData === 'function') {
+                        form.setInitialData(dataGetter());
+                    }
+                } catch (e) {
+                    showToast(e.message, "error");
+                } finally {
+                    btn.innerHTML = originalHtml;
+                    btn.disabled = false;
+                    if (typeof form.checkChanges === 'function') {
+                        form.checkChanges();
+                    }
+                }
+            }
 
-                const name = document.getElementById('hero-name').value;
-                const tagline = document.getElementById('hero-tagline').value;
-                const description = document.getElementById('hero-description').value;
-                const avatar = document.getElementById('hero-avatar').value;
-                const background_url = document.getElementById('hero-bg').value;
-                const video_path = document.getElementById('hero-video').value;
-                const background_type = document.getElementById('hero-bg-type').value;
-                const overlay_color = document.getElementById('hero-overlay-color').value;
-
+            function getHeroFormData() {
                 const opacitySel = document.getElementById('hero-overlay-opacity').value;
                 let overlay_opacity = 0.5;
                 if (opacitySel === 'custom') {
@@ -2215,55 +2479,76 @@
                 } else {
                     overlay_opacity = parseFloat(opacitySel);
                 }
+                return {
+                    name: document.getElementById('hero-name').value,
+                    tagline: document.getElementById('hero-tagline').value,
+                    description: document.getElementById('hero-description').value,
+                    avatar_url: document.getElementById('hero-avatar').value,
+                    background_url: document.getElementById('hero-bg').value,
+                    video_path: document.getElementById('hero-video').value,
+                    background_type: document.getElementById('hero-bg-type').value,
+                    overlay_color: document.getElementById('hero-overlay-color').value,
+                    overlay_opacity: overlay_opacity,
+                    brightness: parseFloat(document.getElementById('hero-brightness').value),
+                    contrast: parseFloat(document.getElementById('hero-contrast').value),
+                    blur: parseFloat(document.getElementById('hero-blur').value)
+                };
+            }
 
-                const brightness = parseFloat(document.getElementById('hero-brightness').value);
-                const contrast = parseFloat(document.getElementById('hero-contrast').value);
-                const blur = parseFloat(document.getElementById('hero-blur').value);
+            function getAboutFormData() {
+                return {
+                    title: document.getElementById('about-title').value,
+                    college: document.getElementById('about-college').value,
+                    degree: document.getElementById('about-degree').value,
+                    current_year: document.getElementById('about-year').value,
+                    cgpa: document.getElementById('about-cgpa').value,
+                    location: document.getElementById('about-location').value,
+                    image_url: document.getElementById('about-image').value,
+                    description: document.getElementById('about-description').value
+                };
+            }
 
-                const res = await fetch('/api/hero', {
-                    method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify({ 
-                        name, tagline, description, avatar_url: avatar, background_url,
-                        video_path, background_type, overlay_color, overlay_opacity,
-                        brightness, contrast, blur
-                    })
-                });
+            function getContactFormData() {
+                return {
+                    phone: document.getElementById('contact-phone').value,
+                    email: document.getElementById('contact-email').value,
+                    location: document.getElementById('contact-location').value,
+                    github: document.getElementById('social-github').value,
+                    linkedin: document.getElementById('social-linkedin').value,
+                    whatsapp: document.getElementById('social-whatsapp').value
+                };
+            }
 
-                if (!res.ok) showToast("Failed to save Hero section.", "error");
-                else showToast("Hero Section updated successfully!");
+            function getSEOFormData() {
+                return {
+                    title: document.getElementById('seo-title').value,
+                    description: document.getElementById('seo-description').value,
+                    keywords: document.getElementById('seo-keywords').value,
+                    image_url: document.getElementById('seo-image').value,
+                    favicon_url: document.getElementById('seo-favicon').value
+                };
+            }
+
+            // Form Submit for Hero
+            document.getElementById('hero-form').addEventListener("submit", async (e) => {
+                e.preventDefault();
+                await submitFormWithLoading('hero-form', '/api/hero', 'POST', getHeroFormData);
             });
 
+            // Form Submit for About
             document.getElementById('about-form').addEventListener("submit", async (e) => {
                 e.preventDefault();
-
-                const title = document.getElementById('about-title').value;
-                const college = document.getElementById('about-college').value;
-                const degree = document.getElementById('about-degree').value;
-                const year = document.getElementById('about-year').value;
-                const cgpa = document.getElementById('about-cgpa').value;
-                const location = document.getElementById('about-location').value;
-                const image = document.getElementById('about-image').value;
-                const description = document.getElementById('about-description').value;
-
-                const res = await fetch('/api/about', {
-                    method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify({ title, college, degree, current_year: year, cgpa, location, image_url: image, description })
-                });
-
-                if (!res.ok) showToast("Failed to save About settings.", "error");
-                else showToast("About Me Section updated successfully!");
+                await submitFormWithLoading('about-form', '/api/about', 'POST', getAboutFormData);
             });
 
+            // Form Submit for Contact
             document.getElementById('contact-form').addEventListener("submit", async (e) => {
                 e.preventDefault();
+                const form = document.getElementById('contact-form');
+                const btn = form.querySelector('button[type="submit"]');
+                const originalHtml = btn.innerHTML;
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
+                btn.disabled = true;
 
                 const phone = document.getElementById('contact-phone').value;
                 const email = document.getElementById('contact-email').value;
@@ -2272,48 +2557,41 @@
                 const linkedin = document.getElementById('social-linkedin').value;
                 const whatsapp = document.getElementById('social-whatsapp').value;
 
-                const res1 = await fetch('/api/contact', {
-                    method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify({ phone, email, location })
-                });
+                try {
+                    const [r1, r2] = await Promise.all([
+                        fetch('/api/contact', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                            body: JSON.stringify({ phone, email, location })
+                        }),
+                        fetch('/api/socials', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                            body: JSON.stringify({ github, linkedin, whatsapp })
+                        })
+                    ]);
 
-                const res2 = await fetch('/api/socials', {
-                    method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify({ github, linkedin, whatsapp })
-                });
-
-                if (!res1.ok || !res2.ok) showToast("Failed to save contact configurations.", "error");
-                else showToast("Contact settings updated successfully!");
+                    if (r1.ok && r2.ok) {
+                        showToast("Contact & Social configurations updated!", "success");
+                        if (typeof form.setInitialData === 'function') {
+                            form.setInitialData(getContactFormData());
+                        }
+                    } else {
+                        throw new Error("One or more requests failed");
+                    }
+                } catch (e) {
+                    showToast(e.message, "error");
+                } finally {
+                    btn.innerHTML = originalHtml;
+                    btn.disabled = false;
+                    if (typeof form.checkChanges === 'function') form.checkChanges();
+                }
             });
 
+            // Form Submit for SEO
             document.getElementById('seo-form').addEventListener("submit", async (e) => {
                 e.preventDefault();
-
-                const title = document.getElementById('seo-title').value;
-                const description = document.getElementById('seo-description').value;
-                const keywords = document.getElementById('seo-keywords').value;
-                const image = document.getElementById('seo-image').value;
-                const favicon = document.getElementById('seo-favicon').value;
-
-                const res = await fetch('/api/seo', {
-                    method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify({ title, description, keywords, image_url: image, favicon_url: favicon })
-                });
-
-                if (!res.ok) showToast("Failed to save SEO config.", "error");
-                else showToast("SEO settings updated successfully!");
+                await submitFormWithLoading('seo-form', '/api/seo', 'POST', getSEOFormData);
             });
 
             // ========================================================
@@ -3069,132 +3347,465 @@
             };
 
             // ========================================================
-            // MEDIA & STORAGE UPLOADER OPERATIONS
+            // MEDIA & STORAGE UPLOADER OPERATIONS (MEDIA EXPLORER)
             // ========================================================
+            let currentMediaFolder = '';
+            let mediaViewMode = 'grid';
+            let cachedMediaList = [];
+
+            // Client-side Image Compression Natively via Browser Canvas
+            async function compressImage(file, quality = 0.75, maxWidth = 1920, maxHeight = 1080) {
+                if (!file.type.startsWith('image/') || file.type.includes('svg')) {
+                    return file; // Bypass non-images or vector icons
+                }
+                return new Promise((resolve) => {
+                    const reader = new FileReader();
+                    reader.readAsDataURL(file);
+                    reader.onload = (event) => {
+                        const img = new Image();
+                        img.src = event.target.result;
+                        img.onload = () => {
+                            const canvas = document.createElement('canvas');
+                            let width = img.width;
+                            let height = img.height;
+
+                            if (width > maxWidth) {
+                                height = Math.round((height * maxWidth) / width);
+                                width = maxWidth;
+                            }
+                            if (height > maxHeight) {
+                                width = Math.round((width * maxHeight) / height);
+                                height = maxHeight;
+                            }
+
+                            canvas.width = width;
+                            canvas.height = height;
+
+                            const ctx = canvas.getContext('2d');
+                            ctx.drawImage(img, 0, 0, width, height);
+
+                            canvas.toBlob((blob) => {
+                                if (!blob) {
+                                    resolve(file); // fallback to original file if blob fails
+                                    return;
+                                }
+                                const compressedFile = new File([blob], file.name, {
+                                    type: file.type || 'image/jpeg',
+                                    lastModified: Date.now()
+                                });
+                                resolve(compressedFile);
+                            }, file.type || 'image/jpeg', quality);
+                        };
+                        img.onerror = () => resolve(file);
+                    };
+                    reader.onerror = () => resolve(file);
+                });
+            }
 
             const dropzone = document.getElementById('dropzone');
             const fileUploader = document.getElementById('file-uploader');
 
-            dropzone.addEventListener("click", () => fileUploader.click());
+            if (dropzone && fileUploader) {
+                dropzone.addEventListener("click", (e) => {
+                    if (!e.target.closest('.upload-progress-container')) {
+                        fileUploader.click();
+                    }
+                });
 
-            dropzone.addEventListener("dragover", (e) => {
-                e.preventDefault();
-                dropzone.classList.add('dragover');
-            });
+                dropzone.addEventListener("dragover", (e) => {
+                    e.preventDefault();
+                    dropzone.classList.add('dragover');
+                });
 
-            dropzone.addEventListener("dragleave", () => {
-                dropzone.classList.remove('dragover');
-            });
+                dropzone.addEventListener("dragleave", () => {
+                    dropzone.classList.remove('dragover');
+                });
 
-            dropzone.addEventListener("drop", (e) => {
-                e.preventDefault();
-                dropzone.classList.remove('dragover');
-                if (e.dataTransfer.files.length > 0) {
-                    uploadFile(e.dataTransfer.files[0]);
-                }
-            });
+                dropzone.addEventListener("drop", (e) => {
+                    e.preventDefault();
+                    dropzone.classList.remove('dragover');
+                    if (e.dataTransfer.files.length > 0) {
+                        uploadMultipleMedia(e.dataTransfer.files);
+                    }
+                });
 
-            fileUploader.addEventListener("change", () => {
-                if (fileUploader.files.length > 0) {
-                    uploadFile(fileUploader.files[0]);
-                }
-            });
+                fileUploader.addEventListener("change", () => {
+                    if (fileUploader.files.length > 0) {
+                        uploadMultipleMedia(fileUploader.files);
+                    }
+                });
+            }
 
-            async function uploadFile(file) {
-                showToast("Uploading file...", "accent");
-                const formData = new FormData();
-                formData.append('file', file);
+            // Upload multiple files with compression and progress bar updates
+            async function uploadMultipleMedia(files) {
+                const progressContainer = document.getElementById('media-upload-progress');
+                const progressBar = document.getElementById('media-progress-bar');
+                const progressText = document.getElementById('media-progress-text');
+                const progressPercent = document.getElementById('media-progress-percent');
+                
+                if (progressContainer) progressContainer.style.display = 'block';
+                showToast(`Uploading ${files.length} file(s)...`, "accent");
 
-                try {
-                    const res = await fetch('/api/media/upload', {
-                        method: 'POST',
-                        headers: { 'Authorization': `Bearer ${token}` },
-                        body: formData
-                    });
-                    const data = await res.json();
+                let uploaded = 0;
+                for (let i = 0; i < files.length; i++) {
+                    let file = files[i];
                     
-                    if (!res.ok) throw new Error(data.error);
+                    // Limit file size to 5MB before compression
+                    if (file.size > 5 * 1024 * 1024 && !file.type.startsWith('image/')) {
+                        showToast(`File "${file.name}" exceeds the 5MB size limit.`, "error");
+                        continue;
+                    }
 
-                    showToast("File uploaded successfully!");
-                    loadMediaGrid();
+                    // Compress if it is a large image
+                    if (file.type.startsWith('image/')) {
+                        if (progressText) progressText.textContent = `Compressing ${file.name}...`;
+                        file = await compressImage(file);
+                        if (file.size > 5 * 1024 * 1024) {
+                            showToast(`Image "${file.name}" exceeds 5MB size limit even after compression.`, "error");
+                            continue;
+                        }
+                    }
+
+                    // Upload via XHR for progress bar
+                    await new Promise((resolve) => {
+                        const xhr = new XMLHttpRequest();
+                        const formData = new FormData();
+                        formData.append('file', file);
+                        if (currentMediaFolder) {
+                            formData.append('folder', currentMediaFolder);
+                        }
+
+                        xhr.upload.addEventListener('progress', (e) => {
+                            if (e.lengthComputable) {
+                                const pct = Math.round((e.loaded / e.total) * 100);
+                                if (progressBar) progressBar.style.width = `${pct}%`;
+                                if (progressPercent) progressPercent.textContent = `${pct}%`;
+                                if (progressText) progressText.textContent = `Uploading ${file.name}...`;
+                            }
+                        });
+
+                        xhr.addEventListener('load', () => {
+                            if (xhr.status >= 200 && xhr.status < 300) {
+                                uploaded++;
+                            } else {
+                                console.error("Upload error response", xhr.responseText);
+                                showToast(`Failed to upload ${file.name}`, "error");
+                            }
+                            resolve();
+                        });
+
+                        xhr.addEventListener('error', () => {
+                            showToast(`Network error uploading ${file.name}`, "error");
+                            resolve();
+                        });
+
+                        xhr.open('POST', `/api/media/upload?folder=${encodeURIComponent(currentMediaFolder)}`);
+                        xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+                        xhr.send(formData);
+                    });
+                }
+
+                if (progressContainer) progressContainer.style.display = 'none';
+                if (progressBar) progressBar.style.width = '0%';
+                if (progressPercent) progressPercent.textContent = '0%';
+                fileUploader.value = '';
+
+                showToast(`Finished uploading: ${uploaded} success, ${files.length - uploaded} failed.`);
+                loadMediaGrid();
+            }
+
+            // Create folders locally / supabase
+            window.openCreateFolderModal = () => {
+                const name = prompt("Enter new folder name:");
+                if (!name) return;
+                createMediaFolder(name.trim());
+            };
+
+            async function createMediaFolder(folderName) {
+                if (!folderName) return;
+                const fullFolderName = currentMediaFolder ? `${currentMediaFolder}/${folderName}` : folderName;
+                try {
+                    const res = await fetch('/api/media/folder', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({ folderName: fullFolderName })
+                    });
+                    if (res.ok) {
+                        showToast(`Folder "${folderName}" created successfully!`, "success");
+                        loadMediaGrid();
+                    } else {
+                        const err = await res.json();
+                        throw new Error(err.error || "Failed to create folder");
+                    }
                 } catch (e) {
-                    console.error("Upload error:", e);
-                    showToast("Upload failed: " + e.message, "error");
+                    showToast(e.message, "error");
                 }
             }
 
+            // Navigate directory
+            window.navigateMediaFolder = (folderPath) => {
+                currentMediaFolder = folderPath;
+                loadMediaGrid();
+            };
+
+            window.navigateMediaUp = () => {
+                if (!currentMediaFolder) return;
+                const idx = currentMediaFolder.lastIndexOf('/');
+                const parent = idx !== -1 ? currentMediaFolder.substring(0, idx) : '';
+                navigateMediaFolder(parent);
+            };
+
+            // Render breadcrumbs
+            function renderBreadcrumbs() {
+                const container = document.getElementById('media-breadcrumbs');
+                if (!container) return;
+                container.innerHTML = '<span class="breadcrumb-item" onclick="navigateMediaFolder(\'\')">Root</span>';
+                
+                if (currentMediaFolder) {
+                    const parts = currentMediaFolder.split('/');
+                    let accumulated = '';
+                    parts.forEach((part, index) => {
+                        accumulated = accumulated ? `${accumulated}/${part}` : part;
+                        const isLast = index === parts.length - 1;
+                        
+                        const separator = document.createElement('span');
+                        separator.className = 'breadcrumb-separator';
+                        separator.textContent = ' / ';
+                        container.appendChild(separator);
+                        
+                        const item = document.createElement('span');
+                        item.className = `breadcrumb-item ${isLast ? 'active' : ''}`;
+                        item.textContent = part;
+                        if (!isLast) {
+                            const target = accumulated;
+                            item.addEventListener('click', () => navigateMediaFolder(target));
+                        }
+                        container.appendChild(item);
+                    });
+                }
+            }
+
+            // View modes
+            window.setMediaViewMode = (mode) => {
+                mediaViewMode = mode;
+                document.getElementById('view-mode-grid').classList.toggle('active', mode === 'grid');
+                document.getElementById('view-mode-list').classList.toggle('active', mode === 'list');
+                
+                document.getElementById('media-grid').style.display = mode === 'grid' ? 'grid' : 'none';
+                document.getElementById('media-list-container').style.display = mode === 'list' ? 'block' : 'none';
+                renderMediaExplorer();
+            };
+
+            // Load media directory listing
             async function loadMediaGrid() {
                 const grid = document.getElementById('media-grid');
-                grid.innerHTML = '<div style="color:var(--text-muted);">Loading media items...</div>';
-
+                const tbody = document.getElementById('media-list-tbody');
+                if (grid) grid.innerHTML = '<div style="color:var(--text-muted);padding:20px;">Loading files...</div>';
+                if (tbody) tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);">Loading files...</td></tr>';
+                
                 try {
-                    const res = await fetch('/api/media', {
+                    const res = await fetch(`/api/media?folder=${encodeURIComponent(currentMediaFolder)}`, {
                         headers: { 'Authorization': `Bearer ${token}` }
                     });
                     const data = await res.json();
-
-                    grid.innerHTML = '';
-                    if (!data || data.length === 0) {
-                        grid.innerHTML = '<div style="color:var(--text-muted);">No uploaded media files. Drag files above to upload!</div>';
-                        return;
-                    }
-
-                    data.forEach(item => {
-                        const div = document.createElement('div');
-                        div.className = 'media-item';
-                        const isVideo = item.name.match(/\.(mp4|webm|mov)$/i);
-                        const mediaPreview = isVideo 
-                            ? `<video src="${item.url}" muted style="width:100%;height:100%;object-fit:cover;"></video><div class="video-play-indicator" style="position:absolute;top:10px;left:10px;color:#fff;background:rgba(0,0,0,0.5);width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;"><i class="fa-solid fa-play" style="font-size:10px;"></i></div>` 
-                            : `<img src="${item.url}" alt="${item.name}">`;
-                        div.innerHTML = `
-                            ${mediaPreview}
-                            <div class="media-item-overlay">
-                                <span class="media-item-name">${item.name}</span>
-                                <div style="display:flex;gap:10px;">
-                                    <button class="btn-icon" onclick="copyToClipboard('${item.url}')" title="Copy public URL"><i class="fa-solid fa-copy"></i></button>
-                                    <button class="btn-icon delete" onclick="deleteMediaFile('${item.name}')" title="Delete file"><i class="fa-solid fa-trash"></i></button>
-                                </div>
-                            </div>
-                        `;
-                        grid.appendChild(div);
-                    });
+                    cachedMediaList = data || [];
+                    
+                    renderBreadcrumbs();
+                    sortMediaGrid(); 
                 } catch (e) {
-                    console.error(e);
-                    grid.innerHTML = '<div style="color:var(--danger);">Error loading media list from local folder.</div>';
+                    console.error("Error fetching media list:", e);
+                    if (grid) grid.innerHTML = '<div style="color:var(--danger);padding:20px;">Failed to load files.</div>';
                 }
             }
             window.loadMediaGrid = loadMediaGrid;
 
+            // Sort listing
+            window.sortMediaGrid = () => {
+                const val = document.getElementById('media-sort-select').value;
+                cachedMediaList.sort((a, b) => {
+                    if (a.isDir && !b.isDir) return -1;
+                    if (!a.isDir && b.isDir) return 1;
+                    
+                    if (val === 'date-desc') return new Date(b.mtime) - new Date(a.mtime);
+                    if (val === 'date-asc') return new Date(a.mtime) - new Date(b.mtime);
+                    if (val === 'name-asc') return a.name.localeCompare(b.name);
+                    if (val === 'name-desc') return b.name.localeCompare(a.name);
+                    if (val === 'size-desc') return b.size - a.size;
+                    if (val === 'size-asc') return a.size - b.size;
+                    return 0;
+                });
+                renderMediaExplorer();
+            };
+
+            // Search filtering
+            window.filterMediaGrid = () => {
+                renderMediaExplorer();
+            };
+
+            // Perform final render
+            function renderMediaExplorer() {
+                const grid = document.getElementById('media-grid');
+                const tbody = document.getElementById('media-list-tbody');
+                const searchVal = document.getElementById('media-search-input').value.toLowerCase().trim();
+                
+                const filtered = cachedMediaList.filter(item => item.name.toLowerCase().includes(searchVal));
+
+                if (grid) grid.innerHTML = '';
+                if (tbody) tbody.innerHTML = '';
+
+                if (currentMediaFolder) {
+                    if (mediaViewMode === 'grid') {
+                        const div = document.createElement('div');
+                        div.className = 'media-item folder-item';
+                        div.innerHTML = `
+                            <div class="folder-icon"><i class="fa-solid fa-turn-up" style="font-size:32px;color:var(--accent);"></i></div>
+                            <div class="folder-name">.. Parent Folder</div>
+                        `;
+                        div.addEventListener('click', navigateMediaUp);
+                        grid.appendChild(div);
+                    } else {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td style="text-align:center;"><i class="fa-solid fa-turn-up" style="color:var(--accent);"></i></td>
+                            <td colspan="4" style="cursor:pointer;font-weight:600;">.. Parent Folder</td>
+                        `;
+                        tr.addEventListener('click', navigateMediaUp);
+                        tbody.appendChild(tr);
+                    }
+                }
+
+                if (filtered.length === 0 && !currentMediaFolder) {
+                    if (grid) grid.innerHTML = '<div style="color:var(--text-muted);grid-column:1/-1;text-align:center;padding:25px;">No files or folders found.</div>';
+                    if (tbody) tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);">No files or folders found.</td></tr>';
+                    return;
+                }
+
+                filtered.forEach(item => {
+                    const relativePath = currentMediaFolder ? `${currentMediaFolder}/${item.name}` : item.name;
+                    
+                    if (mediaViewMode === 'grid') {
+                        const div = document.createElement('div');
+                        if (item.isDir) {
+                            div.className = 'media-item folder-item';
+                            div.innerHTML = `
+                                <div class="folder-icon"><i class="fa-solid fa-folder" style="font-size:48px;color:var(--accent);"></i></div>
+                                <div class="folder-name">${item.name}</div>
+                                <button class="btn-icon folder-delete" type="button" onclick="event.stopPropagation(); deleteExplorerFile('${relativePath}')" title="Delete Folder"><i class="fa-solid fa-trash"></i></button>
+                            `;
+                            div.addEventListener('click', () => navigateMediaFolder(relativePath));
+                        } else {
+                            div.className = 'media-item';
+                            const isVideo = item.name.match(/\.(mp4|webm|mov)$/i);
+                            const mediaPreview = isVideo 
+                                ? `<video src="${item.url}" muted style="width:100%;height:100%;object-fit:cover;"></video><div class="video-play-indicator" style="position:absolute;top:10px;left:10px;color:#fff;background:rgba(0,0,0,0.5);width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;"><i class="fa-solid fa-play" style="font-size:10px;"></i></div>` 
+                                : `<img src="${item.url}" alt="${item.name}">`;
+                            
+                            div.innerHTML = `
+                                ${mediaPreview}
+                                <div class="media-item-overlay">
+                                    <span class="media-item-name">${item.name}</span>
+                                    <div style="display:flex;gap:10px;">
+                                        <button class="btn-icon" type="button" onclick="copyToClipboard('${item.url}')" title="Copy public URL"><i class="fa-solid fa-copy"></i></button>
+                                        <button class="btn-icon delete" type="button" onclick="deleteExplorerFile('${relativePath}', '${item.url}')" title="Delete file"><i class="fa-solid fa-trash"></i></button>
+                                    </div>
+                                </div>
+                            `;
+                        }
+                        grid.appendChild(div);
+                    } else {
+                        const tr = document.createElement('tr');
+                        if (item.isDir) {
+                            tr.innerHTML = `
+                                <td style="text-align:center;"><i class="fa-solid fa-folder" style="font-size:20px;color:var(--accent);"></i></td>
+                                <td style="font-weight:600;cursor:pointer;">${item.name}</td>
+                                <td>-</td>
+                                <td>-</td>
+                                <td>
+                                    <button class="btn-icon" type="button" onclick="deleteExplorerFile('${relativePath}')" title="Delete Folder"><i class="fa-solid fa-trash"></i></button>
+                                </td>
+                            `;
+                            tr.querySelector('td:nth-child(2)').addEventListener('click', () => navigateMediaFolder(relativePath));
+                        } else {
+                            const isVideo = item.name.match(/\.(mp4|webm|mov)$/i);
+                            const preview = isVideo 
+                                ? `<video src="${item.url}" muted style="width:40px;height:40px;object-fit:cover;border-radius:6px;"></video>` 
+                                : `<img src="${item.url}" style="width:40px;height:40px;object-fit:cover;border-radius:6px;">`;
+                            
+                            const formattedSize = item.size ? `${(item.size / 1024).toFixed(1)} KB` : '0 KB';
+                            const dateStr = item.mtime ? new Date(item.mtime).toLocaleDateString() : '-';
+
+                            tr.innerHTML = `
+                                <td style="text-align:center;">${preview}</td>
+                                <td style="word-break:break-all;">${item.name}</td>
+                                <td>${dateStr}</td>
+                                <td>${formattedSize}</td>
+                                <td>
+                                    <div style="display:flex;gap:8px;">
+                                        <button class="btn-icon" type="button" onclick="copyToClipboard('${item.url}')" title="Copy URL"><i class="fa-solid fa-copy"></i></button>
+                                        <button class="btn-icon delete" type="button" onclick="deleteExplorerFile('${relativePath}', '${item.url}')" title="Delete file"><i class="fa-solid fa-trash"></i></button>
+                                    </div>
+                                </td>
+                            `;
+                        }
+                        tbody.appendChild(tr);
+                    }
+                });
+            }
+
+            // Clipboard helper
             window.copyToClipboard = (text) => {
-                // Generate absolute path
-                const absoluteUrl = window.location.origin + text;
-                navigator.clipboard.writeText(absoluteUrl).then(() => {
-                    showToast("Absolute URL copied to clipboard!");
+                navigator.clipboard.writeText(text).then(() => {
+                    showToast("URL copied to clipboard!");
+                }).catch(() => {
+                    showToast("Failed to copy URL", "error");
                 });
             };
 
-            window.deleteMediaFile = (name) => {
-                ConfirmationModal.show({
-                    title: "Delete File?",
-                    message: "Are you sure you want to delete this file?",
-                    confirmText: "Delete",
-                    cancelText: "Cancel",
-                    onConfirm: async () => {
-                        try {
-                            const res = await fetch(`/api/media/${name}`, {
-                                method: 'DELETE',
-                                headers: { 'Authorization': `Bearer ${token}` }
-                            });
-                            const data = await res.json();
-                            if (!res.ok) throw new Error(data.error);
-                            
-                            showToast("File deleted successfully.");
-                            loadMediaGrid();
-                        } catch (e) {
-                            showToast("Delete failed: " + e.message, "error");
+            // Delete file with Usage Warning Dialog Checks
+            window.deleteExplorerFile = async (path, url) => {
+                if (url) {
+                    try {
+                        const res = await fetch(`/api/media/usage?url=${encodeURIComponent(url)}`, {
+                            headers: { 'Authorization': `Bearer ${token}` }
+                        });
+                        const data = await res.json();
+                        
+                        if (data.usages && data.usages.length > 0) {
+                            const warningMsg = `This image is currently used in:\n- ${data.usages.join('\n- ')}\n\nAre you sure you want to delete it anyway?`;
+                            if (!confirm(warningMsg)) return;
+                        } else {
+                            if (!confirm("Are you sure you want to delete this asset?")) return;
                         }
+                    } catch (e) {
+                        console.error("Usage check failed:", e);
+                        if (!confirm("Are you sure you want to delete this asset?")) return;
                     }
-                });
+                } else {
+                    if (!confirm("Are you sure you want to delete this folder and all its contents?")) return;
+                }
+
+                try {
+                    const res = await fetch('/api/media/delete', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({ path })
+                    });
+                    if (res.ok) {
+                        showToast("Deleted successfully!", "success");
+                        loadMediaGrid();
+                    } else {
+                        const err = await res.json();
+                        throw new Error(err.error || "Delete failed");
+                    }
+                } catch (e) {
+                    showToast(e.message, "error");
+                }
             };
 
             // ========================================================
@@ -3277,12 +3888,16 @@
 
             window.removeSelectedImage = (targetId) => {
                 updateSelectorPreview(targetId, '');
-            };
+                   // picker variables
+            let pickerCurrentFolder = '';
+            let cachedPickerMedia = [];
+            let pickerSelectedAsset = null;
 
             // Open picker modal contextually
             window.openMediaPicker = (targetId) => {
                 currentPickerTarget = targetId;
                 selectedPickerAsset = null;
+                pickerCurrentFolder = '';
                 
                 // Reset metadata panels
                 document.getElementById('picker-preview-box').innerHTML = `<i class="fa-solid fa-image"></i>`;
@@ -3302,66 +3917,103 @@
                 currentPickerTarget = null;
             };
 
-            // Load grid of files
+            // Load grid of files inside picker
             async function loadPickerGrid() {
                 const grid = document.getElementById('picker-grid');
-                grid.innerHTML = '<div style="color:var(--text-muted);grid-column:1/-1;text-align:center;padding:20px;">Loading assets...</div>';
+                if (grid) grid.innerHTML = '<div style="color:var(--text-muted);grid-column:1/-1;text-align:center;padding:20px;">Loading assets...</div>';
 
                 try {
-                    const res = await fetch('/api/media', {
+                    const res = await fetch(`/api/media?folder=${encodeURIComponent(pickerCurrentFolder)}`, {
                         headers: { 'Authorization': `Bearer ${token}` }
                     });
                     const data = await res.json();
                     
                     cachedPickerMedia = data || [];
-                    renderPickerGrid(cachedPickerMedia);
+                    renderPickerGrid();
                 } catch (e) {
-                    grid.innerHTML = '<div style="color:var(--danger);grid-column:1/-1;text-align:center;padding:20px;">Error loading assets.</div>';
+                    if (grid) grid.innerHTML = '<div style="color:var(--danger);grid-column:1/-1;text-align:center;padding:20px;">Error loading assets.</div>';
                 }
             }
 
-            function renderPickerGrid(assets) {
+            // Navigate inside picker
+            window.navigatePickerFolder = (folderPath) => {
+                pickerCurrentFolder = folderPath;
+                loadPickerGrid();
+            };
+
+            window.navigatePickerUp = () => {
+                if (!pickerCurrentFolder) return;
+                const idx = pickerCurrentFolder.lastIndexOf('/');
+                const parent = idx !== -1 ? pickerCurrentFolder.substring(0, idx) : '';
+                navigatePickerFolder(parent);
+            };
+
+            function renderPickerGrid() {
                 const grid = document.getElementById('picker-grid');
+                if (!grid) return;
                 grid.innerHTML = '';
                 
-                if (!assets || assets.length === 0) {
-                    grid.innerHTML = '<div style="color:var(--text-muted);grid-column:1/-1;text-align:center;padding:20px;">No assets found. Drag & drop above to upload!</div>';
+                const searchVal = document.getElementById('picker-search').value.toLowerCase().trim();
+                const filtered = cachedPickerMedia.filter(a => a.name.toLowerCase().includes(searchVal));
+
+                // Up Folder navigation card
+                if (pickerCurrentFolder) {
+                    const div = document.createElement('div');
+                    div.className = 'media-picker-item folder-item';
+                    div.innerHTML = `
+                        <div class="folder-icon" style="display:flex;align-items:center;justify-content:center;height:100%;"><i class="fa-solid fa-turn-up" style="font-size:24px;color:var(--accent);"></i></div>
+                        <div style="font-size:10px;text-align:center;padding:5px;background:rgba(0,0,0,0.5);width:100%;position:absolute;bottom:0;">Parent Folder</div>
+                    `;
+                    div.addEventListener('click', navigatePickerUp);
+                    grid.appendChild(div);
+                }
+
+                if (filtered.length === 0 && !pickerCurrentFolder) {
+                    grid.innerHTML = '<div style="color:var(--text-muted);grid-column:1/-1;text-align:center;padding:20px;">No assets found. Drag & drop below to upload!</div>';
                     return;
                 }
 
-                assets.forEach(asset => {
+                filtered.forEach(asset => {
+                    const relativePath = pickerCurrentFolder ? `${pickerCurrentFolder}/${asset.name}` : asset.name;
                     const div = document.createElement('div');
-                    div.className = 'media-picker-item';
-                    if (selectedPickerAsset && selectedPickerAsset.name === asset.name) {
-                        div.className += ' selected';
+                    
+                    if (asset.isDir) {
+                        div.className = 'media-picker-item folder-item';
+                        div.innerHTML = `
+                            <div class="folder-icon" style="display:flex;align-items:center;justify-content:center;height:100%;"><i class="fa-solid fa-folder" style="font-size:32px;color:var(--accent);"></i></div>
+                            <div style="font-size:10px;text-align:center;padding:5px;background:rgba(0,0,0,0.5);width:100%;position:absolute;bottom:0;text-overflow:ellipsis;white-space:nowrap;overflow:hidden;">${asset.name}</div>
+                        `;
+                        div.addEventListener('click', () => navigatePickerFolder(relativePath));
+                    } else {
+                        div.className = 'media-picker-item';
+                        if (selectedPickerAsset && selectedPickerAsset.name === asset.name) {
+                            div.classList.add('selected');
+                        }
+                        
+                        const isVideo = asset.name.match(/\.(mp4|webm|mov)$/i);
+                        const mediaPreview = isVideo 
+                            ? `<video src="${asset.url}" muted style="width:100%;height:100%;object-fit:cover;"></video><div class="video-play-indicator" style="position:absolute;top:5px;left:5px;color:#fff;background:rgba(0,0,0,0.5);width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;"><i class="fa-solid fa-play" style="font-size:9px;"></i></div>` 
+                            : `<img src="${asset.url}" alt="${asset.name}">`;
+                            
+                        div.innerHTML = `
+                            ${mediaPreview}
+                            <div class="item-check"><i class="fa-solid fa-check"></i></div>
+                        `;
+                        
+                        div.addEventListener('click', () => {
+                            document.querySelectorAll('.media-picker-item').forEach(el => el.classList.remove('selected'));
+                            div.classList.add('selected');
+                            
+                            selectedPickerAsset = asset;
+                            showPickerAssetDetails(asset);
+                        });
                     }
-                    
-                    const isVideo = asset.name.match(/\.(mp4|webm|mov)$/i);
-                    const mediaPreview = isVideo 
-                        ? `<video src="${asset.url}" muted style="width:100%;height:100%;object-fit:cover;"></video><div class="video-play-indicator" style="position:absolute;top:5px;left:5px;color:#fff;background:rgba(0,0,0,0.5);width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;"><i class="fa-solid fa-play" style="font-size:9px;"></i></div>` 
-                        : `<img src="${asset.url}" alt="${asset.name}">`;
-                        
-                    div.innerHTML = `
-                        ${mediaPreview}
-                        <div class="item-check"><i class="fa-solid fa-check"></i></div>
-                    `;
-                    
-                    div.addEventListener('click', () => {
-                        document.querySelectorAll('.media-picker-item').forEach(el => el.classList.remove('selected'));
-                        div.classList.add('selected');
-                        
-                        selectedPickerAsset = asset;
-                        showPickerAssetDetails(asset);
-                    });
-                    
                     grid.appendChild(div);
                 });
             }
 
             window.filterPickerMedia = () => {
-                const searchVal = document.getElementById('picker-search').value.toLowerCase().trim();
-                const filtered = cachedPickerMedia.filter(a => a.name.toLowerCase().includes(searchVal));
-                renderPickerGrid(filtered);
+                renderPickerGrid();
             };
 
             function showPickerAssetDetails(asset) {
@@ -3375,9 +4027,30 @@
                 document.getElementById('picker-detail-name').textContent = asset.name;
                 document.getElementById('picker-detail-url').textContent = asset.url;
                 
-                document.getElementById('picker-rename-input').value = asset.name;
+                const formattedSize = asset.size ? `${(asset.size / 1024).toFixed(1)} KB` : 'Unknown';
+                const dateStr = asset.mtime ? new Date(asset.mtime).toLocaleDateString() : 'Unknown';
                 
+                let infoHtml = `
+                    <h4 style="word-break:break-all;">${asset.name}</h4>
+                    <p style="font-size:11px;margin-top:5px;word-break:break-all;"><strong>URL:</strong> <span style="user-select:all;color:var(--accent);">${asset.url}</span></p>
+                    <p style="font-size:11px;margin-top:5px;"><strong>File Size:</strong> ${formattedSize}</p>
+                    <p style="font-size:11px;margin-top:5px;"><strong>Date Added:</strong> ${dateStr}</p>
+                `;
+                
+                if (!isVideo && asset.url) {
+                    infoHtml += `<p style="font-size:11px;margin-top:5px;" id="picker-detail-res"><strong>Resolution:</strong> Loading...</p>`;
+                    const img = new Image();
+                    img.src = asset.url;
+                    img.onload = () => {
+                        const resEl = document.getElementById('picker-detail-res');
+                        if (resEl) resEl.innerHTML = `<strong>Resolution:</strong> ${img.naturalWidth} x ${img.naturalHeight} px`;
+                    };
+                }
+                
+                document.getElementById('picker-info-box').innerHTML = infoHtml;
                 document.getElementById('picker-info-box').style.display = 'block';
+                
+                document.getElementById('picker-rename-input').value = asset.name;
                 document.getElementById('picker-actions-box').style.display = 'block';
             }
 
@@ -3418,7 +4091,6 @@
                     showToast("Asset renamed successfully!");
                     selectedPickerAsset = null;
                     
-                    // Reset details panel
                     document.getElementById('picker-preview-box').innerHTML = `<i class="fa-solid fa-image"></i>`;
                     document.getElementById('picker-info-box').style.display = 'none';
                     document.getElementById('picker-actions-box').style.display = 'none';
@@ -3458,7 +4130,6 @@
                     showToast("Asset replaced successfully!");
                     pickerReplaceUploader.value = '';
                     
-                    // Reload details preview
                     const cacheBusterUrl = `${selectedPickerAsset.url}?cb=${Date.now()}`;
                     document.getElementById('picker-preview-box').innerHTML = `<img src="${cacheBusterUrl}" alt="${name}">`;
                     
@@ -3470,90 +4141,130 @@
             });
 
             // Delete asset from library
-            window.deletePickerAsset = () => {
+            window.deletePickerAsset = async () => {
                 if (!selectedPickerAsset) return;
                 
-                ConfirmationModal.show({
-                    title: "Delete Asset?",
-                    message: "Are you sure you want to delete this asset? This cannot be undone and will break links if currently used!",
-                    confirmText: "Delete",
-                    cancelText: "Cancel",
-                    onConfirm: async () => {
-                        const name = selectedPickerAsset.name;
-                        
-                        try {
-                            const res = await fetch(`/api/media/${name}`, {
-                                method: 'DELETE',
-                                headers: { 'Authorization': `Bearer ${token}` }
-                            });
-                            const data = await res.json();
-                            
-                            if (!res.ok) throw new Error(data.error);
-                            
-                            showToast("Asset deleted from library.");
-                            selectedPickerAsset = null;
-                            
-                            document.getElementById('picker-preview-box').innerHTML = `<i class="fa-solid fa-image"></i>`;
-                            document.getElementById('picker-info-box').style.display = 'none';
-                            document.getElementById('picker-actions-box').style.display = 'none';
-                            
-                            loadPickerGrid();
-                            loadMediaGrid();
-                        } catch (e) {
-                            showToast("Delete failed: " + e.message, "error");
-                        }
+                const name = selectedPickerAsset.name;
+                const relativePath = pickerCurrentFolder ? `${pickerCurrentFolder}/${name}` : name;
+                
+                try {
+                    const res = await fetch(`/api/media/usage?url=${encodeURIComponent(selectedPickerAsset.url)}`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    const data = await res.json();
+                    
+                    if (data.usages && data.usages.length > 0) {
+                        const warningMsg = `This image is currently used in:\n- ${data.usages.join('\n- ')}\n\nAre you sure you want to delete it anyway?`;
+                        if (!confirm(warningMsg)) return;
+                    } else {
+                        if (!confirm("Are you sure you want to delete this asset?")) return;
                     }
-                });
+                } catch (e) {
+                    console.error("Usage check failed:", e);
+                    if (!confirm("Are you sure you want to delete this asset?")) return;
+                }
+
+                try {
+                    const res = await fetch('/api/media/delete', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({ path: relativePath })
+                    });
+                    if (res.ok) {
+                        showToast("Asset deleted from library.");
+                        selectedPickerAsset = null;
+                        
+                        document.getElementById('picker-preview-box').innerHTML = `<i class="fa-solid fa-image"></i>`;
+                        document.getElementById('picker-info-box').style.display = 'none';
+                        document.getElementById('picker-actions-box').style.display = 'none';
+                        
+                        loadPickerGrid();
+                        loadMediaGrid();
+                    } else {
+                        const err = await res.json();
+                        throw new Error(err.error || "Delete failed");
+                    }
+                } catch (e) {
+                    showToast("Delete failed: " + e.message, "error");
+                }
             };
 
             // Picker upload drag-and-drop
             const pickerDropzone = document.getElementById('picker-dropzone');
             const pickerFileUploader = document.getElementById('picker-file-uploader');
 
-            pickerDropzone.addEventListener('click', () => pickerFileUploader.click());
+            if (pickerDropzone && pickerFileUploader) {
+                pickerDropzone.addEventListener('click', (e) => {
+                    if (!e.target.closest('.upload-progress-container')) {
+                        pickerFileUploader.click();
+                    }
+                });
 
-            pickerDropzone.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                pickerDropzone.classList.add('dragover');
-            });
+                pickerDropzone.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    pickerDropzone.classList.add('dragover');
+                });
 
-            pickerDropzone.addEventListener('dragleave', () => {
-                pickerDropzone.classList.remove('dragover');
-            });
+                pickerDropzone.addEventListener('dragleave', () => {
+                    pickerDropzone.classList.remove('dragover');
+                });
 
-            pickerDropzone.addEventListener('drop', (e) => {
-                e.preventDefault();
-                pickerDropzone.classList.remove('dragover');
-                if (e.dataTransfer.files.length > 0) {
-                    uploadMultipleFiles(e.dataTransfer.files);
-                }
-            });
+                pickerDropzone.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    pickerDropzone.classList.remove('dragover');
+                    if (e.dataTransfer.files.length > 0) {
+                        uploadPickerMultipleFiles(e.dataTransfer.files);
+                    }
+                });
 
-            pickerFileUploader.addEventListener('change', () => {
-                if (pickerFileUploader.files.length > 0) {
-                    uploadMultipleFiles(pickerFileUploader.files);
-                }
-            });
+                pickerFileUploader.addEventListener('change', () => {
+                    if (pickerFileUploader.files.length > 0) {
+                        uploadPickerMultipleFiles(pickerFileUploader.files);
+                    }
+                });
+            }
 
-            async function uploadMultipleFiles(files) {
+            async function uploadPickerMultipleFiles(files) {
                 showToast(`Uploading ${files.length} asset(s)...`, "accent");
                 let uploadedCount = 0;
                 
                 for (let i = 0; i < files.length; i++) {
-                    const file = files[i];
-                    const formData = new FormData();
-                    formData.append('file', file);
+                    let file = files[i];
                     
-                    try {
-                        const res = await fetch('/api/media/upload', {
-                            method: 'POST',
-                            headers: { 'Authorization': `Bearer ${token}` },
-                            body: formData
-                        });
-                        if (res.ok) uploadedCount++;
-                    } catch (e) {
-                        console.error("Single file upload error", e);
+                    if (file.size > 5 * 1024 * 1024 && !file.type.startsWith('image/')) {
+                        showToast(`File "${file.name}" exceeds 5MB size limit.`, "error");
+                        continue;
                     }
+
+                    if (file.type.startsWith('image/')) {
+                        file = await compressImage(file);
+                        if (file.size > 5 * 1024 * 1024) {
+                            showToast(`Image "${file.name}" exceeds 5MB limit even after compression.`, "error");
+                            continue;
+                        }
+                    }
+                    
+                    await new Promise((resolve) => {
+                        const xhr = new XMLHttpRequest();
+                        const formData = new FormData();
+                        formData.append('file', file);
+                        if (pickerCurrentFolder) {
+                            formData.append('folder', pickerCurrentFolder);
+                        }
+
+                        xhr.addEventListener('load', () => {
+                            if (xhr.status >= 200 && xhr.status < 300) uploadedCount++;
+                            resolve();
+                        });
+                        xhr.addEventListener('error', () => resolve());
+                        
+                        xhr.open('POST', `/api/media/upload?folder=${encodeURIComponent(pickerCurrentFolder)}`);
+                        xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+                        xhr.send(formData);
+                    });
                 }
                 
                 showToast(`Successfully uploaded ${uploadedCount} file(s)!`);
@@ -3698,6 +4409,87 @@
                 } catch (err) {
                     console.error(err);
                     showToast("Failed to save settings: " + err.message, "error");
+                }
+            });
+
+            // Backgrounds Manager controllers
+            window.toggleBackgroundHeroFields = () => {
+                const type = document.getElementById('bg-hero-type').value;
+                if (type === 'video') {
+                    document.getElementById('bg-hero-image-group').style.display = 'none';
+                    document.getElementById('bg-hero-video-group').style.display = 'block';
+                } else {
+                    document.getElementById('bg-hero-image-group').style.display = 'block';
+                    document.getElementById('bg-hero-video-group').style.display = 'none';
+                }
+            };
+
+            async function loadBackgroundSettings() {
+                try {
+                    const data = await fetch('/api/settings/backgrounds').then(res => res.json());
+                    if (data) {
+                        document.getElementById('bg-hero-type').value = data.hero_bg_type || 'image';
+                        updateSelectorPreview('bg-hero-image', data.hero_bg_image || '');
+                        updateSelectorPreview('bg-hero-video', data.hero_bg_video || '');
+                        updateSelectorPreview('bg-about-image', data.about_bg_image || '');
+                        updateSelectorPreview('bg-projects-image', data.projects_bg_image || '');
+                        updateSelectorPreview('bg-uxi-image', data.uxi_bg_image || '');
+                        updateSelectorPreview('bg-contact-image', data.contact_bg_image || '');
+                        
+                        toggleBackgroundHeroFields();
+                        
+                        // Set dirty-state tracker baseline
+                        if (typeof backgroundsForm.setInitialData === 'function') {
+                            backgroundsForm.setInitialData(getBackgroundsFormData());
+                        }
+                    }
+                } catch (e) {
+                    console.error("Failed to load background settings:", e);
+                }
+            }
+            window.loadBackgroundSettings = loadBackgroundSettings;
+
+            function getBackgroundsFormData() {
+                return {
+                    hero_bg_type: document.getElementById('bg-hero-type').value,
+                    hero_bg_image: document.getElementById('bg-hero-image').value,
+                    hero_bg_video: document.getElementById('bg-hero-video').value,
+                    about_bg_image: document.getElementById('bg-about-image').value,
+                    projects_bg_image: document.getElementById('bg-projects-image').value,
+                    uxi_bg_image: document.getElementById('bg-uxi-image').value,
+                    contact_bg_image: document.getElementById('bg-contact-image').value
+                };
+            }
+
+            const backgroundsForm = document.getElementById('backgrounds-form');
+            backgroundsForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const saveBtn = document.getElementById('btn-save-backgrounds');
+                const originalHtml = saveBtn.innerHTML;
+                saveBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
+                saveBtn.disabled = true;
+                
+                try {
+                    const res = await fetch('/api/settings/backgrounds', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify(getBackgroundsFormData())
+                    });
+                    
+                    if (res.ok) {
+                        showToast("Background settings saved successfully!", "success");
+                        loadBackgroundSettings(); // reload to reset baseline
+                    } else {
+                        const errData = await res.json();
+                        throw new Error(errData.error || "Save failed");
+                    }
+                } catch (err) {
+                    showToast(err.message, "error");
+                    saveBtn.innerHTML = originalHtml;
+                    saveBtn.disabled = false;
                 }
             });
 

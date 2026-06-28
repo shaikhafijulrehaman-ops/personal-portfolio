@@ -298,6 +298,17 @@ const MobileNavigationSettingsSchema = new mongoose.Schema({
 });
 const MobileNavigationSettings = mongoose.model('MobileNavigationSettings', MobileNavigationSettingsSchema);
 
+const BackgroundSettingsSchema = new mongoose.Schema({
+    hero_bg_type: { type: String, default: 'image' }, // 'image' or 'video'
+    hero_bg_image: { type: String, default: '' },
+    hero_bg_video: { type: String, default: '' },
+    about_bg_image: { type: String, default: '' },
+    projects_bg_image: { type: String, default: '' },
+    uxi_bg_image: { type: String, default: '' },
+    contact_bg_image: { type: String, default: '' }
+});
+const BackgroundSettings = mongoose.model('BackgroundSettings', BackgroundSettingsSchema);
+
 // ==========================================
 // Authentication Middleware
 // ==========================================
@@ -958,22 +969,64 @@ app.post('/api/settings/upload', authenticateToken, upload.single('file'), async
     res.json({ success: true, url: fileUrl });
 });
 
+// GET Background Settings
+app.get('/api/settings/backgrounds', async (req, res) => {
+    let settings = await BackgroundSettings.findOne();
+    if (!settings) {
+        settings = new BackgroundSettings();
+        await settings.save();
+    }
+    res.json(settings);
+});
+
+// POST Background Settings
+app.post('/api/settings/backgrounds', authenticateToken, async (req, res) => {
+    let settings = await BackgroundSettings.findOne();
+    if (!settings) {
+        settings = new BackgroundSettings();
+    }
+    
+    Object.assign(settings, req.body);
+    await settings.save();
+    res.json({ success: true, settings });
+});
+
 // ==========================================
 // FILE UPLOADER ROUTES (MULTER)
 // ==========================================
 
 // Image asset upload
 // Image asset upload
+// Image asset upload with folder support
 app.post('/api/media/upload', authenticateToken, upload.single('file'), async (req, res) => {
     if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
     
+    const folder = req.query.folder || req.body.folder || '';
+    const safeFolder = folder.replace(/\.\./g, '').replace(/\\/g, '/');
+    
     let fileUrl = `/uploads/media/${req.file.filename}`;
+    
+    if (safeFolder) {
+        const targetFolderDir = path.join(mediaDir, safeFolder);
+        if (!fs.existsSync(targetFolderDir)) {
+            fs.mkdirSync(targetFolderDir, { recursive: true });
+        }
+        const oldPath = req.file.path;
+        const newPath = path.join(targetFolderDir, req.file.filename);
+        try {
+            fs.renameSync(oldPath, newPath);
+            fileUrl = `/uploads/media/${safeFolder}/${req.file.filename}`;
+        } catch (e) {
+            console.error("Local folder move failed:", e);
+        }
+    }
     
     if (supabase) {
         try {
-            const fileBuffer = fs.readFileSync(req.file.path);
+            const currentPath = safeFolder ? path.join(mediaDir, safeFolder, req.file.filename) : req.file.path;
+            const fileBuffer = fs.readFileSync(currentPath);
             const bucketName = 'media';
-            const fileName = `${Date.now()}_${req.file.filename}`;
+            const fileName = safeFolder ? `${safeFolder}/${Date.now()}_${req.file.filename}` : `${Date.now()}_${req.file.filename}`;
             
             let { data, error } = await supabase.storage
                 .from(bucketName)
@@ -1010,7 +1063,8 @@ app.post('/api/media/upload', authenticateToken, upload.single('file'), async (r
             if (publicUrlData && publicUrlData.publicUrl) {
                 fileUrl = publicUrlData.publicUrl;
                 try {
-                    fs.unlinkSync(req.file.path); // remove temp file
+                    const currentPath = safeFolder ? path.join(mediaDir, safeFolder, req.file.filename) : req.file.path;
+                    fs.unlinkSync(currentPath); // remove temp file
                 } catch (err) {
                     console.error("Failed to delete temp file:", err);
                 }
@@ -1023,24 +1077,32 @@ app.post('/api/media/upload', authenticateToken, upload.single('file'), async (r
     res.json({ url: fileUrl, name: req.file.filename });
 });
 
-// Get media files listed in folder
+// Get media files listed in folder with details (timestamp, size, type)
 app.get('/api/media', authenticateToken, async (req, res) => {
+    const folder = req.query.folder || '';
+    const safeFolder = folder.replace(/\.\./g, '').replace(/\\/g, '/');
+    const localTargetDir = safeFolder ? path.join(mediaDir, safeFolder) : mediaDir;
+
     if (supabase) {
         try {
             const { data, error } = await supabase.storage
                 .from('media')
-                .list('', {
-                    limit: 100,
+                .list(safeFolder || '', {
+                    limit: 150,
                     sortBy: { column: 'created_at', order: 'desc' }
                 });
             if (!error && data) {
                 const list = data.map(file => {
+                    const relativePath = safeFolder ? `${safeFolder}/${file.name}` : file.name;
                     const { data: publicUrlData } = supabase.storage
                         .from('media')
-                        .getPublicUrl(file.name);
+                        .getPublicUrl(relativePath);
                     return {
                         name: file.name,
-                        url: publicUrlData.publicUrl
+                        url: file.metadata ? publicUrlData.publicUrl : '',
+                        isDir: !file.metadata,
+                        size: file.metadata ? file.metadata.size : 0,
+                        mtime: file.created_at || new Date()
                     };
                 });
                 return res.json(list);
@@ -1050,14 +1112,162 @@ app.get('/api/media', authenticateToken, async (req, res) => {
         }
     }
 
-    fs.readdir(mediaDir, (err, files) => {
+    if (!fs.existsSync(localTargetDir)) {
+        return res.json([]);
+    }
+
+    fs.readdir(localTargetDir, (err, files) => {
         if (err) return res.status(500).json({ error: 'Unable to scan folder' });
-        const list = files.map(file => ({
-            name: file,
-            url: `/uploads/media/${file}`
-        }));
+        
+        const list = [];
+        files.forEach(file => {
+            const filePath = path.join(localTargetDir, file);
+            let stat;
+            try {
+                stat = fs.statSync(filePath);
+            } catch (e) {
+                return;
+            }
+            
+            const isDir = stat.isDirectory();
+            const relativeUrlPath = safeFolder ? `${safeFolder}/${file}` : file;
+            
+            list.push({
+                name: file,
+                url: isDir ? '' : `/uploads/media/${relativeUrlPath}`,
+                isDir,
+                size: stat.size,
+                mtime: stat.mtime
+            });
+        });
+        
         res.json(list);
     });
+});
+
+// Create folder inside Media Library
+app.post('/api/media/folder', authenticateToken, async (req, res) => {
+    const { folderName } = req.body;
+    if (!folderName) return res.status(400).json({ error: 'Folder name is required' });
+    
+    const safeName = folderName.replace(/[^a-zA-Z0-9_\-\/]/g, '');
+    if (!safeName) return res.status(400).json({ error: 'Invalid folder name' });
+
+    const dirPath = path.join(mediaDir, safeName);
+    if (!fs.existsSync(dirPath)) {
+        fs.mkdirSync(dirPath, { recursive: true });
+    }
+    res.json({ success: true, folder: safeName });
+});
+
+// Delete media file/folder by path
+app.post('/api/media/delete', authenticateToken, async (req, res) => {
+    const { path: relativePath } = req.body;
+    if (!relativePath) return res.status(400).json({ error: 'Path is required' });
+
+    const safePath = relativePath.replace(/\.\./g, '');
+
+    if (supabase) {
+        try {
+            const { error } = await supabase.storage
+                .from('media')
+                .remove([safePath]);
+            if (!error) return res.json({ success: true });
+        } catch (err) {
+            console.error("Supabase delete failed, trying local:", err.message);
+        }
+    }
+
+    const filePath = path.join(mediaDir, safePath);
+    if (fs.existsSync(filePath)) {
+        const stat = fs.statSync(filePath);
+        if (stat.isDirectory()) {
+            fs.rmSync(filePath, { recursive: true });
+        } else {
+            fs.unlinkSync(filePath);
+        }
+        res.json({ success: true });
+    } else {
+        res.status(404).json({ error: 'File not found' });
+    }
+});
+
+// Check image usage across portfolio sections
+app.get('/api/media/usage', authenticateToken, async (req, res) => {
+    const { url } = req.query;
+    if (!url) return res.status(400).json({ error: 'URL is required' });
+
+    const usages = [];
+
+    // Query Hero
+    const hero = await Hero.findOne({
+        $or: [
+            { avatar_url: url },
+            { resume_url: url },
+            { background_url: url },
+            { video_path: url }
+        ]
+    });
+    if (hero) usages.push("Hero Section");
+
+    // Query About
+    const about = await About.findOne({ photo_url: url });
+    if (about) usages.push("About Section");
+
+    // Query Skills
+    const skill = await Skill.findOne({ icon_url: url });
+    if (skill) usages.push(`Skills (${skill.name})`);
+
+    // Query Projects
+    const project = await Project.findOne({ image_url: url });
+    if (project) usages.push(`Projects (${project.name})`);
+
+    // Query UXIGeneral
+    const uxiGen = await UXIGeneral.findOne({
+        $or: [
+            { logo_url: url },
+            { hero_bg_url: url },
+            { team_bg_url: url },
+            { projects_bg_url: url }
+        ]
+    });
+    if (uxiGen) usages.push("UXI General Page");
+
+    // Query UXITeam
+    const uxiTeam = await UXITeam.findOne({ photo_url: url });
+    if (uxiTeam) usages.push(`UXI Team (${uxiTeam.name})`);
+
+    // Query UXIProject
+    const uxiProject = await UXIProject.findOne({ image_url: url });
+    if (uxiProject) usages.push(`UXI Projects (${uxiProject.name})`);
+
+    // Query Timeline
+    const timeline = await Timeline.findOne({ icon_url: url });
+    if (timeline) usages.push(`Timeline (${timeline.title})`);
+
+    // Query Certificate
+    const cert = await Certificate.findOne({ image_url: url });
+    if (cert) usages.push(`Certificates (${cert.name})`);
+
+    // Query Contact
+    const contact = await Contact.findOne({ bg_image_url: url });
+    if (contact) usages.push("Contact Section");
+
+    // Query SEO
+    const seo = await SEO.findOne({ image_url: url });
+    if (seo) usages.push("SEO Meta Image");
+
+    // Query WebsiteSettings
+    const settings = await WebsiteSettings.findOne({
+        $or: [
+            { portfolio_favicon_url: url },
+            { uxi_favicon_url: url },
+            { admin_favicon_url: url }
+        ]
+    });
+    if (settings) usages.push("Website Logo/Favicon");
+
+    res.json({ usages });
 });
 
 // Delete media file
