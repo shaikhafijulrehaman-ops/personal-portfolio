@@ -27,6 +27,12 @@
 </head>
 <body>
 
+    <!-- Dashboard Fullscreen Verification Loader -->
+    <div id="admin-verification-loader" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #0b0f19; z-index: 99999; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; transition: opacity 0.3s ease;">
+        <div class="loader-spinner" style="width: 50px; height: 50px; border: 3px solid rgba(255,255,255,0.05); border-top-color: #3b82f6; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+        <p style="color: #94a3b8; font-size: 14px; font-weight: 500; font-family: 'Inter', sans-serif; letter-spacing: 0.5px;">Verifying administrator session...</p>
+    </div>
+
     <!-- Sidebar Navigation -->
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-header">
@@ -1824,6 +1830,11 @@
                 form.checkChanges = () => {
                     const currentDataStr = JSON.stringify(getDataFn());
                     const isDirty = currentDataStr !== initialDataStr;
+                    
+                    const submitBtn = form.querySelector('button[type="submit"]') || form.querySelector('.btn-save');
+                    if (submitBtn) {
+                        submitBtn.disabled = !isDirty;
+                    }
                     return isDirty;
                 };
                 
@@ -1940,7 +1951,15 @@
                     window.location.href = "login.html";
                 } else {
                     // Eagerly load ONLY the active tab (Dashboard stats)
-                    triggerLazyLoad('dashboard');
+                    triggerLazyLoad('dashboard').then(() => {
+                        const vLoader = document.getElementById('admin-verification-loader');
+                        if (vLoader) {
+                            vLoader.style.opacity = '0';
+                            setTimeout(() => {
+                                vLoader.style.display = 'none';
+                            }, 300);
+                        }
+                    });
                 }
             });
 
@@ -4111,7 +4130,10 @@
                 const preview = document.getElementById(`${targetId}-preview`);
                 const info = document.getElementById(`${targetId}-info`);
                 
-                if (input) input.value = url || '';
+                if (input) {
+                    input.value = url || '';
+                    input.dispatchEvent(new Event('change', { bubbles: true }));
+                }
                 
                 if (preview) {
                     if (url) {
@@ -4145,7 +4167,9 @@
 
             window.removeSelectedImage = (targetId) => {
                 updateSelectorPreview(targetId, '');
-                   // picker variables
+            };
+
+            // picker variables
             let pickerCurrentFolder = '';
             let cachedPickerMedia = [];
             let pickerSelectedAsset = null;
@@ -4554,6 +4578,32 @@
                 }
             };
 
+            // General Info state getters
+            function getUXIGeneralFormData() {
+                return {
+                    logo_url: document.getElementById('uxi-logo').value,
+                    about_copy: document.getElementById('uxi-about-copy').value.trim(),
+                    mission: document.getElementById('uxi-mission').value.trim(),
+                    vision: document.getElementById('uxi-vision').value.trim(),
+                    founded_year: document.getElementById('uxi-founded-year').value.trim(),
+                    website_link: document.getElementById('uxi-website-link').value.trim(),
+                    email: document.getElementById('uxi-email').value.trim(),
+                    phone: document.getElementById('uxi-phone').value.trim(),
+                    location: document.getElementById('uxi-location').value.trim()
+                };
+            }
+            window.getUXIGeneralFormData = getUXIGeneralFormData;
+
+            function getUXIFooterFormData() {
+                return {
+                    footer_btn_text: document.getElementById('uxi-footer-company').value.trim(),
+                    footer_tagline: document.getElementById('uxi-footer-tagline').value.trim(),
+                    footer_btn_link: document.getElementById('uxi-footer-website').value.trim(),
+                    footer_text: document.getElementById('uxi-footer-copyright').value.trim()
+                };
+            }
+            window.getUXIFooterFormData = getUXIFooterFormData;
+
             // General Info load & save
             async function loadUXISettings() {
                 try {
@@ -4577,6 +4627,15 @@
                                     document.getElementById('uxi-footer-tagline').value = gen.footer_tagline || 'Empowering the next generation of seamless web experiences.';
                                     document.getElementById('uxi-footer-website').value = gen.footer_btn_link || 'https://uxitech.in';
                                     document.getElementById('uxi-footer-copyright').value = gen.footer_text || '© 2026 UXI Startup. All rights reserved.';
+
+                                    // Register trackers
+                                    trackFormChanges('uxi-general-form', getUXIGeneralFormData);
+                                    document.getElementById('uxi-general-form').setInitialData(getUXIGeneralFormData());
+                                    document.getElementById('uxi-general-form').checkChanges();
+
+                                    trackFormChanges('uxi-footer-form', getUXIFooterFormData);
+                                    document.getElementById('uxi-footer-form').setInitialData(getUXIFooterFormData());
+                                    document.getElementById('uxi-footer-form').checkChanges();
                                 }
                             } catch (e) {
                                 console.error("Failed to load UXI general settings", e);
@@ -4592,6 +4651,15 @@
             window.loadUXISettings = loadUXISettings;
 
             // Website Settings controller
+            function getSettingsFormData() {
+                return {
+                    portfolio_favicon_url: document.getElementById('settings-portfolio-favicon').value,
+                    uxi_favicon_url: document.getElementById('settings-uxi-favicon').value,
+                    admin_favicon_url: document.getElementById('settings-admin-favicon').value
+                };
+            }
+            window.getSettingsFormData = getSettingsFormData;
+
             async function loadWebsiteSettings() {
                 try {
                     const data = await fetch('/api/settings').then(res => res.json());
@@ -4599,6 +4667,10 @@
                         updateSelectorPreview('settings-portfolio-favicon', data.portfolio_favicon_url || '');
                         updateSelectorPreview('settings-uxi-favicon', data.uxi_favicon_url || '');
                         updateSelectorPreview('settings-admin-favicon', data.admin_favicon_url || '');
+                        
+                        trackFormChanges('settings-form', getSettingsFormData);
+                        document.getElementById('settings-form').setInitialData(getSettingsFormData());
+                        document.getElementById('settings-form').checkChanges();
                     }
                 } catch (e) {
                     console.error("Failed to load Website Settings", e);
@@ -4637,10 +4709,16 @@
             // Form Submit for website settings
             document.getElementById('settings-form').addEventListener('submit', async (e) => {
                 e.preventDefault();
+                const form = document.getElementById('settings-form');
+                const btn = form.querySelector('button[type="submit"]');
+                const originalHtml = btn.innerHTML;
                 
                 const portfolio = document.getElementById('settings-portfolio-favicon').value;
                 const uxi = document.getElementById('settings-uxi-favicon').value;
                 const admin = document.getElementById('settings-admin-favicon').value;
+                
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
                 
                 showToast("Saving settings...", "accent");
                 try {
@@ -4666,9 +4744,14 @@
                     const activeFavicon = admin || `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%230f172a'/%3E%3Ctext y='.78em' x='50%25' font-size='60' text-anchor='middle'%3E⚙️%3C/text%3E%3C/svg%3E`;
                     document.getElementById('dynamic-favicon').href = activeFavicon;
                     
+                    // Reset baseline
+                    form.setInitialData(getSettingsFormData());
                 } catch (err) {
                     console.error(err);
                     showToast("Failed to save settings: " + err.message, "error");
+                } finally {
+                    btn.innerHTML = originalHtml;
+                    form.checkChanges();
                 }
             });
 
@@ -4699,9 +4782,9 @@
                         toggleBackgroundHeroFields();
                         
                         // Set dirty-state tracker baseline
-                        if (typeof backgroundsForm.setInitialData === 'function') {
-                            backgroundsForm.setInitialData(getBackgroundsFormData());
-                        }
+                        trackFormChanges('backgrounds-form', getBackgroundsFormData);
+                        backgroundsForm.setInitialData(getBackgroundsFormData());
+                        backgroundsForm.checkChanges();
                     }
                 } catch (e) {
                     console.error("Failed to load background settings:", e);
@@ -4741,15 +4824,20 @@
                     
                     if (res.ok) {
                         showToast("Background settings saved successfully!", "success");
-                        loadBackgroundSettings(); // reload to reset baseline
+                        if (typeof backgroundsForm.setInitialData === 'function') {
+                            backgroundsForm.setInitialData(getBackgroundsFormData());
+                        }
                     } else {
                         const errData = await res.json();
                         throw new Error(errData.error || "Save failed");
                     }
                 } catch (err) {
                     showToast(err.message, "error");
+                } finally {
                     saveBtn.innerHTML = originalHtml;
-                    saveBtn.disabled = false;
+                    if (typeof backgroundsForm.checkChanges === 'function') {
+                        backgroundsForm.checkChanges();
+                    }
                 }
             });
 
@@ -4794,6 +4882,10 @@
             // General form submit
             document.getElementById('uxi-general-form').addEventListener('submit', async (e) => {
                 e.preventDefault();
+                const form = document.getElementById('uxi-general-form');
+                const btn = form.querySelector('button[type="submit"]');
+                const originalHtml = btn.innerHTML;
+                
                 const logo_url = document.getElementById('uxi-logo').value;
                 const about_copy = document.getElementById('uxi-about-copy').value;
                 const mission = document.getElementById('uxi-mission').value;
@@ -4803,6 +4895,9 @@
                 const email = document.getElementById('uxi-email').value;
                 const phone = document.getElementById('uxi-phone').value;
                 const location = document.getElementById('uxi-location').value;
+
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
 
                 try {
                     // Fetch existing settings to preserve footer settings fields!
@@ -4819,20 +4914,38 @@
                             logo_url, about_copy, mission, vision, founded_year, website_link, email, phone, location 
                         })
                     });
-                    if (res.ok) showToast("UXI General Information updated successfully!");
-                    else showToast("Failed to save UXI settings", "error");
+                    if (res.ok) {
+                        showToast("UXI General Information updated successfully!");
+                        if (typeof form.setInitialData === 'function') {
+                            form.setInitialData(getUXIGeneralFormData());
+                        }
+                    } else {
+                        showToast("Failed to save UXI settings", "error");
+                    }
                 } catch (e) {
                     showToast("Error saving UXI settings: " + e.message, "error");
+                } finally {
+                    btn.innerHTML = originalHtml;
+                    if (typeof form.checkChanges === 'function') {
+                        form.checkChanges();
+                    }
                 }
             });
 
             // Footer form submit
             document.getElementById('uxi-footer-form').addEventListener('submit', async (e) => {
                 e.preventDefault();
+                const form = document.getElementById('uxi-footer-form');
+                const btn = form.querySelector('button[type="submit"]');
+                const originalHtml = btn.innerHTML;
+                
                 const footer_btn_text = document.getElementById('uxi-footer-company').value;
                 const footer_tagline = document.getElementById('uxi-footer-tagline').value;
                 const footer_btn_link = document.getElementById('uxi-footer-website').value;
                 const footer_text = document.getElementById('uxi-footer-copyright').value;
+
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
 
                 try {
                     // Fetch existing settings to preserve other general info fields!
@@ -4852,10 +4965,21 @@
                             footer_text 
                         })
                     });
-                    if (res.ok) showToast("UXI Footer Settings updated successfully!");
-                    else showToast("Failed to save footer settings", "error");
+                    if (res.ok) {
+                        showToast("UXI Footer Settings updated successfully!");
+                        if (typeof form.setInitialData === 'function') {
+                            form.setInitialData(getUXIFooterFormData());
+                        }
+                    } else {
+                        showToast("Failed to save footer settings", "error");
+                    }
                 } catch (e) {
                     showToast("Error saving footer settings: " + e.message, "error");
+                } finally {
+                    btn.innerHTML = originalHtml;
+                    if (typeof form.checkChanges === 'function') {
+                        form.checkChanges();
+                    }
                 }
             });
 
