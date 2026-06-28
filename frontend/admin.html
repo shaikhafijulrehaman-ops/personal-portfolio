@@ -1942,16 +1942,59 @@
             }
             window.triggerLazyLoad = triggerLazyLoad;
 
+            // Waking up server visual hint timer
+            const wakingUpTimer = setTimeout(() => {
+                const loaderText = document.querySelector('#admin-verification-loader p');
+                if (loaderText) {
+                    loaderText.innerHTML = 'Verifying administrator session...<br><span style="font-size:12px;color:var(--text-muted);display:inline-block;margin-top:8px;line-height:1.4;text-align:center;">Waking up backend server<br>(this may take up to 1 minute on free tier)...</span>';
+                }
+            }, 2500);
+
+            // Handle initial navigation based on URL hash
+            function handleHashRoute() {
+                const hash = window.location.hash.replace('#', '');
+                const validModules = Object.keys(lazyLoaders);
+                const targetMod = (hash && validModules.includes(hash)) ? hash : 'dashboard';
+                
+                const targetItem = document.querySelector(`.sidebar-menu li[data-module="${targetMod}"]`);
+                if (targetItem) {
+                    menuItems.forEach(i => i.classList.remove("active"));
+                    modules.forEach(m => m.classList.remove("active"));
+                    
+                    targetItem.classList.add("active");
+                    const modEl = document.getElementById(`module-${targetMod}`);
+                    if (modEl) modEl.classList.add("active");
+                    
+                    if (moduleTitle && moduleMeta[targetMod]) {
+                        moduleTitle.textContent = moduleMeta[targetMod].title;
+                        moduleSubtitle.textContent = moduleMeta[targetMod].subtitle;
+                    }
+                    return targetMod;
+                }
+                return 'dashboard';
+            }
+
             // Verify JWT Token with server
             fetch('/api/auth/me', {
                 headers: { 'Authorization': `Bearer ${token}` }
             }).then(res => {
+                clearTimeout(wakingUpTimer);
                 if (!res.ok) {
                     localStorage.removeItem("admin_token");
                     window.location.href = "login.html";
                 } else {
-                    // Eagerly load ONLY the active tab (Dashboard stats)
-                    triggerLazyLoad('dashboard').then(() => {
+                    const activeTab = handleHashRoute();
+                    triggerLazyLoad(activeTab).then(() => {
+                        const vLoader = document.getElementById('admin-verification-loader');
+                        if (vLoader) {
+                            vLoader.style.opacity = '0';
+                            setTimeout(() => {
+                                vLoader.style.display = 'none';
+                            }, 300);
+                        }
+                    }).catch(e => {
+                        console.error("Initial tab load failed:", e);
+                        // Hide verification loader anyway so the user isn't stuck on a blank screen
                         const vLoader = document.getElementById('admin-verification-loader');
                         if (vLoader) {
                             vLoader.style.opacity = '0';
@@ -1961,6 +2004,11 @@
                         }
                     });
                 }
+            }).catch(err => {
+                clearTimeout(wakingUpTimer);
+                console.error("Authentication check failed:", err);
+                localStorage.removeItem("admin_token");
+                window.location.href = "login.html";
             });
 
             // Sidebar navigation switcher
@@ -1999,6 +2047,9 @@
                     
                     moduleTitle.textContent = moduleMeta[activeMod].title;
                     moduleSubtitle.textContent = moduleMeta[activeMod].subtitle;
+                    
+                    // Update URL hash
+                    window.location.hash = activeMod;
                     
                     // Lazy load module data on click
                     triggerLazyLoad(activeMod);
