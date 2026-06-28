@@ -1810,6 +1810,38 @@
                 return tr;
             }
 
+            // Form Dirty State Tracking Utility
+            function trackFormChanges(formId, getDataFn) {
+                const form = document.getElementById(formId);
+                if (!form) return;
+                
+                let initialDataStr = JSON.stringify(getDataFn());
+                
+                form.setInitialData = (data) => {
+                    initialDataStr = JSON.stringify(data);
+                };
+                
+                form.checkChanges = () => {
+                    const currentDataStr = JSON.stringify(getDataFn());
+                    const isDirty = currentDataStr !== initialDataStr;
+                    return isDirty;
+                };
+                
+                form.querySelectorAll('input, textarea, select').forEach(input => {
+                    input.addEventListener('input', () => {
+                        if (typeof form.checkChanges === 'function') {
+                            form.checkChanges();
+                        }
+                    });
+                    input.addEventListener('change', () => {
+                        if (typeof form.checkChanges === 'function') {
+                            form.checkChanges();
+                        }
+                    });
+                });
+            }
+            window.trackFormChanges = trackFormChanges;
+
             // Check auth state
             if (!token) {
                 window.location.href = "login.html";
