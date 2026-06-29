@@ -73,7 +73,7 @@ export async function loadPickerGrid() {
     
     try {
         const res = await apiRequest(`/api/media?folder=${encodeURIComponent(pickerCurrentFolder)}`);
-        cachedPickerMedia = res || [];
+        cachedPickerMedia = (res && res.list) ? res.list : [];
         renderPickerGrid();
     } catch (e) {
         if (grid) grid.innerHTML = '<div style="color:var(--danger);grid-column:1/-1;text-align:center;padding:20px;">Error loading assets.</div>';
