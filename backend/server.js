@@ -23,6 +23,49 @@ const PORT = process.env.PORT || 8000;
 app.use(cors());
 app.use(express.json());
 
+// Backward Compatibility and Read-Only Stripping Middleware
+app.use((req, res, next) => {
+    // 1. Strip read-only columns from request body for write actions
+    if (req.body && typeof req.body === 'object') {
+        // Strip _id to prevent Supabase column errors
+        delete req.body._id;
+        
+        // Strip other read-only database-generated fields if not system overrides
+        if (req.method === 'PUT' || req.method === 'PATCH') {
+            delete req.body.id;
+            delete req.body.created_at;
+            delete req.body.updated_at;
+        }
+    }
+
+    // 2. Intercept response JSON to map UUID "id" to Mongoose style "_id"
+    const originalJson = res.json;
+    res.json = function (data) {
+        if (data && typeof data === 'object') {
+            const addUnderscoreId = (obj) => {
+                if (obj && typeof obj === 'object') {
+                    if (obj.id && !obj._id) {
+                        obj._id = obj.id;
+                    }
+                    for (const key in obj) {
+                        if (Object.prototype.hasOwnProperty.call(obj, key)) {
+                            if (Array.isArray(obj[key])) {
+                                obj[key].forEach(addUnderscoreId);
+                            } else if (obj[key] && typeof obj[key] === 'object') {
+                                addUnderscoreId(obj[key]);
+                            }
+                        }
+                    }
+                }
+            };
+            addUnderscoreId(data);
+        }
+        return originalJson.call(this, data);
+    };
+
+    next();
+});
+
 // Multer Storage Configuration (In-Memory for Supabase uploads)
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
