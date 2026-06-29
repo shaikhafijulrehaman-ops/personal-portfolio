@@ -39,7 +39,7 @@
                     <li><a href="#projects">Projects</a></li>
                     <li><a href="#experience">Timeline</a></li>
                     <li><a href="#certifications">Certifications</a></li>
-                    <li><a href="#github">GitHub</a></li>
+
                     <li><a href="#contact">Contact</a></li>
                 </ul>
             </div>
@@ -307,35 +307,7 @@
         </div>
     </section>
 
-    <!-- GitHub Integration Section -->
-    <section class="github-section" id="github">
-        <h2 class="section-title" data-aos="fade-up">GitHub Analytics</h2>
-        <div class="github-stats-grid">
-            
 
-
-            <!-- Top Languages Card -->
-            <div class="github-stat-card glass-card" data-aos="fade-up" data-aos-delay="100">
-                <img src="https://github-readme-stats.vercel.app/api/top-langs/?username=shaikhafijulrehaman-ops&layout=compact&theme=tokyonight&bg_color=111827&title_color=60A5FA&icon_color=3B82F6&text_color=F8FAFC&border_color=ffffff14" alt="Top Languages">
-            </div>
-
-            <!-- Streak Stats Card -->
-            <div class="github-stat-card glass-card" data-aos="fade-up" data-aos-delay="200">
-                <img src="https://github-readme-streak-stats.herokuapp.com/?user=shaikhafijulrehaman-ops&theme=tokyonight&background=111827&ring=3B82F6&fire=60A5FA&currStreakNum=F8FAFC&sideLabels=94A3B8" alt="GitHub Streak">
-            </div>
-
-        </div>
-
-        <div class="github-repos-wrapper">
-            <h3>Recent Repositories</h3>
-            <!-- Loaded dynamically via JavaScript -->
-            <div class="github-repos-grid" id="github-repos" data-aos="fade-up">
-                <div style="text-align: center; width: 100%; color: var(--text-muted);">
-                    <i class="fa-solid fa-spinner fa-spin"></i> Loading repositories...
-                </div>
-            </div>
-        </div>
-    </section>
 
     <!-- Contact Section -->
     <section class="contact-section" id="contact">
@@ -467,75 +439,7 @@
                 });
             });
 
-            // 4. Dynamic Language color code mapping for GitHub Repos
-            const langColors = {
-                'JavaScript': '#f1e05a',
-                'HTML': '#e34c26',
-                'CSS': '#563d7c',
-                'Python': '#3572A5',
-                'Java': '#b07219',
-                'TypeScript': '#3178c6',
-                'C': '#555555'
-            };
-            function getLangColor(lang) {
-                return langColors[lang] || '#858b97';
-            }
 
-            // 5. Dynamic GitHub Repos Fetcher
-            function loadGithubRepos(username = 'shaikhafijulrehaman-ops') {
-                fetch(`https://api.github.com/users/${username}/repos?sort=updated&per_page=6`)
-                    .then(response => {
-                        if (!response.ok) throw new Error("API call failed");
-                        return response.json();
-                    })
-                    .then(repos => {
-                        const reposContainer = document.getElementById('github-repos');
-                        if (!repos || repos.length === 0) {
-                            reposContainer.innerHTML = '<div style="text-align:center;width:100%;color:var(--text-muted);">No public repositories found.</div>';
-                            return;
-                        }
-                        
-                        reposContainer.innerHTML = '';
-                        repos.forEach(repo => {
-                            const card = document.createElement('div');
-                            card.className = 'repo-card glass-card';
-                            card.setAttribute('data-tilt', '');
-                            
-                            card.innerHTML = `
-                                <div class="repo-header">
-                                    <i class="fa-brands fa-github"></i>
-                                    <a href="${repo.html_url}" target="_blank">${repo.name}</a>
-                                </div>
-                                <p class="repo-desc">${repo.description || 'Modern digital solution built with clean code and innovative thinking.'}</p>
-                                <div class="repo-footer">
-                                    <div class="repo-lang">
-                                        <span class="repo-lang-dot" style="background-color: ${getLangColor(repo.language)}"></span>
-                                        <span>${repo.language || 'JavaScript'}</span>
-                                    </div>
-                                    <div class="repo-stats">
-                                        <span><i class="fa-regular fa-star"></i> ${repo.stargazers_count}</span>
-                                        <span><i class="fa-solid fa-code-fork"></i> ${repo.forks_count}</span>
-                                    </div>
-                                </div>
-                            `;
-                            reposContainer.appendChild(card);
-                        });
-
-                        // Initialize Vanilla Tilt on the dynamically loaded repo cards
-                        VanillaTilt.init(document.querySelectorAll(".repo-card"), {
-                            max: 15,
-                            speed: 400,
-                            glare: true,
-                            "max-glare": 0.1,
-                            scale: 1.03
-                        });
-                    })
-                    .catch(err => {
-                        console.error("Error loading repositories:", err);
-                        const reposContainer = document.getElementById('github-repos');
-                        reposContainer.innerHTML = `<div style="text-align:center;width:100%;color:var(--text-muted);">Failed to load repositories. View them directly on <a href="https://github.com/${username}" target="_blank" style="color:var(--accent);">GitHub</a>.</div>`;
-                    });
-            }
 
             // ========================================================
             // DYNAMIC DATABASE DATA INJECTION ENGINE (Express API version)
@@ -561,8 +465,7 @@
 
 
 
-                // Default load github
-                loadGithubRepos();
+
 
                 try {
                     // Fetch hero section
