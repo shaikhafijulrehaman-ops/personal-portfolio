@@ -1083,6 +1083,7 @@
                     const certRes = await fetch('/api/certificates').then(res => res.json());
                     if (certRes && certRes.length > 0) {
                         const visibleCerts = certRes.filter(c => c.is_visible);
+                        window.allCertificatesList = visibleCerts;
                         
                         const track = document.getElementById('marquee-track');
                         track.innerHTML = '';
@@ -1097,12 +1098,10 @@
                                 <h3>${c.title}</h3>
                                 <div class="cert-org">${c.organization}</div>
                                 <div class="cert-date">Issued: ${c.issue_date}</div>
-                                <a href="${c.credential_link}" class="btn-cert" target="_blank">View Certificate</a>
+                                <a href="javascript:void(0)" class="btn-cert" onclick="openCertLightbox('${c.id}')">View Certificate</a>
                             `;
                             track.appendChild(card);
                         });
-
-
                     }
 
                     // Fetch Contact Info
@@ -1176,6 +1175,368 @@
                     }, 500);
                 });
             });
+        });
+    </script>
+    <!-- Premium Fullscreen Certificate Lightbox -->
+    <style>
+        #cert-lightbox {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(8, 12, 21, 0.95);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            z-index: 99999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        #cert-lightbox.active {
+            opacity: 1;
+        }
+
+        .lightbox-header {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 20px 30px;
+            background: linear-gradient(to bottom, rgba(8, 12, 21, 0.9), transparent);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+        }
+        .lightbox-details {
+            text-align: left;
+        }
+        .lightbox-details h3 {
+            margin: 0;
+            font-size: 18px;
+            font-family: 'Orbitron', sans-serif;
+            color: #fff;
+            font-weight: 600;
+        }
+        .lightbox-details p {
+            margin: 4px 0 0 0;
+            font-size: 13px;
+            color: var(--accent);
+            font-weight: 500;
+        }
+
+        .lightbox-controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .lightbox-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: #fff;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 15px;
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+        .lightbox-btn:hover {
+            background: var(--accent);
+            border-color: var(--accent);
+            transform: scale(1.08);
+        }
+
+        .lightbox-img-container {
+            width: 80%;
+            height: 80%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+            cursor: grab;
+        }
+        .lightbox-img-container img {
+            max-width: 90%;
+            max-height: 90%;
+            object-fit: contain;
+            border-radius: 8px;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6);
+            transition: transform 0.15s ease-out;
+            transform-origin: center center;
+            user-select: none;
+            -webkit-user-drag: none;
+        }
+
+        .lightbox-nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: #fff;
+            width: 55px;
+            height: 55px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 20px;
+            transition: all 0.2s ease;
+            z-index: 5;
+            backdrop-filter: blur(10px);
+        }
+        .lightbox-nav:hover {
+            background: var(--accent);
+            border-color: var(--accent);
+            transform: translateY(-50%) scale(1.1);
+        }
+        #lightbox-prev { left: 40px; }
+        #lightbox-next { right: 40px; }
+
+        @media (max-width: 768px) {
+            .lightbox-header {
+                padding: 15px;
+                flex-direction: column;
+                gap: 15px;
+                align-items: flex-start;
+                background: rgba(8, 12, 21, 0.95);
+            }
+            .lightbox-controls {
+                width: 100%;
+                justify-content: flex-end;
+            }
+            .lightbox-img-container {
+                width: 95%;
+                height: 70%;
+            }
+            #lightbox-prev { left: 15px; }
+            #lightbox-next { right: 15px; }
+            .lightbox-nav {
+                width: 44px;
+                height: 44px;
+                font-size: 16px;
+            }
+        }
+    </style>
+
+    <div id="cert-lightbox" onclick="if(event.target === this) closeCertLightbox();">
+        <div class="lightbox-header">
+            <div class="lightbox-details">
+                <h3 id="lightbox-title">Certificate</h3>
+                <p id="lightbox-org">Organization</p>
+            </div>
+            <div class="lightbox-controls">
+                <button class="lightbox-btn" onclick="zoomIn()" title="Zoom In"><i class="fa-solid fa-magnifying-glass-plus"></i></button>
+                <button class="lightbox-btn" onclick="zoomOut()" title="Zoom Out"><i class="fa-solid fa-magnifying-glass-minus"></i></button>
+                <button class="lightbox-btn" onclick="resetZoom()" title="Reset"><i class="fa-solid fa-expand"></i></button>
+                <a id="lightbox-download" class="lightbox-btn" href="#" target="_blank" title="Download"><i class="fa-solid fa-download"></i></a>
+                <a id="lightbox-original" class="lightbox-btn" href="#" target="_blank" title="Open Original"><i class="fa-solid fa-up-right-from-square"></i></a>
+                <button class="lightbox-btn" onclick="closeCertLightbox()" title="Close"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+        </div>
+
+        <div id="lightbox-prev" class="lightbox-nav" onclick="prevCert()"><i class="fa-solid fa-chevron-left"></i></div>
+        
+        <div class="lightbox-img-container" id="lightbox-img-container">
+            <img id="lightbox-img" src="" alt="Certificate Preview" style="transform: translate(0px, 0px) scale(1);">
+        </div>
+        
+        <div id="lightbox-next" class="lightbox-nav" onclick="nextCert()"><i class="fa-solid fa-chevron-right"></i></div>
+    </div>
+
+    <script>
+        let zoomScale = 1;
+        let panX = 0;
+        let panY = 0;
+        let isDragging = false;
+        let startX = 0;
+        let startY = 0;
+
+        window.currentCertIndex = 0;
+
+        function updateImageTransform() {
+            const img = document.getElementById('lightbox-img');
+            if (img) {
+                img.style.transform = `translate(${panX}px, ${panY}px) scale(${zoomScale})`;
+            }
+        }
+
+        window.openCertLightbox = (certId) => {
+            const certs = window.allCertificatesList || [];
+            const index = certs.findIndex(c => c.id === certId || c._id === certId);
+            if (index === -1) return;
+            window.currentCertIndex = index;
+            renderCertLightbox();
+        };
+
+        window.closeCertLightbox = () => {
+            const modal = document.getElementById('cert-lightbox');
+            if (modal) {
+                modal.classList.remove('active');
+                setTimeout(() => {
+                    modal.style.display = 'none';
+                }, 300);
+            }
+        };
+
+        function renderCertLightbox() {
+            const certs = window.allCertificatesList || [];
+            const index = window.currentCertIndex;
+            if (index < 0 || index >= certs.length) return;
+            
+            const cert = certs[index];
+            const modal = document.getElementById('cert-lightbox');
+            const img = document.getElementById('lightbox-img');
+            const title = document.getElementById('lightbox-title');
+            const org = document.getElementById('lightbox-org');
+            const downloadBtn = document.getElementById('lightbox-download');
+            const originalBtn = document.getElementById('lightbox-original');
+            
+            img.src = cert.image_url || 'images/cert_placeholder.png';
+            title.innerText = cert.title;
+            org.innerText = cert.organization;
+            
+            downloadBtn.href = cert.image_url;
+            downloadBtn.setAttribute('download', `${cert.title.replace(/\s+/g, '_')}_Certificate.png`);
+            
+            originalBtn.href = cert.credential_link || '#';
+            if (cert.credential_link && cert.credential_link !== '#') {
+                originalBtn.style.display = 'inline-flex';
+            } else {
+                originalBtn.style.display = 'none';
+            }
+            
+            const prevBtn = document.getElementById('lightbox-prev');
+            const nextBtn = document.getElementById('lightbox-next');
+            if (certs.length > 1) {
+                prevBtn.style.display = 'flex';
+                nextBtn.style.display = 'flex';
+            } else {
+                prevBtn.style.display = 'none';
+                nextBtn.style.display = 'none';
+            }
+            
+            resetZoom();
+            modal.style.display = 'flex';
+            setTimeout(() => {
+                modal.classList.add('active');
+            }, 10);
+        }
+
+        window.prevCert = () => {
+            const certs = window.allCertificatesList || [];
+            if (certs.length <= 1) return;
+            window.currentCertIndex = (window.currentCertIndex - 1 + certs.length) % certs.length;
+            renderCertLightbox();
+        };
+
+        window.nextCert = () => {
+            const certs = window.allCertificatesList || [];
+            if (certs.length <= 1) return;
+            window.currentCertIndex = (window.currentCertIndex + 1) % certs.length;
+            renderCertLightbox();
+        };
+
+        window.zoomIn = () => {
+            zoomScale = Math.min(zoomScale + 0.25, 4);
+            updateImageTransform();
+        };
+
+        window.zoomOut = () => {
+            zoomScale = Math.max(zoomScale - 0.25, 0.5);
+            updateImageTransform();
+        };
+
+        window.resetZoom = () => {
+            zoomScale = 1;
+            panX = 0;
+            panY = 0;
+            updateImageTransform();
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const imgContainer = document.getElementById('lightbox-img-container');
+            const img = document.getElementById('lightbox-img');
+
+            if (img && imgContainer) {
+                // Drag / Pan mouse events
+                img.addEventListener('mousedown', (e) => {
+                    e.preventDefault();
+                    isDragging = true;
+                    startX = e.clientX - panX;
+                    startY = e.clientY - panY;
+                    img.style.cursor = 'grabbing';
+                });
+
+                window.addEventListener('mousemove', (e) => {
+                    if (!isDragging) return;
+                    panX = e.clientX - startX;
+                    panY = e.clientY - startY;
+                    updateImageTransform();
+                });
+
+                window.addEventListener('mouseup', () => {
+                    isDragging = false;
+                    if (img) img.style.cursor = 'grab';
+                });
+
+                // Wheel zoom
+                imgContainer.addEventListener('wheel', (e) => {
+                    e.preventDefault();
+                    if (e.deltaY < 0) {
+                        zoomScale = Math.min(zoomScale + 0.15, 4);
+                    } else {
+                        zoomScale = Math.max(zoomScale - 0.15, 0.5);
+                    }
+                    updateImageTransform();
+                });
+
+                // Touch support
+                img.addEventListener('touchstart', (e) => {
+                    if (e.touches.length === 1) {
+                        isDragging = true;
+                        startX = e.touches[0].clientX - panX;
+                        startY = e.touches[0].clientY - panY;
+                    }
+                });
+
+                img.addEventListener('touchmove', (e) => {
+                    if (!isDragging) return;
+                    if (e.touches.length === 1) {
+                        panX = e.touches[0].clientX - startX;
+                        panY = e.touches[0].clientY - startY;
+                        updateImageTransform();
+                    }
+                });
+
+                img.addEventListener('touchend', () => {
+                    isDragging = false;
+                });
+            }
+        });
+
+        // Key listeners for ESC and arrows
+        document.addEventListener('keydown', (e) => {
+            const modal = document.getElementById('cert-lightbox');
+            if (modal && modal.style.display === 'flex') {
+                if (e.key === 'Escape') {
+                    closeCertLightbox();
+                } else if (e.key === 'ArrowLeft') {
+                    prevCert();
+                } else if (e.key === 'ArrowRight') {
+                    nextCert();
+                }
+            }
         });
     </script>
 </body>
