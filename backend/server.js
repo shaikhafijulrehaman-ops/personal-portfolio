@@ -889,20 +889,58 @@ app.get('/api/media', authenticateToken, async (req, res) => {
         const { data, count, error } = await query;
         if (error) throw error;
 
+        const filesList = (data || []).map(m => ({
+            name: m.name,
+            url: m.url,
+            size: m.size,
+            mtime: m.mtime,
+            isDir: false
+        }));
+
         // Fetch folders list
-        const { data: allItems } = await supabaseAdmin
+        const { data: allItems, error: allItemsErr } = await supabaseAdmin
             .from('media_library')
             .select('folder')
             .eq('is_deleted', false);
             
-        const folders = [...new Set(allItems.map(item => item.folder).filter(f => f.length > 0))];
+        let folders = [];
+        if (!allItemsErr && allItems) {
+            folders = [...new Set(allItems.map(item => item.folder).filter(f => f && f.length > 0))];
+        }
 
+        // Extract immediate subfolders
+        let finalDirs = [];
+        if (!search) {
+            const subfolders = new Set();
+            folders.forEach(f => {
+                if (f.startsWith(folder)) {
+                    const relative = folder ? f.slice(folder.length + 1) : f;
+                    if (relative) {
+                        const firstPart = relative.split('/')[0];
+                        if (firstPart) {
+                            subfolders.add(firstPart);
+                        }
+                    }
+                }
+            });
+            subfolders.forEach(dirName => {
+                finalDirs.push({
+                    name: dirName,
+                    url: '',
+                    size: 0,
+                    mtime: new Date(),
+                    isDir: true
+                });
+            });
+        }
+
+        const totalItems = (count || 0) + finalDirs.length;
         res.json({
-            files: data,
-            folders: folders,
-            totalFiles: count,
-            totalPages: Math.ceil(count / limit),
-            currentPage: page
+            total: totalItems,
+            page,
+            limit,
+            pages: Math.ceil(totalItems / limit),
+            list: [...finalDirs, ...filesList]
         });
     } catch (err) {
         res.status(500).json({ error: err.message });
