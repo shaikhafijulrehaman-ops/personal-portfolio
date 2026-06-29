@@ -1065,7 +1065,7 @@ app.get('/api/media/usage', authenticateToken, async (req, res) => {
     }
 });
 
-// Delete file (soft-delete if in use, hard-delete if not)
+// Delete file permanently from storage and media library database
 app.delete('/api/media/:name', authenticateToken, async (req, res) => {
     const { name } = req.params;
     const folder = req.query.folder || '';
@@ -1075,25 +1075,15 @@ app.delete('/api/media/:name', authenticateToken, async (req, res) => {
         const { data: media } = await supabaseAdmin.from('media_library').select('*').eq('name', name).single();
         if (!media) return res.status(404).json({ error: 'Asset not found' });
 
-        // Query usages
-        const usageRes = await fetch(`http://localhost:${PORT}/api/media/usage?name=${encodeURIComponent(name)}`, {
-            headers: { 'Authorization': req.headers['authorization'] }
-        }).then(r => r.json());
+        // Hard delete from storage (ignore if file was already removed manually)
+        await supabaseAdmin.storage.from('media').remove([filePath]);
 
-        if (usageRes.inUse) {
-            // Soft delete
-            await supabaseAdmin.from('media_library').update({ is_deleted: true }).eq('id', media.id);
-            await logActivity('Media', `Soft-deleted in-use file: ${name}`, req);
-            return res.json({ success: true, message: 'File is currently in use. Soft-deleted from Library view.' });
-        }
+        // Delete from media library database table
+        const { error: dbErr } = await supabaseAdmin.from('media_library').delete().eq('id', media.id);
+        if (dbErr) throw dbErr;
 
-        // Hard delete
-        const { error: removeErr } = await supabaseAdmin.storage.from('media').remove([filePath]);
-        if (removeErr) throw removeErr;
-
-        await supabaseAdmin.from('media_library').delete().eq('id', media.id);
-        await logActivity('Media', `Hard-deleted unused file: ${name}`, req);
-        res.json({ success: true, message: 'Unused file deleted successfully.' });
+        await logActivity('Media', `Permanently deleted file: ${name}`, req);
+        res.json({ success: true, message: 'File deleted permanently.' });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }

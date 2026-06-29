@@ -603,11 +603,7 @@
                     scale: 1.02
                 });
 
-                // Default Duplicate marquee
-                const marqueeTrack = document.getElementById('marquee-track');
-                if (marqueeTrack) {
-                    marqueeTrack.innerHTML = marqueeTrack.innerHTML + marqueeTrack.innerHTML;
-                }
+
 
                 // Default load github
                 loadGithubRepos();
@@ -1106,8 +1102,7 @@
                             track.appendChild(card);
                         });
 
-                        // Re-apply marquee duplication
-                        track.innerHTML = track.innerHTML + track.innerHTML;
+
                     }
 
                     // Fetch Contact Info
