@@ -1661,7 +1661,46 @@ async function seedSupabaseDatabase() {
             console.log("Seeded admin profiles record.");
         }
 
-        // 4. Seed Skills
+        // 4. Seed Hero
+        const { count: heroCount } = await supabaseAdmin.from('hero').select('*', { count: 'exact', head: true });
+        if (heroCount === 0) {
+            await supabaseAdmin.from('hero').insert({
+                name: 'Shaik Hafijulrehaman',
+                tagline: 'AI/ML Student | Full Stack Web Developer | Co-Founder @ UXI',
+                description: 'I am a passionate Artificial Intelligence & Machine Learning student with a strong interest in Full Stack Development, AI Applications, and building scalable digital solutions.',
+                resume_url: 'resume.pdf',
+                avatar_url: 'images/removed_bg_hafi.png',
+                background_url: '',
+                background_type: 'image',
+                video_path: '',
+                overlay_color: '#000000',
+                overlay_opacity: 0.5,
+                brightness: 100,
+                contrast: 100,
+                blur: 0
+            });
+            console.log("Seeded default hero.");
+        }
+
+        // 5. Seed About
+        const { count: aboutCount } = await supabaseAdmin.from('about').select('*', { count: 'exact', head: true });
+        if (aboutCount === 0) {
+            await supabaseAdmin.from('about').insert({
+                title: 'About Me',
+                description: 'I am currently pursuing B.Tech in Artificial Intelligence & Machine Learning at DVR & Dr. HS MIC College of Technology. Passionate about software craftsmanship, web intelligence, and backend systems.',
+                college: 'DVR & Dr. HS MIC College of Technology',
+                degree: 'B.Tech',
+                current_year: '3rd Year',
+                cgpa: 8.8,
+                location: 'Vijayawada, Andhra Pradesh, India',
+                email: 'shaikhafijulrehaman@gmail.com',
+                phone: '+91 9959593027',
+                image_url: 'images/removed_bg_hafi.png'
+            });
+            console.log("Seeded default about.");
+        }
+
+        // 6. Seed Skills
         const { count: skillsCount } = await supabaseAdmin.from('skills').select('*', { count: 'exact', head: true });
         if (skillsCount === 0) {
             const defaultSkills = [
@@ -1679,7 +1718,7 @@ async function seedSupabaseDatabase() {
             console.log("Seeded default skills.");
         }
 
-        // 5. Seed Projects
+        // 7. Seed Projects
         const { count: projectsCount } = await supabaseAdmin.from('projects').select('*', { count: 'exact', head: true });
         if (projectsCount === 0) {
             const defaultProjects = [
@@ -1690,18 +1729,230 @@ async function seedSupabaseDatabase() {
             console.log("Seeded default projects.");
         }
 
-        // 6. Seed Timeline
+        // 8. Seed Timeline
         const { count: timelineCount } = await supabaseAdmin.from('timeline').select('*', { count: 'exact', head: true });
         if (timelineCount === 0) {
             const defaultTimeline = [
-                { title: 'AI/ML Student', company: 'MIC College of Technology', description: 'Learning AI/ML fundamentals and software paradigms.', start_date: '2023', end_date: 'Present', badge: 'Education', display_order: 1 },
-                { title: 'Co-Founder @ UXI', company: 'UXI Technologies', description: 'Co-founded and designed AI web experiences.', start_date: '2026', end_date: 'Present', badge: 'Work', display_order: 2 }
+                { title: 'B.Tech', company: 'DVR & Dr. HS MIC College of Technology', description: 'Pursuing B.Tech in Artificial Intelligence & Machine Learning. Currently in 3rd Year with an outstanding current CGPA of 8.8. Actively involved in building AI applications and exploring machine learning methodologies.', start_date: '2023', end_date: 'Present', badge: 'Education', display_order: 1 },
+                { title: 'AI Internship', company: 'IBM SkillsBuild', description: 'Acquired hands-on experience in training machine learning models, deploying APIs, and designing neural networks under guidance from industry mentors. Developed smart classification systems and analytics portals.', start_date: 'Summer', end_date: 'Internship', badge: 'Experience', display_order: 2 },
+                { title: 'Community Service Internship', company: 'Academic outreach program', description: 'Leveraged digital skills to assist local communities, setting up administrative databases, organizing technical literacy programs, and building simple communication portals.', start_date: 'Community', end_date: 'Outreach', badge: 'Experience', display_order: 3 },
+                { title: 'Web Development Projects', company: 'Self-initiated & Academic', description: 'Designed and deployed multiple complex applications integrating modern stacks like React, Node.js, and Supabase. Focused on secure authentications, API pipelines, and interactive user interfaces.', start_date: 'Ongoing', end_date: '', badge: 'Projects', display_order: 4 },
+                { title: 'Freelance Projects', company: 'Independent Developer', description: 'Partnered with diverse clients to design web pages, implement custom admin portals, and automate workflows. Delivered fully responsive layouts optimized for loading speed and recruiter-friendly presentation.', start_date: 'Contract', end_date: '', badge: 'Freelance', display_order: 5 }
             ];
             await supabaseAdmin.from('timeline').insert(defaultTimeline);
             console.log("Seeded default timeline.");
         }
 
-        console.log("Supabase seeding run completed successfully.");
+        // 9. Seed Certificates
+        const { count: certificatesCount } = await supabaseAdmin.from('certificates').select('*', { count: 'exact', head: true });
+        if (certificatesCount === 0) {
+            const defaultCertificates = [
+                { title: 'AI Foundations & Engineering', organization: 'IBM SkillsBuild', issue_date: 'Jan 2025', credential_link: '#', image_url: 'images/cert_placeholder.png', display_order: 1 },
+                { title: 'Full Stack Development Core', organization: 'Google / Coursera', issue_date: 'Aug 2025', credential_link: '#', image_url: 'images/cert_placeholder.png', display_order: 2 },
+                { title: 'Machine Learning Specialist', organization: 'Stanford / Coursera', issue_date: 'Mar 2026', credential_link: '#', image_url: 'images/cert_placeholder.png', display_order: 3 },
+                { title: 'Python for Data Science', organization: 'IBM SkillsBuild', issue_date: 'Nov 2025', credential_link: '#', image_url: 'images/cert_placeholder.png', display_order: 4 }
+            ];
+            await supabaseAdmin.from('certificates').insert(defaultCertificates);
+            console.log("Seeded default certificates.");
+        }
+
+        // 10. Seed Team Members
+        const { count: teamCount } = await supabaseAdmin.from('team_members').select('*', { count: 'exact', head: true });
+        if (teamCount === 0) {
+            const defaultUXITeam = [
+                {
+                    name: 'Shaik Hafijulrehaman',
+                    role: 'Co-Founder & AI/ML Lead',
+                    bio: 'AI/ML student and Full-Stack Developer passionate about designing and building intelligent web experiences.',
+                    responsibilities: 'Overseeing technical architecture, developing AI pipelines, and leading front-end integration.',
+                    skills: ['Python', 'Machine Learning', 'React', 'Node.js', 'MongoDB'],
+                    linkedin_link: 'https://www.linkedin.com/in/shaik-hafijulrehaman-b78793358',
+                    github_link: 'https://github.com/shaikhafijulrehaman-ops',
+                    photo_url: 'images/removed_bg_hafi.png',
+                    display_order: 1
+                },
+                {
+                    name: 'Jane Doe',
+                    role: 'Co-Founder & Design Lead',
+                    bio: 'UX Specialist focused on crafting high-fidelity design systems and responsive glassmorphic layouts.',
+                    responsibilities: 'Leading user interface design, user research, and branding elements.',
+                    skills: ['Figma', 'UI Design', 'CSS', 'Framer Motion'],
+                    linkedin_link: '#',
+                    photo_url: 'images/cert_placeholder.png',
+                    display_order: 2
+                }
+            ];
+            await supabaseAdmin.from('team_members').insert(defaultUXITeam);
+            console.log("Seeded default team members.");
+        }
+
+        // 11. Seed Contact Settings
+        const { count: contactCount } = await supabaseAdmin.from('contact_settings').select('*', { count: 'exact', head: true });
+        if (contactCount === 0) {
+            await supabaseAdmin.from('contact_settings').insert({
+                phone: '+91 9959593027',
+                email: 'shaikhafijulrehaman@gmail.com',
+                location: 'Vijayawada, Andhra Pradesh, India'
+            });
+            console.log("Seeded default contact settings.");
+        }
+
+        // 12. Seed SEO Settings
+        const { count: seoCount } = await supabaseAdmin.from('seo_settings').select('*', { count: 'exact', head: true });
+        if (seoCount === 0) {
+            await supabaseAdmin.from('seo_settings').insert({
+                title: 'Shaik Hafijulrehaman | AI/ML Student & Full Stack Developer',
+                description: 'Building AI-powered applications and modern web experiences.',
+                keywords: 'AI/ML Student, Full Stack Developer, Shaik Hafijulrehaman',
+                image_url: '',
+                favicon_url: ''
+            });
+            console.log("Seeded default SEO settings.");
+        }
+
+        // 13. Seed Social Links
+        const { count: socialsCount } = await supabaseAdmin.from('social_links').select('*', { count: 'exact', head: true });
+        if (socialsCount === 0) {
+            await supabaseAdmin.from('social_links').insert({
+                github: 'https://github.com/shaikhafijulrehaman-ops',
+                linkedin: 'https://www.linkedin.com/in/shaik-hafijulrehaman-b78793358',
+                whatsapp: 'https://wa.me/919959593027'
+            });
+            console.log("Seeded default social links.");
+        }
+
+        // 14. Seed UXI Projects
+        const { count: uxiProjectsCount } = await supabaseAdmin.from('uxi_projects').select('*', { count: 'exact', head: true });
+        if (uxiProjectsCount === 0) {
+            const defaultUXIProjects = [
+                {
+                    name: 'UXI Analytics Hub',
+                    description: 'A real-time user behavior analytics dashboard that leverages machine learning to predict user churn and optimize micro-conversions.',
+                    technologies: ['React', 'Node.js', 'TensorFlow.js', 'MongoDB'],
+                    github_link: '#',
+                    live_link: '#',
+                    image_url: 'images/uxi_website.png',
+                    status: 'Completed',
+                    completion_date: 'June 2026',
+                    expected_features: ['Real-time behavior tracking', 'Predictive churn modeling', 'Interactive charts', 'Glassmorphism dark theme'],
+                    display_order: 1
+                },
+                {
+                    name: 'UXI Adaptive Interface Agent',
+                    description: 'An AI assistant that dynamically alters webpage CSS layout and typography in real-time based on user eye tracking and readability preferences.',
+                    technologies: ['Python', 'FastAPI', 'OpenCV', 'WebSockets'],
+                    github_link: '#',
+                    live_link: '#',
+                    image_url: 'images/cert_placeholder.png',
+                    status: 'Upcoming',
+                    dev_stage: 'Development',
+                    expected_release: 'Dec 2026',
+                    coming_soon: true,
+                    progress_percent: 45,
+                    expected_features: ['Eye-tracking integration', 'Real-time CSS alterations', 'Low-latency communication', 'Browser extension'],
+                    display_order: 2
+                }
+            ];
+            await supabaseAdmin.from('uxi_projects').insert(defaultUXIProjects);
+            console.log("Seeded default UXI projects.");
+        }
+
+        // 15. Seed General Settings keys
+        const { data: websiteData } = await supabaseAdmin.from('settings').select('*').eq('key', 'website_settings').single();
+        if (!websiteData) {
+            await setSettingsValue('website_settings', {
+                portfolio_favicon_url: '',
+                uxi_favicon_url: '',
+                admin_favicon_url: ''
+            });
+            console.log("Seeded website settings.");
+        }
+
+        const { data: bgData } = await supabaseAdmin.from('settings').select('*').eq('key', 'background_settings').single();
+        if (!bgData) {
+            await setSettingsValue('background_settings', {
+                hero_bg_type: 'image',
+                hero_bg_image: '',
+                hero_bg_video: '',
+                hero_overlay_enable: false,
+                hero_overlay_color: '#000000',
+                hero_overlay_opacity: 50,
+                about_bg_image: '',
+                projects_bg_image: '',
+                uxi_bg_image: '',
+                contact_bg_image: ''
+            });
+            console.log("Seeded backgrounds settings.");
+        }
+
+        const { data: fabData } = await supabaseAdmin.from('settings').select('*').eq('key', 'mobile_fab_settings').single();
+        if (!fabData) {
+            await setSettingsValue('mobile_fab_settings', {
+                is_enabled: true,
+                custom_image_url: '',
+                icon_class: 'fa-solid fa-bars',
+                button_size: 60,
+                position: 'bottom-right',
+                bg_color: '#2563eb',
+                border_radius: 50,
+                glow_effect: true,
+                animation_type: 'pulse',
+                menu_items: []
+            });
+            console.log("Seeded mobile FAB settings.");
+        }
+
+        const { data: navData } = await supabaseAdmin.from('settings').select('*').eq('key', 'mobile_navigation_settings').single();
+        if (!navData) {
+            await setSettingsValue('mobile_navigation_settings', {
+                is_enabled: true,
+                is_fab_enabled: true,
+                custom_image_url: '',
+                icon_class: 'fa-solid fa-compass',
+                button_size: 60,
+                position: 'bottom-right',
+                bg_color: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
+                border_style: '1px solid rgba(255, 255, 255, 0.2)',
+                shadow_style: '0 8px 32px 0 rgba(31, 38, 135, 0.3)',
+                animation_type: 'pulse',
+                menu_items: []
+            });
+            console.log("Seeded mobile navigation settings.");
+        }
+
+        const { data: uxiGenData } = await supabaseAdmin.from('settings').select('*').eq('key', 'uxi_general').single();
+        if (!uxiGenData) {
+            await setSettingsValue('uxi_general', {
+                logo_url: 'images/uxi_website.png',
+                about_copy: 'UXI (Unified eXperience Intelligence) co-founded by passionate developers building modern digital solutions. We focus on integrating cutting edge Artificial Intelligence and Machine Learning techniques into seamless, intuitive user experiences.',
+                about_title: 'About UXI',
+                about_story: 'UXI co-founded by passionate developers building modern digital solutions.',
+                mission: 'To empower organizations with intelligence-driven, premium user experience solutions.',
+                vision: 'A future where design, intelligence, and code merge into invisible yet powerful human-computer interactions.',
+                founded_year: '2026',
+                email: 'contact@uxitech.in',
+                phone: '+91 9959593027',
+                location: 'Vijayawada, Andhra Pradesh, India',
+                website_link: 'https://uxitech.in',
+                hero_title: 'UXI',
+                hero_subtitle: 'Unified eXperience Intelligence',
+                hero_desc: 'Building modern digital experiences through AI, Web Development and scalable software solutions.',
+                linkedin: '#',
+                github: '#',
+                instagram: '#',
+                whatsapp: '#',
+                seo_title: 'UXI – Unified eXperience Intelligence',
+                seo_desc: 'Building modern digital experiences through AI, Web Development and scalable software solutions.',
+                seo_keywords: 'UXI, AI, Web Development',
+                footer_text: '© UXI – Unified eXperience Intelligence',
+                footer_btn_text: 'Visit UXITECH',
+                footer_btn_link: 'https://uxitech.in',
+                footer_tagline: 'Empowering the next generation of seamless web experiences.'
+            });
+            console.log("Seeded UXI general settings.");
+        }
+
+        console.log("Supabase database seeding run completed successfully.");
     } catch (e) {
         console.error("Seeding Supabase database failed:", e.message);
     }
