@@ -11,8 +11,8 @@ if (!process.env.SUPABASE_URL || !process.env.SUPABASE_KEY || !process.env.SUPAB
     process.exit(1);
 }
 
-const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
-const supabaseAdmin = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
+const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
+const supabaseAdmin = supabase;
 
 console.log("Supabase Admin client initialized successfully!");
 
