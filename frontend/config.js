@@ -2,6 +2,30 @@ const API_BASE_URL = window.location.hostname === 'localhost' || window.location
   ? 'http://localhost:8000'
   : 'https://personal-portfolio-32ye.onrender.com'; // Leave empty if frontend/backend are hosted on same domain, or insert production API URL.
 
+// Helper to optimize image URLs served by Cloudinary or local assets
+window.optimizeImageUrl = function (url, width) {
+  if (!url) return url;
+  
+  if (url.includes('res.cloudinary.com')) {
+    const parts = url.split('/image/upload/');
+    if (parts.length === 2) {
+      let transformation = 'f_auto,q_auto';
+      if (width) {
+        transformation += `,w_${width}`;
+      }
+      return `${parts[0]}/image/upload/${transformation}/${parts[1]}`;
+    }
+  }
+  
+  // Fallback for local assets to serve compressed WebP versions
+  if (typeof url === 'string' && url.startsWith('images/') && (url.endsWith('.png') || url.endsWith('.jpg') || url.endsWith('.jpeg'))) {
+    const lastDot = url.lastIndexOf('.');
+    return url.substring(0, lastDot) + '.webp';
+  }
+  
+  return url;
+};
+
 // Save original fetch reference
 const originalFetch = window.fetch;
 

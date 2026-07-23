@@ -9,10 +9,12 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.108.2",
+    "cloudinary": "^2.10.0",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
-    "multer": "^2.2.0"
+    "multer": "^2.2.0",
+    "sharp": "^0.35.3"
   },
   "author": "Shaik Hafijulrehaman",
   "license": "ISC"

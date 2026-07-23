@@ -16,6 +16,57 @@ const supabaseAdmin = supabase;
 
 console.log("Supabase Admin client initialized successfully!");
 
+// Initialize Cloudinary
+const cloudinary = require('cloudinary').v2;
+
+if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
+    console.error("CRITICAL ERROR: Cloudinary environment variables (CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET) are missing!");
+    process.exit(1);
+}
+
+cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET
+});
+
+console.log("Cloudinary client initialized successfully!");
+
+// Helper to upload file buffer to Cloudinary
+const uploadFromBuffer = (fileBuffer, options = {}) => {
+    return new Promise((resolve, reject) => {
+        const uploadStream = cloudinary.uploader.upload_stream(options, (error, result) => {
+            if (error) return reject(error);
+            resolve(result);
+        });
+        uploadStream.end(fileBuffer);
+    });
+};
+
+// Helper to get resource type based on filename extension
+function getCloudinaryResourceType(filename) {
+    if (!filename) return 'image';
+    const ext = filename.split('.').pop().toLowerCase();
+    if (['mp4', 'webm', 'ogg', 'mov'].includes(ext)) {
+        return 'video';
+    }
+    if (['png', 'jpg', 'jpeg', 'gif', 'svg', 'webp', 'ico'].includes(ext)) {
+        return 'image';
+    }
+    return 'raw';
+}
+
+// Helper to construct public_id from folder and name
+function getCloudinaryPublicId(folder, name) {
+    // Strip extension for Cloudinary public_id
+    const ext = path.extname(name);
+    const baseName = path.basename(name, ext);
+    const folderPath = folder ? `portfolio/${folder}` : 'portfolio';
+    return `${folderPath}/${baseName}`;
+}
+
+
+
 const app = express();
 const PORT = process.env.PORT || 8000;
 
@@ -261,6 +312,55 @@ app.get('/api/admin/activity', authenticateToken, async (req, res) => {
             
         if (error) throw error;
         res.json(data);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// ==========================================
+// OPTIMIZATION: COMBINED PORTFOLIO ALL DATA ENDPOINT
+// ==========================================
+app.get('/api/portfolio/all', async (req, res) => {
+    try {
+        const [
+            hero,
+            about,
+            skills,
+            projects,
+            timeline,
+            certificates,
+            contact,
+            socials,
+            seo,
+            settings,
+            backgrounds
+        ] = await Promise.all([
+            supabase.from('hero').select('*').limit(1).maybeSingle(),
+            supabase.from('about').select('*').limit(1).maybeSingle(),
+            supabase.from('skills').select('*').order('display_order', { ascending: true }),
+            supabase.from('projects').select('*').order('display_order', { ascending: true }),
+            supabase.from('timeline').select('*').order('display_order', { ascending: true }),
+            supabase.from('certificates').select('*').order('display_order', { ascending: true }),
+            supabase.from('contact_settings').select('*').limit(1).maybeSingle(),
+            supabase.from('social_links').select('*').limit(1).maybeSingle(),
+            supabase.from('seo_settings').select('*').limit(1).maybeSingle(),
+            getSettingsValue('website_settings', { portfolio_favicon_url: '', uxi_favicon_url: '', admin_favicon_url: '' }),
+            supabase.from('settings').select('value').eq('key', 'background_settings').maybeSingle()
+        ]);
+
+        res.json({
+            hero: hero.data || null,
+            about: about.data || null,
+            skills: skills.data || [],
+            projects: projects.data || [],
+            timeline: timeline.data || [],
+            certificates: certificates.data || [],
+            contact: contact.data || null,
+            socials: socials.data || null,
+            seo: seo.data || null,
+            settings: settings,
+            backgrounds: backgrounds.data ? backgrounds.data.value : null
+        });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -839,31 +939,29 @@ app.post('/api/settings/backgrounds', authenticateToken, async (req, res) => {
 // SUPABASE STORAGE ASSET UPLOADS AND MEDIA MANAGER
 // ==========================================
 
-// Upload files directly to Supabase Storage
+// Upload files directly to Cloudinary and register in Supabase
 app.post('/api/media/upload', authenticateToken, upload.single('file'), async (req, res) => {
     if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
     
     const folder = req.query.folder || '';
-    const fileName = `${Date.now()}_${req.file.originalname.replace(/[^a-zA-Z0-9.]/g, '_')}`;
-    const filePath = folder ? `${folder}/${fileName}` : fileName;
+    const cleanOrigName = req.file.originalname.replace(/[^a-zA-Z0-9.]/g, '_');
+    const fileName = `${Date.now()}_${cleanOrigName}`;
+    
+    const ext = path.extname(fileName);
+    const baseName = path.basename(fileName, ext);
+    const folderPath = folder ? `portfolio/${folder}` : 'portfolio';
+    const publicId = `${folderPath}/${baseName}`;
 
     try {
-        // Upload to Supabase Storage 'media' bucket
-        const { data: uploadData, error: uploadErr } = await supabaseAdmin.storage
-            .from('media')
-            .upload(filePath, req.file.buffer, {
-                contentType: req.file.mimetype,
-                duplex: 'half'
-            });
+        const resourceType = getCloudinaryResourceType(fileName);
+        
+        // Upload file buffer to Cloudinary
+        const result = await uploadFromBuffer(req.file.buffer, {
+            public_id: publicId,
+            resource_type: resourceType
+        });
 
-        if (uploadErr) throw uploadErr;
-
-        // Fetch public URL
-        const { data: publicUrlData } = supabaseAdmin.storage
-            .from('media')
-            .getPublicUrl(filePath);
-
-        const fileUrl = publicUrlData.publicUrl;
+        const fileUrl = result.secure_url;
 
         // Record entry in media_library table
         const { data: dbData, error: dbErr } = await supabaseAdmin
@@ -871,7 +969,7 @@ app.post('/api/media/upload', authenticateToken, upload.single('file'), async (r
             .insert({
                 name: fileName,
                 url: fileUrl,
-                size: req.file.size,
+                size: req.file.size || result.bytes,
                 mtime: new Date(),
                 folder: folder || ''
             })
@@ -882,7 +980,7 @@ app.post('/api/media/upload', authenticateToken, upload.single('file'), async (r
 
         res.json({ success: true, url: fileUrl, media: dbData });
     } catch (err) {
-        res.status(500).json({ error: 'Supabase upload failed: ' + err.message });
+        res.status(500).json({ error: 'Cloudinary upload failed: ' + err.message });
     }
 });
 
@@ -1069,14 +1167,17 @@ app.get('/api/media/usage', authenticateToken, async (req, res) => {
 app.delete('/api/media/:name', authenticateToken, async (req, res) => {
     const { name } = req.params;
     const folder = req.query.folder || '';
-    const filePath = folder ? `${folder}/${name}` : name;
 
     try {
         const { data: media } = await supabaseAdmin.from('media_library').select('*').eq('name', name).single();
         if (!media) return res.status(404).json({ error: 'Asset not found' });
 
-        // Hard delete from storage (ignore if file was already removed manually)
-        await supabaseAdmin.storage.from('media').remove([filePath]);
+        // Delete from Cloudinary
+        const activeFolder = media.folder || folder || '';
+        const publicId = getCloudinaryPublicId(activeFolder, media.name);
+        const resourceType = getCloudinaryResourceType(media.name);
+        
+        await cloudinary.uploader.destroy(publicId, { resource_type: resourceType });
 
         // Delete from media library database table
         const { error: dbErr } = await supabaseAdmin.from('media_library').delete().eq('id', media.id);
@@ -1094,20 +1195,22 @@ app.put('/api/media/rename', authenticateToken, async (req, res) => {
     const { oldName, newName, folder } = req.body;
     if (!oldName || !newName) return res.status(400).json({ error: 'Old name and new name required' });
 
-    const oldPath = folder ? `${folder}/${oldName}` : oldName;
-    const newPath = folder ? `${folder}/${newName}` : newName;
-
     try {
         const { data: media } = await supabaseAdmin.from('media_library').select('*').eq('name', oldName).single();
         if (!media) return res.status(404).json({ error: 'Asset not found' });
 
-        // Move/rename object in storage bucket
-        const { error: moveErr } = await supabaseAdmin.storage.from('media').move(oldPath, newPath);
-        if (moveErr) throw moveErr;
+        const activeFolder = media.folder || folder || '';
+        const oldPublicId = getCloudinaryPublicId(activeFolder, oldName);
+        const newPublicId = getCloudinaryPublicId(activeFolder, newName);
+        const resourceType = getCloudinaryResourceType(oldName);
 
-        // Fetch new URL
-        const { data: publicUrlData } = supabaseAdmin.storage.from('media').getPublicUrl(newPath);
-        const fileUrl = publicUrlData.publicUrl;
+        // Rename asset in Cloudinary
+        const result = await cloudinary.uploader.rename(oldPublicId, newPublicId, {
+            resource_type: resourceType,
+            overwrite: true
+        });
+
+        const fileUrl = result.secure_url;
 
         // Update database entry
         await supabaseAdmin.from('media_library').update({
@@ -1127,7 +1230,6 @@ app.put('/api/media/rename', authenticateToken, async (req, res) => {
 app.post('/api/media/replace/:name', authenticateToken, upload.single('file'), async (req, res) => {
     const { name } = req.params;
     const folder = req.query.folder || '';
-    const filePath = folder ? `${folder}/${name}` : name;
 
     if (!req.file) return res.status(400).json({ error: 'Replacement file required' });
 
@@ -1135,25 +1237,24 @@ app.post('/api/media/replace/:name', authenticateToken, upload.single('file'), a
         const { data: media } = await supabaseAdmin.from('media_library').select('*').eq('name', name).single();
         if (!media) return res.status(404).json({ error: 'Asset not found' });
 
-        // Overwrite file content in Supabase storage
-        const { error: replaceErr } = await supabaseAdmin.storage
-            .from('media')
-            .upload(filePath, req.file.buffer, {
-                contentType: req.file.mimetype,
-                upsert: true,
-                duplex: 'half'
-            });
+        const activeFolder = media.folder || folder || '';
+        const publicId = getCloudinaryPublicId(activeFolder, name);
+        const resourceType = getCloudinaryResourceType(name);
 
-        if (replaceErr) throw replaceErr;
+        // Overwrite file content in Cloudinary
+        const result = await uploadFromBuffer(req.file.buffer, {
+            public_id: publicId,
+            resource_type: resourceType,
+            overwrite: true,
+            invalidate: true
+        });
 
-        // Fetch URL
-        const { data: publicUrlData } = supabaseAdmin.storage.from('media').getPublicUrl(filePath);
-        const fileUrl = publicUrlData.publicUrl;
+        const fileUrl = result.secure_url;
 
         // Update DB
         await supabaseAdmin.from('media_library').update({
             url: fileUrl,
-            size: req.file.size,
+            size: req.file.size || result.bytes,
             mtime: new Date()
         }).eq('id', media.id);
 
@@ -1169,18 +1270,16 @@ app.post('/api/resume/upload', authenticateToken, upload.single('file'), async (
     if (!req.file) return res.status(400).json({ error: 'No PDF file uploaded' });
 
     const fileName = `resume_${Date.now()}.pdf`;
+    const publicId = `portfolio/resume_${Date.now()}`;
+    
     try {
-        const { error: uploadErr } = await supabaseAdmin.storage
-            .from('resume')
-            .upload(fileName, req.file.buffer, {
-                contentType: 'application/pdf',
-                duplex: 'half'
-            });
+        // Upload PDF to Cloudinary as 'raw' resource
+        const result = await uploadFromBuffer(req.file.buffer, {
+            public_id: publicId,
+            resource_type: 'raw'
+        });
 
-        if (uploadErr) throw uploadErr;
-
-        const { data: publicUrlData } = supabaseAdmin.storage.from('resume').getPublicUrl(fileName);
-        const fileUrl = publicUrlData.publicUrl;
+        const fileUrl = result.secure_url;
 
         // Update hero resume URL
         const { data: existing } = await supabase.from('hero').select('id').limit(1).single();

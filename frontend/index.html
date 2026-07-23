@@ -13,6 +13,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
     <link id="dynamic-favicon" rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%232563eb'/%3E%3Ctext y='.78em' x='50%25' font-family='Arial, sans-serif' font-size='70' font-weight='bold' fill='white' text-anchor='middle'%3ES%3C/text%3E%3C/svg%3E">
+    <link rel="preload" href="images/removed_bg_hafi.webp" as="image" type="image/webp">
 </head>
 <body>
 
@@ -86,7 +87,7 @@
 
                 <!-- Profile Image Container -->
                 <div class="profile-image-container">
-                    <img src="images/removed_bg_hafi.png" id="hero-avatar" alt="Shaik Hafijulrehaman">
+                    <img src="images/removed_bg_hafi.webp" id="hero-avatar" alt="Shaik Hafijulrehaman" width="250" height="250">
                 </div>
 
                 <!-- Orbit containing icons -->
@@ -109,7 +110,7 @@
         <div class="about-content">
             <div class="about-img" data-aos="zoom-in" data-aos-duration="1000">
                 <div class="about-img-container">
-                    <img src="images/removed_bg_hafi.png" alt="Shaik Hafijulrehaman">
+                    <img src="images/removed_bg_hafi.webp" alt="Shaik Hafijulrehaman" loading="lazy" decoding="async" width="360" height="360">
                 </div>
             </div>
             <div class="about-main" data-aos="fade-left" data-aos-duration="1000">
@@ -463,80 +464,63 @@
                     scale: 1.02
                 });
 
-
-
-
-
                 try {
-                    // Fetch hero section
-                    const heroRes = await fetch('/api/hero').then(res => res.json());
+                    // Fetch all portfolio data in a single optimized request
+                    const data = await fetch('/api/portfolio/all').then(res => res.json());
+                    
+                    const heroRes = data.hero;
+                    const aboutRes = data.about;
+                    const skillsRes = data.skills;
+                    const allProjects = data.projects || [];
+                    const timelineRes = data.timeline;
+                    const certRes = data.certificates;
+                    const contactRes = data.contact;
+                    const socialsRes = data.socials;
+                    const seoRes = data.seo;
+                    const settingsRes = data.settings;
+                    const bgRes = data.backgrounds;
+
+                    // 1. Populate Hero
                     if (heroRes && heroRes.name) {
                         document.querySelector('#home h1 span').innerText = heroRes.name;
                         document.querySelector('#home p').innerText = heroRes.description;
                         if (heroRes.avatar_url) {
-                            document.querySelector('#hero-avatar').src = heroRes.avatar_url;
+                            document.querySelector('#hero-avatar').src = optimizeImageUrl(heroRes.avatar_url, 400);
                         }
                         if (heroRes.resume_url) {
                             document.querySelector('a[href="resume.pdf"]').href = heroRes.resume_url;
                         }
-                        // Initialize dynamic background image/video backdrop and section backgrounds
+                        
+                        // Backgrounds and backdrop settings
                         const bgContainer = document.getElementById('hero-bg-container');
                         const mediaWrapper = document.getElementById('hero-bg-media-wrapper');
                         const overlayEl = document.getElementById('hero-bg-overlay');
                         
-                        if (mediaWrapper && overlayEl) {
+                        if (mediaWrapper && overlayEl && bgRes) {
                             mediaWrapper.innerHTML = '';
+                            const bgType = bgRes.hero_bg_type || 'image';
+                            const hasVideo = bgType === 'video' && bgRes.hero_bg_video;
+                            const hasImage = bgRes.hero_bg_image;
                             
-                            try {
-                                const bgRes = await fetch('/api/settings/backgrounds').then(res => res.json());
-                                if (bgRes) {
-                                    const bgType = bgRes.hero_bg_type || 'image';
-                                    const hasVideo = bgType === 'video' && bgRes.hero_bg_video;
-                                    const hasImage = bgRes.hero_bg_image;
-                                    
-                                    const detectImageBrightness = (imgUrl) => {
-                                        if (!imgUrl) {
-                                            document.getElementById('home').className = 'main theme-light';
-                                            return;
-                                        }
-                                        const img = new Image();
-                                        img.crossOrigin = "Anonymous";
-                                        img.src = imgUrl;
-                                        img.onload = function() {
-                                            try {
-                                                const canvas = document.createElement('canvas');
-                                                canvas.width = 1;
-                                                canvas.height = 1;
-                                                const ctx = canvas.getContext('2d');
-                                                ctx.drawImage(img, 0, 0, 1, 1);
-                                                const [r, g, b] = ctx.getImageData(0, 0, 1, 1).data;
-                                                const imgBright = 0.299 * r + 0.587 * g + 0.114 * b;
-                                                
-                                                let finalBright = imgBright;
-                                                if (bgRes.hero_overlay_enable) {
-                                                    const opacity = (bgRes.hero_overlay_opacity !== undefined ? bgRes.hero_overlay_opacity : 50) / 100;
-                                                    const hexColor = (bgRes.hero_overlay_color || '#000000').replace('#', '');
-                                                    const or = parseInt(hexColor.substring(0, 2), 16);
-                                                    const og = parseInt(hexColor.substring(2, 4), 16);
-                                                    const ob = parseInt(hexColor.substring(4, 6), 16);
-                                                    const overlayBright = 0.299 * or + 0.587 * og + 0.114 * ob;
-                                                    
-                                                    finalBright = imgBright * (1 - opacity) + overlayBright * opacity;
-                                                }
-                                                
-                                                if (finalBright < 135) {
-                                                    document.getElementById('home').className = 'main theme-dark';
-                                                } else {
-                                                    document.getElementById('home').className = 'main theme-light';
-                                                }
-                                            } catch (e) {
-                                                applyOverlayBasedTheme();
-                                            }
-                                        };
-                                        img.onerror = () => applyOverlayBasedTheme();
-                                    };
-
-                                    const applyOverlayBasedTheme = () => {
+                            const detectImageBrightness = (imgUrl) => {
+                                if (!imgUrl) {
+                                    document.getElementById('home').className = 'main theme-light';
+                                    return;
+                                }
+                                const img = new Image();
+                                img.crossOrigin = "Anonymous";
+                                img.src = optimizeImageUrl(imgUrl, 100);
+                                img.onload = function() {
+                                    try {
+                                        const canvas = document.createElement('canvas');
+                                        canvas.width = 1;
+                                        canvas.height = 1;
+                                        const ctx = canvas.getContext('2d');
+                                        ctx.drawImage(img, 0, 0, 1, 1);
+                                        const [r, g, b] = ctx.getImageData(0, 0, 1, 1).data;
+                                        const imgBright = 0.299 * r + 0.587 * g + 0.114 * b;
+                                        
+                                        let finalBright = imgBright;
                                         if (bgRes.hero_overlay_enable) {
                                             const opacity = (bgRes.hero_overlay_opacity !== undefined ? bgRes.hero_overlay_opacity : 50) / 100;
                                             const hexColor = (bgRes.hero_overlay_color || '#000000').replace('#', '');
@@ -545,78 +529,97 @@
                                             const ob = parseInt(hexColor.substring(4, 6), 16);
                                             const overlayBright = 0.299 * or + 0.587 * og + 0.114 * ob;
                                             
-                                            if (overlayBright < 135 && opacity > 0.3) {
-                                                document.getElementById('home').className = 'main theme-dark';
-                                                return;
-                                            }
+                                            finalBright = imgBright * (1 - opacity) + overlayBright * opacity;
                                         }
-                                        document.getElementById('home').className = 'main theme-light';
-                                    };
-
-                                    if (hasVideo) {
-                                        const video = document.createElement('video');
-                                        video.src = bgRes.hero_bg_video;
-                                        video.autoplay = true;
-                                        video.loop = true;
-                                        video.muted = true;
-                                        video.playsInline = true;
-                                        video.setAttribute('playsinline', '');
-                                        video.setAttribute('webkit-playsinline', '');
-                                        video.style.width = '100%';
-                                        video.style.height = '100%';
-                                        video.style.objectFit = 'cover';
-                                        if (hasImage) {
-                                            video.poster = bgRes.hero_bg_image;
-                                            detectImageBrightness(bgRes.hero_bg_image);
+                                        
+                                        if (finalBright < 135) {
+                                            document.getElementById('home').className = 'main theme-dark';
                                         } else {
-                                            applyOverlayBasedTheme();
+                                            document.getElementById('home').className = 'main theme-light';
                                         }
-                                        mediaWrapper.appendChild(video);
-                                    } else if (hasImage) {
-                                        const img = document.createElement('img');
-                                        img.src = bgRes.hero_bg_image;
-                                        img.style.width = '100%';
-                                        img.style.height = '100%';
-                                        img.style.objectFit = 'cover';
-                                        detectImageBrightness(bgRes.hero_bg_image);
-                                        mediaWrapper.appendChild(img);
-                                    } else {
+                                    } catch (e) {
                                         applyOverlayBasedTheme();
                                     }
+                                };
+                                img.onerror = () => applyOverlayBasedTheme();
+                            };
 
-                                    if (bgRes.hero_overlay_enable) {
-                                        overlayEl.style.backgroundColor = bgRes.hero_overlay_color || '#000000';
-                                        overlayEl.style.opacity = (bgRes.hero_overlay_opacity !== undefined ? bgRes.hero_overlay_opacity : 50) / 100;
-                                        overlayEl.style.display = 'block';
-                                    } else {
-                                        overlayEl.style.display = 'none';
-                                        overlayEl.style.opacity = '0';
-                                    }
-
-                                    const aboutSec = document.getElementById('about');
-                                    if (aboutSec && bgRes.about_bg_image) {
-                                        aboutSec.style.backgroundImage = `url('${bgRes.about_bg_image}')`;
-                                        aboutSec.style.backgroundSize = 'cover';
-                                        aboutSec.style.backgroundPosition = 'center';
-                                    }
-
-                                    const projectsSec = document.getElementById('projects');
-                                    if (projectsSec && bgRes.projects_bg_image) {
-                                        projectsSec.style.backgroundImage = `url('${bgRes.projects_bg_image}')`;
-                                        projectsSec.style.backgroundSize = 'cover';
-                                        projectsSec.style.backgroundPosition = 'center';
-                                    }
-
-                                    const contactSec = document.getElementById('contact');
-                                    if (contactSec && bgRes.contact_bg_image) {
-                                        contactSec.style.backgroundImage = `url('${bgRes.contact_bg_image}')`;
-                                        contactSec.style.backgroundSize = 'cover';
-                                        contactSec.style.backgroundPosition = 'center';
+                            const applyOverlayBasedTheme = () => {
+                                if (bgRes.hero_overlay_enable) {
+                                    const opacity = (bgRes.hero_overlay_opacity !== undefined ? bgRes.hero_overlay_opacity : 50) / 100;
+                                    const hexColor = (bgRes.hero_overlay_color || '#000000').replace('#', '');
+                                    const or = parseInt(hexColor.substring(0, 2), 16);
+                                    const og = parseInt(hexColor.substring(2, 4), 16);
+                                    const ob = parseInt(hexColor.substring(4, 6), 16);
+                                    const overlayBright = 0.299 * or + 0.587 * og + 0.114 * ob;
+                                    
+                                    if (overlayBright < 135 && opacity > 0.3) {
+                                        document.getElementById('home').className = 'main theme-dark';
+                                        return;
                                     }
                                 }
-                            } catch (e) {
-                                console.error("Failed to load section backgrounds:", e);
                                 document.getElementById('home').className = 'main theme-light';
+                            };
+
+                            if (hasVideo) {
+                                const video = document.createElement('video');
+                                video.src = bgRes.hero_bg_video;
+                                video.autoplay = true;
+                                video.loop = true;
+                                video.muted = true;
+                                video.playsInline = true;
+                                video.setAttribute('playsinline', '');
+                                video.setAttribute('webkit-playsinline', '');
+                                video.style.width = '100%';
+                                video.style.height = '100%';
+                                video.style.objectFit = 'cover';
+                                if (hasImage) {
+                                    video.poster = optimizeImageUrl(bgRes.hero_bg_image, 1200);
+                                    detectImageBrightness(bgRes.hero_bg_image);
+                                } else {
+                                    applyOverlayBasedTheme();
+                                }
+                                mediaWrapper.appendChild(video);
+                            } else if (hasImage) {
+                                const img = document.createElement('img');
+                                img.src = optimizeImageUrl(bgRes.hero_bg_image, 1200);
+                                img.style.width = '100%';
+                                img.style.height = '100%';
+                                img.style.objectFit = 'cover';
+                                detectImageBrightness(bgRes.hero_bg_image);
+                                mediaWrapper.appendChild(img);
+                            } else {
+                                applyOverlayBasedTheme();
+                            }
+
+                            if (bgRes.hero_overlay_enable) {
+                                overlayEl.style.backgroundColor = bgRes.hero_overlay_color || '#000000';
+                                overlayEl.style.opacity = (bgRes.hero_overlay_opacity !== undefined ? bgRes.hero_overlay_opacity : 50) / 100;
+                                overlayEl.style.display = 'block';
+                            } else {
+                                overlayEl.style.display = 'none';
+                                overlayEl.style.opacity = '0';
+                            }
+
+                            const aboutSec = document.getElementById('about');
+                            if (aboutSec && bgRes.about_bg_image) {
+                                aboutSec.style.backgroundImage = `url('${optimizeImageUrl(bgRes.about_bg_image, 1200)}')`;
+                                aboutSec.style.backgroundSize = 'cover';
+                                aboutSec.style.backgroundPosition = 'center';
+                            }
+
+                            const projectsSec = document.getElementById('projects');
+                            if (projectsSec && bgRes.projects_bg_image) {
+                                projectsSec.style.backgroundImage = `url('${optimizeImageUrl(bgRes.projects_bg_image, 1200)}')`;
+                                projectsSec.style.backgroundSize = 'cover';
+                                projectsSec.style.backgroundPosition = 'center';
+                            }
+
+                            const contactSec = document.getElementById('contact');
+                            if (contactSec && bgRes.contact_bg_image) {
+                                contactSec.style.backgroundImage = `url('${optimizeImageUrl(bgRes.contact_bg_image, 1200)}')`;
+                                contactSec.style.backgroundSize = 'cover';
+                                contactSec.style.backgroundPosition = 'center';
                             }
                         }
                         
@@ -633,8 +636,7 @@
                         }
                     }
 
-                    // Fetch about section
-                    const aboutRes = await fetch('/api/about').then(res => res.json());
+                    // 2. Populate About
                     if (aboutRes && aboutRes.title) {
                         document.querySelector('#about h2').innerText = aboutRes.title;
                         const aboutText = document.querySelector('.about-text');
@@ -644,24 +646,19 @@
                             <p><strong>Location:</strong> ${aboutRes.location} | <strong>Email:</strong> ${aboutRes.email} | <strong>Phone:</strong> ${aboutRes.phone}</p>
                         `;
                         if (aboutRes.image_url) {
-                            document.querySelector('.about-img img').src = aboutRes.image_url;
+                            document.querySelector('.about-img img').src = optimizeImageUrl(aboutRes.image_url, 400);
                         }
                     }
 
-                    // Fetch skills (grouped and ordered)
-                    const skillsRes = await fetch('/api/skills').then(res => res.json());
+                    // 3. Populate Skills
                     if (skillsRes && skillsRes.length > 0) {
-                        // Filter visible ones
                         const visibleSkills = skillsRes.filter(s => s.is_visible);
-                        
-                        // Group skills by category
                         const categories = {};
                         visibleSkills.forEach(s => {
                             if (!categories[s.category]) categories[s.category] = [];
                             categories[s.category].push(s);
                         });
 
-                        // Rebuild Skills Grid
                         const skillsGrid = document.querySelector('.skills-grid');
                         skillsGrid.innerHTML = '';
 
@@ -700,65 +697,9 @@
                         }
                     }
 
-                    // Fetch projects (visible only)
-                    const projectsRes = await fetch('/api/projects').then(res => res.json());
-                    let allProjects = [];
-                    if (projectsRes) {
-                        allProjects = projectsRes.filter(p => p.status === 'Completed' || p.status === 'Upcoming');
-                    }
-                    
-                    window.allProjectsList = allProjects;
-
-                    function initMobileProjectCarousel() {
-                        if (window.innerWidth > 768) return;
-
-                        const grids = [
-                            document.getElementById('completed-projects-grid'),
-                            document.getElementById('upcoming-projects-grid')
-                        ];
-
-                        // Clear any existing active scrolling loops to avoid duplicates on re-render
-                        if (window.activeMobileCarouselLoops) {
-                            window.activeMobileCarouselLoops.forEach(cancelAnimationFrame);
-                        }
-                        window.activeMobileCarouselLoops = [];
-
-                        grids.forEach((grid) => {
-                            if (!grid) return;
-
-                            let isPaused = false;
-                            
-                            // Remove existing listeners to prevent duplicates
-                            const pause = () => { isPaused = true; };
-                            const resume = () => { isPaused = false; };
-
-                            grid.removeEventListener('mouseenter', pause);
-                            grid.removeEventListener('mouseleave', resume);
-                            grid.removeEventListener('touchstart', pause);
-                            grid.removeEventListener('touchend', resume);
-
-                            grid.addEventListener('mouseenter', pause);
-                            grid.addEventListener('mouseleave', resume);
-                            grid.addEventListener('touchstart', pause);
-                            grid.addEventListener('touchend', resume);
-
-                            function autoScroll() {
-                                if (!isPaused && grid.scrollWidth > grid.clientWidth) {
-                                    grid.scrollLeft += 0.8; // Smooth 60fps scrolling
-                                    if (grid.scrollLeft >= grid.scrollWidth - grid.clientWidth - 1) {
-                                        grid.scrollLeft = 0;
-                                    }
-                                }
-                                const loopId = requestAnimationFrame(autoScroll);
-                                window.activeMobileCarouselLoops.push(loopId);
-                            }
-                            
-                            // Run scroll loop
-                            const loopId = requestAnimationFrame(autoScroll);
-                            window.activeMobileCarouselLoops.push(loopId);
-                        });
-                    }
-                    window.initMobileProjectCarousel = initMobileProjectCarousel;
+                    // 4. Populate Projects
+                    const filteredProjects = allProjects.filter(p => p.status === 'Completed' || p.status === 'Upcoming');
+                    window.allProjectsList = filteredProjects;
 
                     window.renderProjects = (filter = 'all') => {
                         const completedGrid = document.getElementById('completed-projects-grid');
@@ -769,10 +710,9 @@
                         completedGrid.innerHTML = '';
                         upcomingGrid.innerHTML = '';
 
-                        const completedProjects = allProjectsList.filter(p => p.status === 'Completed');
-                        const upcomingProjects = allProjectsList.filter(p => p.status === 'Upcoming');
+                        const completedProjects = filteredProjects.filter(p => p.status === 'Completed');
+                        const upcomingProjects = filteredProjects.filter(p => p.status === 'Upcoming');
 
-                        // Handle filters
                         if (filter === 'completed') {
                             completedWrapper.style.display = 'block';
                             upcomingWrapper.style.display = 'none';
@@ -798,8 +738,8 @@
                                 const dateHtml = p.completion_date ? `<div class="project-date"><i class="fa-regular fa-calendar-check"></i> Completed: ${p.completion_date}</div>` : '';
 
                                 card.innerHTML = `
-                                    <div class="project-image">
-                                        <img src="${p.image_url || 'images/Pro1.png'}" alt="${p.name}" onerror="this.onerror=null; this.src='images/Pro1.png';">
+                                    <div class="project-image" style="aspect-ratio: 16/9; overflow: hidden; background: #0b0f19;">
+                                        <img src="${optimizeImageUrl(p.image_url || 'images/Pro1.webp', 600)}" alt="${p.name}" loading="lazy" decoding="async" style="width:100%; height:100%; object-fit:cover;" onerror="this.onerror=null; this.src='images/Pro1.webp';">
                                         ${featuredBadge}
                                     </div>
                                     <div class="project-content">
@@ -858,8 +798,8 @@
                                 const releaseHtml = p.expected_release ? `<div class="expected-release" style="font-size: 11px; color: var(--text-muted); margin-top: 10px;"><i class="fa-regular fa-clock" style="margin-right: 5px;"></i> Expected Release: ${p.expected_release}</div>` : '';
 
                                 card.innerHTML = `
-                                    <div class="upcoming-image" style="position: relative; overflow: hidden; border-radius: 8px; height: 200px;">
-                                        <img src="${p.image_url || 'images/cert_placeholder.png'}" alt="${p.name}" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.65; transition: transform 0.5s ease;" onerror="this.onerror=null; this.src='images/cert_placeholder.png';">
+                                    <div class="upcoming-image" style="position: relative; overflow: hidden; border-radius: 8px; height: 200px; background: #0b0f19;">
+                                        <img src="${optimizeImageUrl(p.image_url || 'images/cert_placeholder.webp', 600)}" alt="${p.name}" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.65; transition: transform 0.5s ease;" loading="lazy" decoding="async" onerror="this.onerror=null; this.src='images/cert_placeholder.webp';">
                                         <div class="upcoming-badges-container" style="position: absolute; top: 15px; left: 15px; display: flex; gap: 8px; flex-wrap: wrap;">
                                             ${comingSoonBadge}
                                             ${stageBadge}
@@ -880,7 +820,6 @@
                             upcomingGrid.innerHTML = `<div class="no-projects" style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 30px;">No upcoming projects found.</div>`;
                         }
 
-                        // Reinitialize tilt
                         VanillaTilt.init(document.querySelectorAll(".project-card, .upcoming-card"), {
                             max: 10,
                             speed: 400,
@@ -891,6 +830,8 @@
                         
                         initMobileProjectCarousel();
                     };
+
+                    renderProjects('all');
 
                     window.filterProjects = (filterType, buttonEl) => {
                         document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
@@ -903,11 +844,7 @@
                         renderProjects(filterType);
                     };
 
-                    // Initial render
-                    renderProjects('all');
-
-                    // Fetch timeline
-                    const timelineRes = await fetch('/api/timeline').then(res => res.json());
+                    // 5. Populate Timeline
                     if (timelineRes && timelineRes.length > 0) {
                         const timelineContainer = document.querySelector('.timeline-container');
                         timelineContainer.innerHTML = '';
@@ -919,7 +856,7 @@
                             div.setAttribute('data-aos', index % 2 === 0 ? 'fade-right' : 'fade-left');
                             div.setAttribute('data-aos-duration', '1000');
 
-                            const logoHtml = item.logo_url ? `<img src="${item.logo_url}" alt="${item.company}" class="timeline-logo">` : '';
+                            const logoHtml = item.logo_url ? `<img src="${optimizeImageUrl(item.logo_url, 80)}" alt="${item.company}" class="timeline-logo" loading="lazy" decoding="async">` : '';
 
                             div.innerHTML = `
                                 <div class="timeline-content glass-card">
@@ -938,8 +875,7 @@
                         });
                     }
 
-                    // Fetch certifications
-                    const certRes = await fetch('/api/certificates').then(res => res.json());
+                    // 6. Populate Certifications
                     if (certRes && certRes.length > 0) {
                         const visibleCerts = certRes.filter(c => c.is_visible);
                         window.allCertificatesList = visibleCerts;
@@ -951,8 +887,8 @@
                             const card = document.createElement('div');
                             card.className = 'cert-card glass-card';
                             card.innerHTML = `
-                                <div class="cert-img">
-                                    <img src="${c.image_url || 'images/cert_placeholder.png'}" alt="${c.title}" onerror="this.onerror=null; this.src='images/cert_placeholder.png';">
+                                <div class="cert-img" style="aspect-ratio: 4/3; overflow: hidden; background: #0b0f19;">
+                                    <img src="${optimizeImageUrl(c.image_url || 'images/cert_placeholder.webp', 400)}" alt="${c.title}" loading="lazy" decoding="async" style="width:100%; height:100%; object-fit:cover;" onerror="this.onerror=null; this.src='images/cert_placeholder.webp';">
                                 </div>
                                 <h3>${c.title}</h3>
                                 <div class="cert-org">${c.organization}</div>
@@ -963,28 +899,24 @@
                         });
                     }
 
-                    // Fetch Contact Info
-                    const contactRes = await fetch('/api/contact').then(res => res.json());
+                    // 7. Populate Contact Info
                     if (contactRes && contactRes.email) {
                         document.querySelector('.contact-item:nth-child(1) span').innerText = contactRes.email;
                         document.querySelector('.contact-item:nth-child(2) span').innerText = contactRes.phone;
                         document.querySelector('.contact-item:nth-child(3) span').innerText = contactRes.location;
                     }
 
-                    // Fetch Social links
-                    const socialsRes = await fetch('/api/socials').then(res => res.json());
+                    // 8. Populate Social Links
                     if (socialsRes && socialsRes.github) {
                         document.querySelectorAll('a[aria-label="GitHub"]').forEach(a => a.href = socialsRes.github);
                         document.querySelectorAll('a[aria-label="LinkedIn"]').forEach(a => a.href = socialsRes.linkedin);
                         document.querySelectorAll('a[aria-label="WhatsApp"]').forEach(a => a.href = socialsRes.whatsapp);
                     }
 
-                    // Fetch SEO settings
-                    const seoRes = await fetch('/api/seo').then(res => res.json());
+                    // 9. SEO & Favicon settings
                     if (seoRes && seoRes.title) {
                         document.title = seoRes.title;
                         
-                        // Meta description
                         let metaDesc = document.querySelector('meta[name="description"]');
                         if (!metaDesc) {
                             metaDesc = document.createElement('meta');
@@ -993,18 +925,13 @@
                         }
                         metaDesc.content = seoRes.description;
 
-                        // Dynamic Favicon Loader
-                        try {
-                            const settingsRes = await fetch('/api/settings').then(r => r.json());
+                        if (settingsRes && settingsRes.portfolio_favicon_url) {
                             const faviconLink = document.getElementById('dynamic-favicon') || document.querySelector('link[rel*="icon"]');
-                            if (faviconLink && settingsRes.portfolio_favicon_url) {
+                            if (faviconLink) {
                                 faviconLink.href = settingsRes.portfolio_favicon_url;
                             }
-                        } catch (err) {
-                            console.error('Error loading dynamic favicon:', err);
                         }
 
-                        // Open Graph Image
                         if (seoRes.image_url) {
                             let ogImg = document.querySelector('meta[property="og:image"]');
                             if (!ogImg) {
