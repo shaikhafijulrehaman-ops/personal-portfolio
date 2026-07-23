@@ -1,15 +1,10 @@
 {
-  "version": 2,
-  "builds": [
-    {
-      "src": "backend/api/index.js",
-      "use": "@vercel/node"
-    },
-    {
-      "src": "frontend/**",
-      "use": "@vercel/static"
+  "cleanUrls": true,
+  "functions": {
+    "backend/api/index.js": {
+      "runtime": "@vercel/node"
     }
-  ],
+  },
   "headers": [
     {
       "source": "/frontend/images/(.*)",
@@ -30,38 +25,38 @@
       ]
     }
   ],
-  "routes": [
+  "rewrites": [
     {
-      "src": "/api/(.*)",
-      "dest": "backend/api/index.js"
+      "source": "/api/(.*)",
+      "destination": "/backend/api/index.js"
     },
     {
-      "src": "/uploads/(.*)",
-      "dest": "backend/api/index.js"
+      "source": "/uploads/(.*)",
+      "destination": "/backend/api/index.js"
     },
     {
-      "src": "/admin",
-      "dest": "frontend/admin.html"
+      "source": "/admin",
+      "destination": "/frontend/admin.html"
     },
     {
-      "src": "/login",
-      "dest": "frontend/login.html"
+      "source": "/login",
+      "destination": "/frontend/login.html"
     },
     {
-      "src": "/uxi",
-      "dest": "frontend/uxi.html"
+      "source": "/uxi",
+      "destination": "/frontend/uxi.html"
     },
     {
-      "src": "/images/(.*)",
-      "dest": "frontend/images/$1"
+      "source": "/images/(.*)",
+      "destination": "/frontend/images/$1"
     },
     {
-      "src": "/(.*)\\.(css|js|pdf|ico|webp|png|jpg|jpeg)$",
-      "dest": "frontend/$1.$2"
+      "source": "/(.*)\\.(css|js|pdf|ico|webp|png|jpg|jpeg)$",
+      "destination": "/frontend/$1.$2"
     },
     {
-      "src": "/(.*)",
-      "dest": "frontend/index.html"
+      "source": "/(.*)",
+      "destination": "/frontend/index.html"
     }
   ]
 }
