@@ -439,10 +439,7 @@
                     }
                 });
             });
-
-
-
-            // ========================================================
+// ========================================================
             // DYNAMIC DATABASE DATA INJECTION ENGINE (Express API version)
             // ========================================================
 
@@ -464,10 +461,8 @@
                     scale: 1.02
                 });
 
-                try {
-                    // Fetch all portfolio data in a single optimized request
-                    const data = await fetch('/api/portfolio/all').then(res => res.json());
-                    
+                // Helper to populate all sections of the portfolio
+                const populateSections = (data) => {
                     const heroRes = data.hero;
                     const aboutRes = data.about;
                     const skillsRes = data.skills;
@@ -625,7 +620,7 @@
                         
                         // Re-initialize Typed with dynamic tags
                         if (heroRes.tagline) {
-                            typedInstance.destroy();
+                            if (typedInstance) typedInstance.destroy();
                             const taglines = heroRes.tagline.split('|').map(s => s.trim());
                             typedInstance = new Typed('.typing-text', {
                                 strings: taglines,
@@ -833,17 +828,6 @@
 
                     renderProjects('all');
 
-                    window.filterProjects = (filterType, buttonEl) => {
-                        document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
-                        if (buttonEl) {
-                            buttonEl.classList.add('active');
-                        } else {
-                            const matchingBtn = document.querySelector(`.filter-btn[onclick*="'${filterType}'"]`);
-                            if (matchingBtn) matchingBtn.classList.add('active');
-                        }
-                        renderProjects(filterType);
-                    };
-
                     // 5. Populate Timeline
                     if (timelineRes && timelineRes.length > 0) {
                         const timelineContainer = document.querySelector('.timeline-container');
@@ -876,27 +860,36 @@
                     }
 
                     // 6. Populate Certifications
+                    const track = document.getElementById('marquee-track');
                     if (certRes && certRes.length > 0) {
                         const visibleCerts = certRes.filter(c => c.is_visible);
                         window.allCertificatesList = visibleCerts;
                         
-                        const track = document.getElementById('marquee-track');
-                        track.innerHTML = '';
+                        if (track) {
+                            track.innerHTML = '';
+                            track.style.justifyContent = '';
 
-                        visibleCerts.forEach(c => {
-                            const card = document.createElement('div');
-                            card.className = 'cert-card glass-card';
-                            card.innerHTML = `
-                                <div class="cert-img" style="aspect-ratio: 4/3; overflow: hidden; background: #0b0f19;">
-                                    <img src="${optimizeImageUrl(c.image_url || 'images/cert_placeholder.webp', 400)}" alt="${c.title}" loading="lazy" decoding="async" style="width:100%; height:100%; object-fit:cover;" onerror="this.onerror=null; this.src='images/cert_placeholder.webp';">
-                                </div>
-                                <h3>${c.title}</h3>
-                                <div class="cert-org">${c.organization}</div>
-                                <div class="cert-date">Issued: ${c.issue_date}</div>
-                                <a href="javascript:void(0)" class="btn-cert" onclick="openCertLightbox('${c.id}')">View Certificate</a>
-                            `;
-                            track.appendChild(card);
-                        });
+                            // Duplicate to ensure seamless infinite loop marquee scroll
+                            const doubleCerts = [...visibleCerts, ...visibleCerts];
+                            doubleCerts.forEach(c => {
+                                const card = document.createElement('div');
+                                card.className = 'cert-card glass-card';
+                                card.innerHTML = `
+                                    <div class="cert-img" style="aspect-ratio: 4/3; overflow: hidden; background: #0b0f19;">
+                                        <img src="${optimizeImageUrl(c.image_url || 'images/cert_placeholder.webp', 400)}" alt="${c.title}" loading="lazy" decoding="async" style="width:100%; height:100%; object-fit:cover;" onerror="this.onerror=null; this.src='images/cert_placeholder.webp';">
+                                    </div>
+                                    <h3>${c.title}</h3>
+                                    <div class="cert-org">${c.organization}</div>
+                                    <div class="cert-date">Issued: ${c.issue_date}</div>
+                                    <a href="javascript:void(0)" class="btn-cert" onclick="openCertLightbox('${c.id || c._id}')">View Certificate</a>
+                                `;
+                                track.appendChild(card);
+                            });
+                        }
+                    } else {
+                        if (track) {
+                            track.innerHTML = `<div style="text-align: center; color: var(--text-muted); padding: 40px; width: 100%;"><p style="font-size: 14px; font-family: 'Orbitron', sans-serif;">No certificates found.</p></div>`;
+                        }
                     }
 
                     // 7. Populate Contact Info
@@ -942,10 +935,42 @@
                             ogImg.content = window.location.origin + seoRes.image_url;
                         }
                     }
+                };
 
+                // STALE-WHILE-REVALIDATE CACHE STRATEGY
+                const cachedDataStr = localStorage.getItem('portfolio_cache');
+                if (cachedDataStr) {
+                    try {
+                        const cachedData = JSON.parse(cachedDataStr);
+                        populateSections(cachedData);
+                    } catch (e) {
+                        console.error("Failed to parse cached portfolio data:", e);
+                    }
+                }
+
+                try {
+                    // Fetch all portfolio data in a single optimized request
+                    const data = await fetch('/api/portfolio/all').then(res => res.json());
+                    
+                    // Render fresh data
+                    populateSections(data);
+                    
+                    // Save to local storage cache for next instant load
+                    localStorage.setItem('portfolio_cache', JSON.stringify(data));
                 } catch (err) {
                     console.error("Error loading server dynamic database API records. Using defaults.", err);
                 }
+
+                window.filterProjects = (filterType, buttonEl) => {
+                    document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+                    if (buttonEl) {
+                        buttonEl.classList.add('active');
+                    } else {
+                        const matchingBtn = document.querySelector(`.filter-btn[onclick*="'${filterType}'"]`);
+                        if (matchingBtn) matchingBtn.classList.add('active');
+                    }
+                    renderProjects(filterType);
+                };
             }
 
             // Trigger dynamic load
