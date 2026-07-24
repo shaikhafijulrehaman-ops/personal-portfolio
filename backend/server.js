@@ -470,6 +470,16 @@ app.get('/api/skills', async (req, res) => {
     }
 });
 
+app.get('/api/skills/:id', async (req, res) => {
+    try {
+        const { data, error } = await supabase.from('skills').select('*').eq('id', req.params.id).single();
+        if (error) throw error;
+        res.json(data);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 app.post('/api/skills', authenticateToken, async (req, res) => {
     try {
         const { error } = await supabase.from('skills').insert(req.body);
