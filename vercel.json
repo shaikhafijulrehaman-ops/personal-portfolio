@@ -2,7 +2,7 @@
   "cleanUrls": true,
   "functions": {
     "backend/api/index.js": {
-      "runtime": "@vercel/node"
+      "runtime": "@vercel/node@3.0.0"
     }
   },
   "headers": [
