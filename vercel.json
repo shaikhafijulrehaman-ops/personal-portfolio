@@ -1,5 +1,6 @@
 {
   "cleanUrls": true,
+  "outputDirectory": "frontend",
   "headers": [
     {
       "source": "/images/(.*)",
@@ -28,30 +29,6 @@
     {
       "source": "/uploads/(.*)",
       "destination": "/api/[...route].js"
-    },
-    {
-      "source": "/admin",
-      "destination": "/frontend/admin.html"
-    },
-    {
-      "source": "/login",
-      "destination": "/frontend/login.html"
-    },
-    {
-      "source": "/uxi",
-      "destination": "/frontend/uxi.html"
-    },
-    {
-      "source": "/images/(.*)",
-      "destination": "/frontend/images/$1"
-    },
-    {
-      "source": "/(.*)\\.(css|js|pdf|ico|webp|png|jpg|jpeg)$",
-      "destination": "/frontend/$1.$2"
-    },
-    {
-      "source": "/(.*)",
-      "destination": "/frontend/index.html"
     }
   ]
 }
