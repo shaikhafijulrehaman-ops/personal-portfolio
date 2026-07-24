@@ -23,11 +23,11 @@
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "/api/index.js"
+      "destination": "/api/[...route].js"
     },
     {
       "source": "/uploads/(.*)",
-      "destination": "/api/index.js"
+      "destination": "/api/[...route].js"
     },
     {
       "source": "/admin",
