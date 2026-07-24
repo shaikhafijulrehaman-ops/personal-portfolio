@@ -1,10 +1,5 @@
 {
   "cleanUrls": true,
-  "functions": {
-    "backend/api/index.js": {
-      "runtime": "@vercel/node@3.0.0"
-    }
-  },
   "headers": [
     {
       "source": "/images/(.*)",
@@ -28,11 +23,11 @@
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "/backend/api/index.js"
+      "destination": "/api/index.js"
     },
     {
       "source": "/uploads/(.*)",
-      "destination": "/backend/api/index.js"
+      "destination": "/api/index.js"
     },
     {
       "source": "/admin",
