@@ -1027,6 +1027,114 @@
                     }, 500);
                 });
             });
+
+            // 10. Handle Contact Form Submission
+            const contactForm = document.getElementById('contact-form');
+            if (contactForm) {
+                contactForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+
+                    const nameInput = contactForm.querySelector('input[name="user_name"]');
+                    const emailInput = contactForm.querySelector('input[name="user_email"]');
+                    const subjectInput = contactForm.querySelector('input[name="subject"]');
+                    const messageInput = contactForm.querySelector('textarea[name="message"]');
+                    const submitBtn = contactForm.querySelector('button[type="submit"]');
+
+                    // Basic Validation
+                    if (!nameInput.value.trim() || !emailInput.value.trim() || !subjectInput.value.trim() || !messageInput.value.trim()) {
+                        showContactFeedback(false, "All fields are required.");
+                        return;
+                    }
+
+                    // Prevent duplicates / spam
+                    submitBtn.disabled = true;
+                    const originalBtnText = submitBtn.innerText;
+                    submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin" style="margin-right: 8px;"></i> Sending...';
+
+                    // Prepare metadata (Date and Time)
+                    const now = new Date();
+                    const formattedDate = now.toLocaleDateString();
+                    const formattedTime = now.toLocaleTimeString();
+
+                    // FormSubmit AJAX Payload
+                    const payload = {
+                        name: nameInput.value.trim(),
+                        email: emailInput.value.trim(),
+                        _subject: `New Portfolio Message: ${subjectInput.value.trim()}`,
+                        subject: subjectInput.value.trim(),
+                        message: messageInput.value.trim(),
+                        "Submission Date": formattedDate,
+                        "Submission Time": formattedTime,
+                        _honeypot: ""
+                    };
+
+                    try {
+                        const response = await fetch('https://formsubmit.co/ajax/shaikhafijulrehaman@gmail.com', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json'
+                            },
+                            body: JSON.stringify(payload)
+                        });
+
+                        const result = await response.json();
+                        if (response.ok && result.success === "true") {
+                            showContactFeedback(true, "Your message has been sent successfully!");
+                            contactForm.reset();
+                        } else {
+                            throw new Error(result.message || "Failed to send message.");
+                        }
+                    } catch (error) {
+                        console.error("Contact form error:", error);
+                        showContactFeedback(false, "Oops! Something went wrong. Please try again later.");
+                    } finally {
+                        submitBtn.disabled = false;
+                        submitBtn.innerText = originalBtnText;
+                    }
+                });
+            }
+
+            function showContactFeedback(isSuccess, message) {
+                const existingToast = document.getElementById('contact-toast');
+                if (existingToast) existingToast.remove();
+
+                const toast = document.createElement('div');
+                toast.id = 'contact-toast';
+                toast.style.position = 'fixed';
+                toast.style.bottom = '30px';
+                toast.style.right = '30px';
+                toast.style.zIndex = '999999';
+                toast.style.padding = '15px 25px';
+                toast.style.borderRadius = '8px';
+                toast.style.color = '#fff';
+                toast.style.fontFamily = "'Orbitron', sans-serif";
+                toast.style.fontSize = '13px';
+                toast.style.fontWeight = '500';
+                toast.style.boxShadow = '0 10px 30px rgba(0,0,0,0.5)';
+                toast.style.backdropFilter = 'blur(10px)';
+                toast.style.webkitBackdropFilter = 'blur(10px)';
+                toast.style.border = isSuccess ? '1px solid rgba(16, 185, 129, 0.3)' : '1px solid rgba(239, 68, 68, 0.3)';
+                toast.style.background = isSuccess ? 'rgba(16, 185, 129, 0.85)' : 'rgba(239, 68, 68, 0.85)';
+                toast.style.transition = 'all 0.3s ease';
+                toast.style.transform = 'translateY(50px)';
+                toast.style.opacity = '0';
+                
+                toast.innerHTML = `<i class="${isSuccess ? 'fa-solid fa-circle-check' : 'fa-solid fa-circle-exclamation'}" style="margin-right: 10px;"></i> ${message}`;
+                
+                document.body.appendChild(toast);
+
+                setTimeout(() => {
+                    toast.style.transform = 'translateY(0)';
+                    toast.style.opacity = '1';
+                }, 10);
+
+                setTimeout(() => {
+                    toast.style.transform = 'translateY(50px)';
+                    toast.style.opacity = '0';
+                    setTimeout(() => toast.remove(), 300);
+                }, 5000);
+            }
         });
     </script>
     <!-- Premium Fullscreen Certificate Lightbox -->
