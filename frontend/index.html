@@ -439,7 +439,48 @@
                     }
                 });
             });
-// ========================================================
+            function initMobileProjectCarousel() {
+                if (window.innerWidth > 768) return;
+
+                const grids = [
+                    document.getElementById('completed-projects-grid'),
+                    document.getElementById('upcoming-projects-grid')
+                ];
+
+                if (window.activeMobileCarouselLoops) {
+                    window.activeMobileCarouselLoops.forEach(cancelAnimationFrame);
+                }
+                window.activeMobileCarouselLoops = [];
+
+                grids.forEach((grid) => {
+                    if (!grid) return;
+
+                    let isPaused = false;
+                    const pause = () => { isPaused = true; };
+                    const resume = () => { isPaused = false; };
+
+                    grid.addEventListener('mouseenter', pause);
+                    grid.addEventListener('mouseleave', resume);
+                    grid.addEventListener('touchstart', pause);
+                    grid.addEventListener('touchend', resume);
+
+                    function autoScroll() {
+                        if (!isPaused && grid.scrollWidth > grid.clientWidth) {
+                            grid.scrollLeft += 0.8;
+                            if (grid.scrollLeft >= grid.scrollWidth - grid.clientWidth - 1) {
+                                grid.scrollLeft = 0;
+                            }
+                        }
+                        const loopId = requestAnimationFrame(autoScroll);
+                        window.activeMobileCarouselLoops.push(loopId);
+                    }
+                    
+                    const loopId = requestAnimationFrame(autoScroll);
+                    window.activeMobileCarouselLoops.push(loopId);
+                });
+            }
+
+            // ========================================================
             // DYNAMIC DATABASE DATA INJECTION ENGINE (Express API version)
             // ========================================================
 
