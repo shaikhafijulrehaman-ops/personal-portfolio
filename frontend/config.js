@@ -1,6 +1,6 @@
 const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
   ? 'http://localhost:8000'
-  : 'https://personal-portfolio-32ye.onrender.com'; // Leave empty if frontend/backend are hosted on same domain, or insert production API URL.
+  : '';
 
 // Helper to optimize image URLs served by Cloudinary or local assets
 window.optimizeImageUrl = function (url, width) {

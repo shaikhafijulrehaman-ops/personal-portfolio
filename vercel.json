@@ -7,7 +7,7 @@
   },
   "headers": [
     {
-      "source": "/frontend/images/(.*)",
+      "source": "/images/(.*)",
       "headers": [
         {
           "key": "Cache-Control",

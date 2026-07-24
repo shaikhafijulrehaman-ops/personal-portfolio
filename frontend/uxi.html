@@ -1088,15 +1088,7 @@
                 cursorGlow.style.top = e.clientY + 'px';
             });
 
-            // Fetch dynamic UXI Startup configuration in parallel
-            try {
-                const [general, team, projects, bgRes] = await Promise.all([
-                    fetch('/api/uxi/general').then(res => res.json()),
-                    fetch('/api/uxi/team').then(res => res.json()),
-                    fetch('/api/uxi/projects').then(res => res.json()),
-                    fetch('/api/settings/backgrounds').then(res => res.json()).catch(() => null)
-                ]);
-
+            const renderUXI = (general, team, projects, bgRes) => {
                 // Render dynamic Section Backgrounds
                 if (bgRes && bgRes.uxi_bg_image) {
                     document.body.style.backgroundImage = `url('${optimizeImageUrl(bgRes.uxi_bg_image, 1200)}')`;
@@ -1219,6 +1211,8 @@
                             `;
                             completedGrid.appendChild(card);
                         });
+                    } else {
+                        completedGrid.innerHTML = `<div style="grid-column:1/-1;text-align:center;color:var(--text-muted);padding:30px;">No completed UXI projects found.</div>`;
                     }
 
                     if (upcomingProjs.length > 0) {
@@ -1252,6 +1246,8 @@
                             `;
                             upcomingGrid.appendChild(card);
                         });
+                    } else {
+                        upcomingGrid.innerHTML = `<div style="grid-column:1/-1;text-align:center;color:var(--text-muted);padding:30px;">No upcoming projects in development.</div>`;
                     }
                 }
 
@@ -1262,21 +1258,43 @@
                     "max-glare": 0.12,
                     scale: 1.02
                 });
+            };
 
-                // Page fade out transition back to portfolio
-                document.querySelectorAll('a[href="/"], .btn-back-portfolio').forEach(link => {
-                    link.addEventListener('click', function(e) {
-                        e.preventDefault();
-                        document.body.classList.add('fade-out');
-                        setTimeout(() => {
-                            window.location.href = '/';
-                        }, 500);
-                    });
-                });
+            // Stale-while-revalidate Cache for UXI
+            const cachedUXI = localStorage.getItem('uxi_cache');
+            if (cachedUXI) {
+                try {
+                    const [general, team, projects, bgRes] = JSON.parse(cachedUXI);
+                    renderUXI(general, team, projects, bgRes);
+                } catch (e) {
+                    console.error("Error reading cached UXI data", e);
+                }
+            }
 
+            try {
+                const [general, team, projects, bgRes] = await Promise.all([
+                    fetch('/api/uxi/general').then(res => res.json()),
+                    fetch('/api/uxi/team').then(res => res.json()),
+                    fetch('/api/uxi/projects').then(res => res.json()),
+                    fetch('/api/settings/backgrounds').then(res => res.json()).catch(() => null)
+                ]);
+
+                renderUXI(general, team, projects, bgRes);
+                localStorage.setItem('uxi_cache', JSON.stringify([general, team, projects, bgRes]));
             } catch (e) {
                 console.error("Error setting up UXI Startup page dynamically", e);
             }
+
+            // Page fade out transition back to portfolio
+            document.querySelectorAll('a[href="/"], .btn-back-portfolio').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    document.body.classList.add('fade-out');
+                    setTimeout(() => {
+                        window.location.href = '/';
+                    }, 500);
+                });
+            });
         });
     </script>
 </body>
