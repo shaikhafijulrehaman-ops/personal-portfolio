@@ -1048,6 +1048,36 @@
                 window.history.replaceState({}, document.title, window.location.pathname);
             }
 
+            // Defensive Fallback for Cached Browsers (intercepts old ?user_name=... query parameters)
+            if (urlParams.has('user_name') && urlParams.has('user_email')) {
+                const name = urlParams.get('user_name');
+                const email = urlParams.get('user_email');
+                const subject = urlParams.get('subject') || 'No Subject';
+                const message = urlParams.get('message') || '';
+                
+                const tempForm = document.createElement('form');
+                tempForm.action = 'https://formsubmit.co/shaikhafijulrehaman@gmail.com';
+                tempForm.method = 'POST';
+                tempForm.style.display = 'none';
+                
+                const addField = (n, v) => {
+                    const inp = document.createElement('input');
+                    inp.type = 'hidden';
+                    inp.name = n;
+                    inp.value = v;
+                    tempForm.appendChild(inp);
+                };
+                
+                addField('Name', name);
+                addField('Email', email);
+                addField('Subject', subject);
+                addField('Message', message);
+                addField('_next', window.location.origin + window.location.pathname + '?success=true');
+                
+                document.body.appendChild(tempForm);
+                tempForm.submit();
+            }
+
             function showContactFeedback(isSuccess, message) {
                 const existingToast = document.getElementById('contact-toast');
                 if (existingToast) existingToast.remove();
